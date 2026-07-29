@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.limelight.ui.console.ConsoleHintBar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/consoleHintBar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="start|center_vertical"
     android:orientation="horizontal"
     android:paddingStart="10dp"
     android:paddingTop="10dp"
-    android:paddingEnd="10dp">
+    android:paddingEnd="10dp"
+    app:consoleShowOptionsHint="true">
 
     <TextView
-        android:layout_width="24dp"
+        android:id="@+id/hint_select_chip"
+        android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:background="@drawable/iris_hint_chip"
         android:gravity="center"
         android:importantForAccessibility="no"
-        android:text="A"
+        android:minWidth="24dp"
+        android:paddingStart="7dp"
+        android:paddingEnd="7dp"
+        android:text="@string/console_hint_button_a"
         android:textColor="@color/iris_text_primary"
         android:textSize="12sp"
         android:textStyle="bold" />
@@ -27,43 +34,67 @@
         android:textColor="@color/iris_text_secondary"
         android:textSize="13sp" />
 
-    <TextView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="18dp"
-        android:background="@drawable/iris_hint_chip"
-        android:gravity="center"
-        android:importantForAccessibility="no"
-        android:text="Y"
-        android:textColor="@color/iris_text_primary"
-        android:textSize="12sp"
-        android:textStyle="bold" />
-
-    <TextView
+    <LinearLayout
+        android:id="@+id/hint_options_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="7dp"
-        android:text="@string/console_hint_options"
-        android:textColor="@color/iris_text_secondary"
-        android:textSize="13sp" />
-
-    <TextView
-        android:layout_width="24dp"
-        android:layout_height="24dp"
         android:layout_marginStart="18dp"
-        android:background="@drawable/iris_hint_chip"
-        android:gravity="center"
-        android:importantForAccessibility="no"
-        android:text="B"
-        android:textColor="@color/iris_text_primary"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <TextView
+        <TextView
+            android:id="@+id/hint_options_chip"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:background="@drawable/iris_hint_chip"
+            android:gravity="center"
+            android:importantForAccessibility="no"
+            android:minWidth="24dp"
+            android:paddingStart="7dp"
+            android:paddingEnd="7dp"
+            android:text="@string/console_hint_button_y"
+            android:textColor="@color/iris_text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="7dp"
+            android:text="@string/console_hint_options"
+            android:textColor="@color/iris_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/hint_back_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="7dp"
-        android:text="@string/console_hint_back"
-        android:textColor="@color/iris_text_secondary"
-        android:textSize="13sp" />
-</LinearLayout>
+        android:layout_marginStart="18dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/hint_back_chip"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:background="@drawable/iris_hint_chip"
+            android:gravity="center"
+            android:importantForAccessibility="no"
+            android:minWidth="24dp"
+            android:paddingStart="7dp"
+            android:paddingEnd="7dp"
+            android:text="@string/console_hint_button_b"
+            android:textColor="@color/iris_text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="7dp"
+            android:text="@string/console_hint_back"
+            android:textColor="@color/iris_text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+</com.limelight.ui.console.ConsoleHintBar>

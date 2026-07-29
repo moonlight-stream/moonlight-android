@@ -148,6 +148,11 @@
     <string name="console_hint_select">Select</string>
     <string name="console_hint_options">Options</string>
     <string name="console_hint_back">Back</string>
+    <string name="console_hint_button_a">A</string>
+    <string name="console_hint_button_y">Y</string>
+    <string name="console_hint_button_b">B</string>
+    <string name="console_hint_gesture_tap">Tap</string>
+    <string name="console_hint_gesture_hold">Hold</string>
     <string name="console_host_online">Online and ready</string>
     <string name="console_host_offline">Offline • Open options to wake</string>
     <string name="console_host_refreshing">Checking host status…</string>

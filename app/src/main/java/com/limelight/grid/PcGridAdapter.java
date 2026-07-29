@@ -103,6 +103,7 @@ public final class PcGridAdapter extends RecyclerView.Adapter<PcGridAdapter.Host
         PcView.ComputerObject computer = itemList.get(position);
         ComputerDetails details = computer.details;
         holder.itemView.setTag(computer);
+        holder.avatar.setTag(computer);
         holder.name.setText(details.name);
         holder.icon.setAlpha(details.state == ComputerDetails.State.ONLINE ? 1f : 0.45f);
 
@@ -134,24 +135,25 @@ public final class PcGridAdapter extends RecyclerView.Adapter<PcGridAdapter.Host
             holder.spinner.setVisibility(View.VISIBLE);
         }
 
-        holder.itemView.setContentDescription(details.name + ". " + holder.status.getText());
-        holder.itemView.setOnClickListener(view -> {
+        holder.avatar.setContentDescription(details.name + ". " + holder.status.getText());
+        holder.avatar.setOnClickListener(view -> {
             if (listener != null) {
                 listener.onHostClicked(computer, view);
             }
         });
-        holder.itemView.setOnLongClickListener(view -> {
+        holder.avatar.setOnLongClickListener(view -> {
             if (listener != null) {
                 listener.onHostLongClicked(computer, view);
             }
             return true;
         });
-        holder.itemView.setOnFocusChangeListener((view, hasFocus) -> {
+        holder.avatar.setOnFocusChangeListener((view, hasFocus) -> {
             if (hasFocus && listener != null) {
-                listener.onHostFocused(computer, view);
+                // Pass the shelf item root so horizontal centering uses RecyclerView coordinates.
+                listener.onHostFocused(computer, holder.itemView);
             }
         });
-        holder.itemView.setOnKeyListener((view, keyCode, event) -> {
+        holder.avatar.setOnKeyListener((view, keyCode, event) -> {
             if (event.getAction() == KeyEvent.ACTION_DOWN &&
                     keyCode == KeyEvent.KEYCODE_BUTTON_Y && listener != null) {
                 listener.onHostLongClicked(computer, view);
@@ -167,6 +169,7 @@ public final class PcGridAdapter extends RecyclerView.Adapter<PcGridAdapter.Host
     }
 
     static final class HostViewHolder extends RecyclerView.ViewHolder {
+        final View avatar;
         final ImageView icon;
         final ImageView overlay;
         final ProgressBar spinner;
@@ -175,6 +178,7 @@ public final class PcGridAdapter extends RecyclerView.Adapter<PcGridAdapter.Host
 
         HostViewHolder(View itemView) {
             super(itemView);
+            avatar = itemView.findViewById(R.id.host_profile_avatar);
             icon = itemView.findViewById(R.id.grid_image);
             overlay = itemView.findViewById(R.id.grid_overlay);
             spinner = itemView.findViewById(R.id.grid_spinner);

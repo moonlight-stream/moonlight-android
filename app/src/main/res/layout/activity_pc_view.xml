@@ -16,28 +16,24 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_height="48dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="42dp"
-                android:layout_height="42dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:contentDescription="@string/app_label"
                 android:src="@drawable/iris_logo" />
 
-            <TextView
+            <View
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_weight="1"
-                android:text="@string/console_hosts"
-                style="@style/IrisHeaderText" />
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <TextClock
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
                 android:format12Hour="h:mm"
                 android:format24Hour="HH:mm"
                 android:importantForAccessibility="no"
@@ -52,110 +48,131 @@
                 android:importantForAccessibility="no"
                 android:textColor="@color/iris_text_secondary"
                 android:textSize="14sp" />
-
-            <Button
-                android:id="@+id/settingsButton"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/iris_button_selector"
-                android:contentDescription="@string/console_settings"
-                android:fontFamily="sans-serif-medium"
-                android:minWidth="0dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/console_settings"
-                android:textAllCaps="false"
-                android:textColor="@color/iris_text_primary"
-                android:textSize="14sp" />
-
-            <Button
-                android:id="@+id/manuallyAddPc"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/iris_button_selector"
-                android:contentDescription="@string/console_add_host"
-                android:fontFamily="sans-serif-medium"
-                android:minWidth="0dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/console_add_host"
-                android:textAllCaps="false"
-                android:textColor="@color/iris_text_primary"
-                android:textSize="14sp" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/hostHero"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:orientation="vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp">
+            android:clipChildren="false">
 
-            <TextView
-                android:id="@+id/hostHeroTitle"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/console_searching_title"
-                style="@style/IrisHeroTitle" />
+                android:layout_gravity="center"
+                android:clipChildren="false"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/hostHeroStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:maxWidth="680dp"
-                android:text="@string/console_searching_body"
-                android:textColor="@color/iris_text_secondary"
-                android:textSize="18sp" />
-        </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/hostHero"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="190dp">
+                    <TextView
+                        android:id="@+id/hostHeroTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:gravity="center_horizontal"
+                        android:maxLines="1"
+                        android:text="@string/console_searching_title"
+                        style="@style/IrisHeroTitle"
+                        android:textSize="34sp" />
 
-            <com.limelight.ui.console.ConsoleShelfView
-                android:id="@+id/hostShelf"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingStart="12dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="72dp"
-                android:paddingBottom="18dp" />
+                    <TextView
+                        android:id="@+id/hostHeroStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center_horizontal"
+                        android:text="@string/console_searching_body"
+                        android:textColor="@color/iris_text_secondary"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <com.limelight.ui.console.ConsoleShelfView
+                    android:id="@+id/hostShelf"
+                    android:layout_width="match_parent"
+                    android:layout_height="210dp"
+                    android:layout_marginTop="28dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false" />
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/no_pc_found_layout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/iris_glass_panel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:padding="20dp">
+                android:visibility="gone">
 
                 <ProgressBar
                     android:id="@+id/pcs_loading"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:indeterminate="true"
                     android:indeterminateTint="@color/iris_cyan" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="18dp"
+                    android:layout_marginStart="16dp"
                     android:text="@string/console_searching_title"
                     android:textColor="@color/iris_text_primary"
                     android:textSize="18sp" />
             </LinearLayout>
-        </RelativeLayout>
+        </FrameLayout>
 
-        <include layout="@layout/console_hint_bar" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="4dp">
+
+            <ImageButton
+                android:id="@+id/settingsButton"
+                android:layout_width="@dimen/console_chrome_icon_size"
+                android:layout_height="@dimen/console_chrome_icon_size"
+                android:background="@drawable/iris_chrome_icon_bg"
+                android:contentDescription="@string/console_settings"
+                android:nextFocusUp="@id/hostShelf"
+                android:padding="13dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_settings"
+                android:tint="@color/iris_text_primary" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center">
+
+                <include
+                    layout="@layout/console_hint_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
+            </FrameLayout>
+
+            <ImageButton
+                android:id="@+id/manuallyAddPc"
+                android:layout_width="@dimen/console_chrome_icon_size"
+                android:layout_height="@dimen/console_chrome_icon_size"
+                android:background="@drawable/iris_chrome_icon_bg"
+                android:contentDescription="@string/console_add_host"
+                android:nextFocusUp="@id/hostShelf"
+                android:padding="13dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_plus"
+                android:tint="@color/iris_text_primary" />
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>

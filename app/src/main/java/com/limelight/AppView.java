@@ -23,6 +23,7 @@ import com.limelight.nvstream.http.PairingManager;
 import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.ui.console.AmbientBackgroundView;
 import com.limelight.ui.console.ConsoleActionPanel;
+import com.limelight.ui.console.ConsoleHintBar;
 import com.limelight.ui.console.ConsoleStatusBar;
 import com.limelight.ui.console.LauncherBackdropController;
 import com.limelight.ui.console.LauncherLibraryStore;
@@ -49,8 +50,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -76,6 +79,7 @@ public class AppView extends Activity {
     private AmbientBackgroundView ambientBackground;
     private LauncherBackdropController backdropController;
     private LauncherLibraryStore libraryStore;
+    private ConsoleHintBar hintBar;
     private UiFeedbackManager uiFeedback;
     private AppObject contextApp;
     private View contextAppView;
@@ -337,6 +341,8 @@ public class AppView extends Activity {
                                                   oldLeft, oldTop, oldRight, oldBottom) ->
                 updateGameGridSpanCount());
         ambientBackground = findViewById(R.id.ambientBackground);
+        hintBar = findViewById(R.id.consoleHintBar);
+        ConsoleHintBar.bindActivity(this, hintBar);
         backdropController = new LauncherBackdropController(this,
                 findViewById(R.id.backdropFirst), findViewById(R.id.backdropSecond));
         setTitle(computerName);
@@ -621,12 +627,32 @@ public class AppView extends Activity {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (hintBar != null) {
+            hintBar.observeTouchEvent(event);
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (hintBar != null) {
+            hintBar.observeKeyEvent(event);
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
 
         SpinnerDialog.closeDialogs(this);
         Dialog.closeDialogs();
 
+        if (hintBar != null) {
+            hintBar.unbindFromHost();
+            hintBar = null;
+        }
         if (managerBinder != null) {
             unbindService(serviceConnection);
         }

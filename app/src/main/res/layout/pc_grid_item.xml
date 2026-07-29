@@ -1,58 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.limelight.ui.console.ConsoleCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="@dimen/console_host_width"
-    android:layout_height="@dimen/console_host_height"
-    android:layout_marginEnd="@dimen/console_card_gap"
-    android:padding="20dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/console_host_profile_item_width"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/console_host_profile_gap"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:defaultFocusHighlightEnabled="false"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
+    <com.limelight.ui.console.ConsoleCardView
+        android:id="@+id/host_profile_avatar"
+        android:layout_width="@dimen/console_host_profile_size"
+        android:layout_height="@dimen/console_host_profile_size"
+        android:defaultFocusHighlightEnabled="false"
+        app:consoleCircular="true">
 
         <ImageView
             android:id="@+id/grid_image"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
             android:importantForAccessibility="no"
             android:src="@drawable/ic_computer"
             android:tint="@color/iris_text_primary" />
 
-        <TextView
-            android:id="@+id/grid_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-medium"
-            android:maxLines="1"
-            android:textColor="@color/iris_text_primary"
-            android:textSize="20sp" />
+        <ImageView
+            android:id="@+id/grid_overlay"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/iris_chrome_icon_bg"
+            android:importantForAccessibility="no"
+            android:padding="5dp"
+            android:tint="@color/iris_warning" />
 
-        <TextView
-            android:id="@+id/grid_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/iris_text_secondary"
-            android:textSize="14sp" />
-    </LinearLayout>
+        <ProgressBar
+            android:id="@+id/grid_spinner"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="6dp"
+            android:layout_marginBottom="6dp"
+            android:indeterminateTint="@color/iris_cyan" />
+    </com.limelight.ui.console.ConsoleCardView>
 
-    <ImageView
-        android:id="@+id/grid_overlay"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_gravity="top|end"
+    <TextView
+        android:id="@+id/grid_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center_horizontal"
+        android:maxLines="1"
+        android:textColor="@color/iris_text_primary"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/grid_status"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:importantForAccessibility="no"
-        android:tint="@color/iris_warning" />
-
-    <ProgressBar
-        android:id="@+id/grid_spinner"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_gravity="top|end"
-        android:indeterminateTint="@color/iris_cyan" />
-</com.limelight.ui.console.ConsoleCardView>
+        android:visibility="gone" />
+</LinearLayout>

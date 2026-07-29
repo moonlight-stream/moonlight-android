@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ConsoleCardView">
+        <attr name="consoleCircular" format="boolean" />
+    </declare-styleable>
+    <declare-styleable name="ConsoleHintBar">
+        <attr name="consoleShowOptionsHint" format="boolean" />
+    </declare-styleable>
+</resources>

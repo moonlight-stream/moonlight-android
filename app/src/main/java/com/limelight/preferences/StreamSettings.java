@@ -27,6 +27,7 @@ import android.view.Display;
 import android.view.DisplayCutout;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
@@ -38,6 +39,7 @@ import com.limelight.LimeLog;
 import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.binding.video.MediaCodecHelper;
+import com.limelight.ui.console.ConsoleHintBar;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
@@ -48,6 +50,7 @@ import java.util.List;
 
 public class StreamSettings extends Activity {
     private static final String ARG_CATEGORY = "category";
+    private ConsoleHintBar hintBar;
     private static final String[] CATEGORY_KEYS = {
             "category_basic_settings",
             "category_audio_settings",
@@ -103,9 +106,18 @@ public class StreamSettings extends Activity {
 
         setContentView(R.layout.activity_stream_settings);
         setupCategoryRail();
+        bindHintBar();
 
         com.limelight.ui.console.ConsoleStatusBar.enterImmersiveMode(this);
         UiHelper.notifyNewRootView(this);
+    }
+
+    private void bindHintBar() {
+        if (hintBar != null) {
+            hintBar.unbindFromHost();
+        }
+        hintBar = findViewById(R.id.consoleHintBar);
+        ConsoleHintBar.bindActivity(this, hintBar);
     }
 
     private void setupCategoryRail() {
@@ -197,7 +209,18 @@ public class StreamSettings extends Activity {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (hintBar != null) {
+            hintBar.observeTouchEvent(event);
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        if (hintBar != null) {
+            hintBar.observeKeyEvent(event);
+        }
         if (event.getAction() == KeyEvent.ACTION_DOWN &&
                 settingsList != null && settingsList.hasFocus()) {
             int keyCode = event.getKeyCode();
@@ -254,8 +277,18 @@ public class StreamSettings extends Activity {
         super.onConfigurationChanged(newConfig);
         setContentView(R.layout.activity_stream_settings);
         setupCategoryRail();
+        bindHintBar();
         UiHelper.notifyNewRootView(this);
         reloadSettings();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (hintBar != null) {
+            hintBar.unbindFromHost();
+            hintBar = null;
+        }
+        super.onDestroy();
     }
 
     @Override

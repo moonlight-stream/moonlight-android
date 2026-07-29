@@ -24,6 +24,7 @@ import com.limelight.preferences.PreferenceConfiguration;
 import com.limelight.preferences.StreamSettings;
 import com.limelight.ui.console.AmbientBackgroundView;
 import com.limelight.ui.console.ConsoleActionPanel;
+import com.limelight.ui.console.ConsoleHintBar;
 import com.limelight.ui.console.ConsoleShelfView;
 import com.limelight.ui.console.ConsoleStatusBar;
 import com.limelight.ui.console.LauncherLibraryStore;
@@ -47,8 +48,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
@@ -70,6 +73,7 @@ public class PcView extends Activity {
     private TextView hostHeroStatus;
     private TextView batteryText;
     private AmbientBackgroundView ambientBackground;
+    private ConsoleHintBar hintBar;
     private UiFeedbackManager uiFeedback;
     private ComputerObject contextComputer;
     private String focusedHostUuid;
@@ -153,8 +157,14 @@ public class PcView extends Activity {
         hostShelf = findViewById(R.id.hostShelf);
         hostHeroTitle = findViewById(R.id.hostHeroTitle);
         hostHeroStatus = findViewById(R.id.hostHeroStatus);
+        View hostHero = findViewById(R.id.hostHero);
         batteryText = findViewById(R.id.batteryText);
         ambientBackground = findViewById(R.id.ambientBackground);
+        if (hintBar != null) {
+            hintBar.unbindFromHost();
+        }
+        hintBar = findViewById(R.id.consoleHintBar);
+        ConsoleHintBar.bindActivity(this, hintBar);
         ConsoleStatusBar.enterImmersiveMode(this);
         ConsoleStatusBar.updateBattery(this, batteryText);
 
@@ -175,6 +185,9 @@ public class PcView extends Activity {
         });
 
         hostShelf.setAdapter(pcGridAdapter);
+        hostShelf.setCenteredItemMetrics(
+                getResources().getDimensionPixelSize(R.dimen.console_host_profile_item_width),
+                getResources().getDimensionPixelSize(R.dimen.console_host_profile_gap));
         pcGridAdapter.setListener(new PcGridAdapter.Listener() {
             @Override
             public void onHostClicked(ComputerObject computer, View view) {
@@ -198,25 +211,36 @@ public class PcView extends Activity {
         });
 
         noPcFoundLayout = findViewById(R.id.no_pc_found_layout);
-        if (pcGridAdapter.getCount() == 0) {
-            noPcFoundLayout.setVisibility(View.VISIBLE);
-        }
-        else {
-            noPcFoundLayout.setVisibility(View.INVISIBLE);
-        }
+        updateHostsEmptyState(hostHero);
         pcGridAdapter.notifyDataSetChanged();
+        hostShelf.post(hostShelf::refreshHorizontalCentering);
         int focusPosition = pcGridAdapter.indexOfUuid(focusedHostUuid);
         if (focusPosition >= 0) {
+            updateHostHero(pcGridAdapter.getItem(focusPosition));
             hostShelf.scrollToPosition(focusPosition);
             hostShelf.post(() -> {
                 if (hostShelf.getLayoutManager() != null) {
-                    View focused = hostShelf.getLayoutManager()
+                    View item = hostShelf.getLayoutManager()
                             .findViewByPosition(focusPosition);
+                    View focused = item == null ? null : item.findViewById(R.id.host_profile_avatar);
                     if (focused != null && !hostShelf.isInTouchMode()) {
                         focused.requestFocus();
                     }
                 }
             });
+        }
+    }
+
+    private void updateHostsEmptyState(View hostHero) {
+        boolean empty = pcGridAdapter.getCount() == 0;
+        if (noPcFoundLayout != null) {
+            noPcFoundLayout.setVisibility(empty ? View.VISIBLE : View.GONE);
+        }
+        if (hostShelf != null) {
+            hostShelf.setVisibility(empty ? View.GONE : View.VISIBLE);
+        }
+        if (hostHero != null) {
+            hostHero.setVisibility(empty ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -330,9 +354,29 @@ public class PcView extends Activity {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (hintBar != null) {
+            hintBar.observeTouchEvent(event);
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (hintBar != null) {
+            hintBar.observeKeyEvent(event);
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
 
+        if (hintBar != null) {
+            hintBar.unbindFromHost();
+            hintBar = null;
+        }
         if (managerBinder != null) {
             unbindService(serviceConnection);
         }
@@ -778,10 +822,9 @@ public class PcView extends Activity {
 
                 pcGridAdapter.removeComputer(computer);
                 pcGridAdapter.notifyDataSetChanged();
-
-                if (pcGridAdapter.getCount() == 0) {
-                    // Show the "Discovery in progress" view
-                    noPcFoundLayout.setVisibility(View.VISIBLE);
+                updateHostsEmptyState(findViewById(R.id.hostHero));
+                if (hostShelf != null) {
+                    hostShelf.post(hostShelf::refreshHorizontalCentering);
                 }
 
                 break;
@@ -810,13 +853,13 @@ public class PcView extends Activity {
             // Add a new entry
             pcGridAdapter.addComputer(new ComputerObject(details));
 
-            // Remove the "Discovery in progress" view
-            noPcFoundLayout.setVisibility(View.INVISIBLE);
+            updateHostsEmptyState(findViewById(R.id.hostHero));
             if (pcGridAdapter.getCount() == 1) {
                 updateHostHero(pcGridAdapter.getItem(0));
                 hostShelf.post(() -> {
-                    View first = hostShelf.getLayoutManager() != null ?
+                    View item = hostShelf.getLayoutManager() != null ?
                             hostShelf.getLayoutManager().findViewByPosition(0) : null;
+                    View first = item == null ? null : item.findViewById(R.id.host_profile_avatar);
                     if (first != null) {
                         first.requestFocus();
                     }
@@ -826,6 +869,9 @@ public class PcView extends Activity {
 
         // Notify the view that the data has changed
         pcGridAdapter.notifyDataSetChanged();
+        if (hostShelf != null) {
+            hostShelf.post(hostShelf::refreshHorizontalCentering);
+        }
     }
 
     private void handleHostClick(ComputerObject computer, View view) {

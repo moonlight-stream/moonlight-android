@@ -51,9 +51,7 @@
             android:nextFocusDown="@id/addPcButton"
             android:singleLine="true"
             android:textColor="@color/iris_text_primary"
-            android:textColorHint="@color/iris_text_secondary">
-            <requestFocus />
-        </EditText>
+            android:textColorHint="@color/iris_text_secondary" />
 
         <Button
             android:id="@+id/addPcButton"

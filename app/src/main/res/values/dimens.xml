@@ -17,5 +17,9 @@
     <dimen name="console_cover_height">210dp</dimen>
     <dimen name="console_host_width">280dp</dimen>
     <dimen name="console_host_height">158dp</dimen>
+    <dimen name="console_host_profile_size">128dp</dimen>
+    <dimen name="console_host_profile_item_width">148dp</dimen>
+    <dimen name="console_host_profile_gap">28dp</dimen>
+    <dimen name="console_chrome_icon_size">52dp</dimen>
 
 </resources>

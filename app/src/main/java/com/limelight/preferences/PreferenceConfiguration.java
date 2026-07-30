@@ -72,6 +72,7 @@ public class PreferenceConfiguration {
     private static final String SBS_SCALE_PREF_STRING = "seekbar_sbs_scale";
     private static final String SBS_SEPARATION_PREF_STRING = "seekbar_sbs_separation";
     private static final String SBS_VERTICAL_POSITION_PREF_STRING = "seekbar_sbs_vertical_position";
+    private static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -116,6 +117,7 @@ public class PreferenceConfiguration {
     private static final int DEFAULT_SBS_SCALE = 80;
     private static final int DEFAULT_SBS_SEPARATION = 50;
     private static final int DEFAULT_SBS_VERTICAL_POSITION = 50;
+    private static final int DEFAULT_SBS_LENS_CORRECTION = 50;
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;
@@ -167,6 +169,7 @@ public class PreferenceConfiguration {
     public int sbsScalePercentage;
     public int sbsSeparationPercentage;
     public int sbsVerticalPositionPercentage;
+    public int sbsLensCorrectionPercentage;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -443,6 +446,7 @@ public class PreferenceConfiguration {
                 .remove(SBS_SCALE_PREF_STRING)
                 .remove(SBS_SEPARATION_PREF_STRING)
                 .remove(SBS_VERTICAL_POSITION_PREF_STRING)
+                .remove(SBS_LENS_CORRECTION_PREF_STRING)
                 .apply();
     }
 
@@ -587,6 +591,7 @@ public class PreferenceConfiguration {
         config.sbsScalePercentage = prefs.getInt(SBS_SCALE_PREF_STRING, DEFAULT_SBS_SCALE);
         config.sbsSeparationPercentage = prefs.getInt(SBS_SEPARATION_PREF_STRING, DEFAULT_SBS_SEPARATION);
         config.sbsVerticalPositionPercentage = prefs.getInt(SBS_VERTICAL_POSITION_PREF_STRING, DEFAULT_SBS_VERTICAL_POSITION);
+        config.sbsLensCorrectionPercentage = prefs.getInt(SBS_LENS_CORRECTION_PREF_STRING, DEFAULT_SBS_LENS_CORRECTION);
 
         config.language = prefs.getString(LANGUAGE_PREF_STRING, DEFAULT_LANGUAGE);
 

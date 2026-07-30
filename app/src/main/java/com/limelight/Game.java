@@ -2271,6 +2271,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         prefConfig.sbsScalePercentage,
                         prefConfig.sbsSeparationPercentage,
                         prefConfig.sbsVerticalPositionPercentage,
+                        prefConfig.sbsLensCorrectionPercentage,
                         exception -> runOnUiThread(() -> {
                             if (connecting || connected) {
                                 decoderRenderer.prepareForStop();

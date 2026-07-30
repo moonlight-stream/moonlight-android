@@ -27,6 +27,8 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     }
 
     private static final int START_TIMEOUT_SECONDS = 5;
+    private static final int MAX_LENS_CORRECTION_PERCENTAGE = 100;
+    private static final float MAX_DISTORTION_COEFFICIENT = 0.4f;
 
     private static final float[] QUAD_VERTICES = {
             -1.0f, -1.0f, 0.0f, 0.0f,
@@ -40,18 +42,42 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             "attribute vec2 aTextureCoordinate;\n" +
             "uniform mat4 uTextureMatrix;\n" +
             "varying vec2 vTextureCoordinate;\n" +
+            "varying vec2 vLensDelta;\n" +
+            "varying vec2 vTextureLensDelta;\n" +
             "void main() {\n" +
+            "  vec2 lensDelta = aTextureCoordinate - vec2(0.5);\n" +
             "  gl_Position = vec4(aPosition, 0.0, 1.0);\n" +
             "  vTextureCoordinate = (uTextureMatrix * vec4(aTextureCoordinate, 0.0, 1.0)).xy;\n" +
+            "  vLensDelta = lensDelta;\n" +
+            "  vTextureLensDelta = (uTextureMatrix * vec4(lensDelta, 0.0, 0.0)).xy;\n" +
             "}\n";
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
             "precision mediump float;\n" +
             "uniform samplerExternalOES uTexture;\n" +
+            "uniform vec2 uLensScale;\n" +
+            "uniform float uDistortionCoefficient;\n" +
             "varying vec2 vTextureCoordinate;\n" +
+            "varying vec2 vLensDelta;\n" +
+            "varying vec2 vTextureLensDelta;\n" +
             "void main() {\n" +
-            "  gl_FragColor = texture2D(uTexture, vTextureCoordinate);\n" +
+            "  if (uDistortionCoefficient == 0.0) {\n" +
+            "    gl_FragColor = texture2D(uTexture, vTextureCoordinate);\n" +
+            "  } else {\n" +
+            "    vec2 radialPosition = vLensDelta * uLensScale;\n" +
+            "    float distortionFactor = 1.0 +\n" +
+            "        uDistortionCoefficient * dot(radialPosition, radialPosition);\n" +
+            "    vec2 warpedTextureCoordinate = vec2(0.5) + vLensDelta * distortionFactor;\n" +
+            "    if (warpedTextureCoordinate.x < 0.0 || warpedTextureCoordinate.x > 1.0 ||\n" +
+            "        warpedTextureCoordinate.y < 0.0 || warpedTextureCoordinate.y > 1.0) {\n" +
+            "      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n" +
+            "    } else {\n" +
+            "      vec2 sampledTextureCoordinate = vTextureCoordinate +\n" +
+            "          vTextureLensDelta * (distortionFactor - 1.0);\n" +
+            "      gl_FragColor = texture2D(uTexture, sampledTextureCoordinate);\n" +
+            "    }\n" +
+            "  }\n" +
             "}\n";
 
     private final Surface outputSurface;
@@ -62,6 +88,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private final int scalePercentage;
     private final int separationPercentage;
     private final int verticalPositionPercentage;
+    private final float distortionCoefficient;
     private final FailureListener failureListener;
     private final HandlerThread renderThread;
     private final Handler renderHandler;
@@ -78,6 +105,8 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private int positionHandle;
     private int textureCoordinateHandle;
     private int textureMatrixHandle;
+    private int lensScaleHandle;
+    private int distortionCoefficientHandle;
     private volatile boolean outputPaused;
     private boolean renderPending;
     private boolean stopped;
@@ -86,6 +115,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     public SbsRenderer(Surface outputSurface, int outputWidth, int outputHeight,
                        int videoWidth, int videoHeight, int scalePercentage,
                        int separationPercentage, int verticalPositionPercentage,
+                       int lensCorrectionPercentage,
                        FailureListener failureListener) throws Exception {
         this.outputSurface = outputSurface;
         this.outputWidth = outputWidth;
@@ -95,6 +125,10 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         this.scalePercentage = scalePercentage;
         this.separationPercentage = separationPercentage;
         this.verticalPositionPercentage = verticalPositionPercentage;
+        int clampedLensCorrectionPercentage = Math.max(0,
+                Math.min(MAX_LENS_CORRECTION_PERCENTAGE, lensCorrectionPercentage));
+        this.distortionCoefficient = clampedLensCorrectionPercentage *
+                MAX_DISTORTION_COEFFICIENT / MAX_LENS_CORRECTION_PERCENTAGE;
         this.failureListener = failureListener;
 
         renderThread = new HandlerThread("Video - SBS Renderer");
@@ -210,6 +244,8 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
         textureCoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextureCoordinate");
         textureMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uTextureMatrix");
+        lensScaleHandle = GLES20.glGetUniformLocation(shaderProgram, "uLensScale");
+        distortionCoefficientHandle = GLES20.glGetUniformLocation(shaderProgram, "uDistortionCoefficient");
 
         vertexBuffer = ByteBuffer.allocateDirect(QUAD_VERTICES.length * Float.BYTES)
                 .order(ByteOrder.nativeOrder())
@@ -252,6 +288,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
             GLES20.glUniform1i(GLES20.glGetUniformLocation(shaderProgram, "uTexture"), 0);
             GLES20.glUniformMatrix4fv(textureMatrixHandle, 1, false, textureMatrix, 0);
+            GLES20.glUniform1f(distortionCoefficientHandle, distortionCoefficient);
 
             vertexBuffer.position(0);
             GLES20.glEnableVertexAttribArray(positionHandle);
@@ -302,6 +339,10 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         int separationOffset = Math.round((separationPercentage - 50) / 50.0f * horizontalMargin / 2.0f);
         int verticalMargin = outputHeight - imageHeight;
         int imageY = Math.round(verticalMargin * (100 - verticalPositionPercentage) / 100.0f);
+
+        // Keep radial distance in output pixels so screen scaling changes optical correction naturally.
+        float lensRadius = Math.max(1.0f, Math.min(eyeWidth, outputHeight) / 2.0f);
+        GLES20.glUniform2f(lensScaleHandle, imageWidth / lensRadius, imageHeight / lensRadius);
 
         int leftX = horizontalMargin / 2 - separationOffset;
         int rightX = eyeWidth + horizontalMargin / 2 + separationOffset;

@@ -258,6 +258,8 @@
     <string name="summary_sbs_separation">Move the left and right images closer together or farther apart. 50% is centered.</string>
     <string name="title_sbs_vertical_position">SBS vertical position</string>
     <string name="summary_sbs_vertical_position">Move both images down or up. 50% is centered.</string>
+    <string name="title_sbs_lens_correction">SBS lens correction strength</string>
+    <string name="summary_sbs_lens_correction">Compensate for headset lens distortion. Set to 0% to disable, or adjust until straight lines look straight.</string>
     <string name="suffix_percentage">%</string>
     <string name="sbs_hdr_unavailable">HDR is unavailable in side-by-side mode</string>
     <string name="sbs_renderer_init_failed">Unable to initialize the side-by-side renderer on this device.</string>

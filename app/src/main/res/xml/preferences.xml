@@ -296,6 +296,17 @@
             android:max="100"
             seekbar:step="1"
             android:text="@string/suffix_percentage" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_lens_correction"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_lens_correction"
+            android:summary="@string/summary_sbs_lens_correction"
+            android:dialogMessage="@string/summary_sbs_lens_correction"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
         <CheckBoxPreference
             android:key="checkbox_enable_perf_overlay"
             android:title="@string/title_enable_perf_overlay"

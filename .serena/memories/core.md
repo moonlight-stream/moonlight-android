@@ -15,9 +15,12 @@
   persisted local SBS settings; `NvConnection` owns connection cancellation and
   native permit lifecycle.
 - Current SBS MVP provides duplicated eyes, aspect-fit black surround, virtual
-  screen scale, horizontal separation and vertical position. HDR is disabled in
-  SBS. Absolute input is intentionally not treated as mapped headset input.
-- Lens distortion, chromatic correction, Cardboard integration and head tracking
-  are future scopes requiring a user decision.
+  screen scale, horizontal separation, vertical position, and configurable
+  one-term radial lens correction. HDR is disabled in SBS. Absolute input is
+  intentionally not treated as mapped headset input.
+- Lens correction is a local `0..100%` strength in `SbsRenderer`, defaulting to
+  `50%` (`k=0.20`); it adds no render pass and `0%` bypasses fragment distortion.
+  A headset-specific optical profile, chromatic correction, Cardboard integration
+  and head tracking remain future scopes requiring a user decision.
 - Start further discovery with `mem:tech_stack`, `mem:conventions`,
   `mem:suggested_commands`, and `mem:task_completion`.

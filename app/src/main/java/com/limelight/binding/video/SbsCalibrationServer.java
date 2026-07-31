@@ -280,7 +280,10 @@ public final class SbsCalibrationServer {
                 parseInt(parameters, "scale"),
                 parseInt(parameters, "separation"),
                 parseInt(parameters, "verticalPosition"),
-                parseInt(parameters, "lensCorrection"),
+                parseBoolean(parameters, "lensHorizontalEnabled"),
+                parseInt(parameters, "lensHorizontalCorrection"),
+                parseBoolean(parameters, "lensVerticalEnabled"),
+                parseInt(parameters, "lensVerticalCorrection"),
                 parseBoolean(parameters, "chromaticHorizontalEnabled"),
                 parseInt(parameters, "chromaticHorizontalCorrection"),
                 parseBoolean(parameters, "chromaticVerticalEnabled"),
@@ -386,7 +389,9 @@ public final class SbsCalibrationServer {
     static String toJson(SbsCalibrationSnapshot snapshot) {
         return String.format(Locale.US,
                 "{\"scale\":%d,\"separation\":%d,\"verticalPosition\":%d," +
-                "\"lensCorrection\":%d,\"chromaticHorizontalEnabled\":%b," +
+                "\"lensHorizontalEnabled\":%b,\"lensHorizontalCorrection\":%d," +
+                "\"lensVerticalEnabled\":%b,\"lensVerticalCorrection\":%d," +
+                "\"chromaticHorizontalEnabled\":%b," +
                 "\"chromaticHorizontalCorrection\":%d," +
                 "\"chromaticVerticalEnabled\":%b," +
                 "\"chromaticVerticalCorrection\":%d," +
@@ -396,7 +401,11 @@ public final class SbsCalibrationServer {
                 "\"leftYawCorrection\":%.3f,\"rightYawCorrection\":%.3f," +
                 "\"leftPitchCorrection\":%.3f,\"rightPitchCorrection\":%.3f}",
                 snapshot.scalePercentage, snapshot.separationPercentage,
-                snapshot.verticalPositionPercentage, snapshot.lensCorrectionPercentage,
+                snapshot.verticalPositionPercentage,
+                snapshot.lensHorizontalEnabled,
+                snapshot.lensHorizontalCorrectionPercentage,
+                snapshot.lensVerticalEnabled,
+                snapshot.lensVerticalCorrectionPercentage,
                 snapshot.chromaticHorizontalEnabled,
                 snapshot.chromaticHorizontalCorrectionPercentage,
                 snapshot.chromaticVerticalEnabled,

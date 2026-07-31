@@ -31,4 +31,13 @@ public class SbsRendererMathTest {
         assertEquals(0.0f,
                 SbsRenderer.getChromaticCorrectionCoefficient(false, 100), 0.0f);
     }
+
+    @Test
+    public void lensCorrectionCanBeDisabledPerAxis() {
+        assertEquals(0.0f, SbsRenderer.getLensCorrectionCoefficient(true, 0), 0.0f);
+        assertEquals(0.4f,
+                SbsRenderer.getLensCorrectionCoefficient(true, 100), 0.00001f);
+        assertEquals(0.0f,
+                SbsRenderer.getLensCorrectionCoefficient(false, 100), 0.0f);
+    }
 }

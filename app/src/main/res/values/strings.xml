@@ -258,8 +258,14 @@
     <string name="summary_sbs_separation">Move the left and right images closer together or farther apart. 50% is centered.</string>
     <string name="title_sbs_vertical_position">SBS vertical position</string>
     <string name="summary_sbs_vertical_position">Move both images down or up. 50% is centered.</string>
-    <string name="title_sbs_lens_correction">SBS lens correction strength</string>
-    <string name="summary_sbs_lens_correction">Compensate for headset lens distortion. Set to 0% to disable, or adjust until straight lines look straight.</string>
+    <string name="title_sbs_lens_horizontal_enabled">Enable horizontal SBS lens correction</string>
+    <string name="summary_sbs_lens_horizontal_enabled">Apply geometric lens compensation along the horizontal axis.</string>
+    <string name="title_sbs_lens_horizontal_correction">Horizontal SBS lens correction strength</string>
+    <string name="summary_sbs_lens_horizontal_correction">Adjust horizontal compensation until vertical lines look straight.</string>
+    <string name="title_sbs_lens_vertical_enabled">Enable vertical SBS lens correction</string>
+    <string name="summary_sbs_lens_vertical_enabled">Apply geometric lens compensation along the vertical axis.</string>
+    <string name="title_sbs_lens_vertical_correction">Vertical SBS lens correction strength</string>
+    <string name="summary_sbs_lens_vertical_correction">Adjust vertical compensation until horizontal lines look straight.</string>
     <string name="title_enable_sbs_calibration_server">Enable SBS calibration server</string>
     <string name="summary_enable_sbs_calibration_server">Allow a computer on the local network to adjust SBS geometry while Moonlight is running. This prototype has no authentication or TLS.</string>
     <string name="title_sbs_calibration_server_port">SBS calibration TCP port</string>

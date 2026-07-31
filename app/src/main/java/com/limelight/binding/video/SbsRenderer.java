@@ -58,7 +58,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             "uniform vec2 uImageCenter;\n" +
             "uniform vec2 uImageHalfSize;\n" +
             "uniform vec2 uLensScale;\n" +
-            "uniform float uDistortionCoefficient;\n" +
+            "uniform vec2 uDistortionCoefficient;\n" +
             "uniform vec2 uChromaticCorrectionCoefficient;\n" +
             "varying vec2 vEyeCoordinate;\n" +
             "bool mapTextureCoordinate(vec2 placedCoordinate, out vec2 textureCoordinate) {\n" +
@@ -78,7 +78,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             "void main() {\n" +
             "  vec2 radialPosition = vEyeCoordinate * uLensScale;\n" +
             "  float radiusSquared = dot(radialPosition, radialPosition);\n" +
-            "  float distortionFactor = 1.0 + uDistortionCoefficient *\n" +
+            "  vec2 distortionFactor = vec2(1.0) + uDistortionCoefficient *\n" +
             "      radiusSquared;\n" +
             "  vec2 greenPlacedCoordinate =\n" +
             "      (vEyeCoordinate * distortionFactor - uImageCenter) /\n" +
@@ -93,10 +93,10 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             "    vec2 chromaticOffset =\n" +
             "        uChromaticCorrectionCoefficient * radiusSquared;\n" +
             "    vec2 redPlacedCoordinate =\n" +
-            "        (vEyeCoordinate * (vec2(distortionFactor) + chromaticOffset) - uImageCenter) /\n" +
+            "        (vEyeCoordinate * (distortionFactor + chromaticOffset) - uImageCenter) /\n" +
             "        uImageHalfSize;\n" +
             "    vec2 bluePlacedCoordinate =\n" +
-            "        (vEyeCoordinate * (vec2(distortionFactor) - chromaticOffset) - uImageCenter) /\n" +
+            "        (vEyeCoordinate * (distortionFactor - chromaticOffset) - uImageCenter) /\n" +
             "        uImageHalfSize;\n" +
             "    vec2 redTextureCoordinate;\n" +
             "    vec2 blueTextureCoordinate;\n" +
@@ -327,9 +327,13 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
 
             // A single immutable snapshot prevents HTTP updates from tearing across one frame.
             SbsCalibrationSnapshot calibration = calibrationController.getLiveSnapshot();
-            float distortionCoefficient = calibration.lensCorrectionPercentage *
-                    MAX_DISTORTION_COEFFICIENT / MAX_LENS_CORRECTION_PERCENTAGE;
-            GLES20.glUniform1f(distortionCoefficientHandle, distortionCoefficient);
+            GLES20.glUniform2f(distortionCoefficientHandle,
+                    getLensCorrectionCoefficient(
+                            calibration.lensHorizontalEnabled,
+                            calibration.lensHorizontalCorrectionPercentage),
+                    getLensCorrectionCoefficient(
+                            calibration.lensVerticalEnabled,
+                            calibration.lensVerticalCorrectionPercentage));
             GLES20.glUniform2f(chromaticCorrectionCoefficientHandle,
                     getChromaticCorrectionCoefficient(
                             calibration.chromaticHorizontalEnabled,
@@ -437,6 +441,14 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         }
         return percentage * MAX_CHROMATIC_CORRECTION_COEFFICIENT /
                 MAX_CHROMATIC_CORRECTION_PERCENTAGE;
+    }
+
+    static float getLensCorrectionCoefficient(boolean enabled, int percentage) {
+        if (!enabled) {
+            return 0.0f;
+        }
+        return percentage * MAX_DISTORTION_COEFFICIENT /
+                MAX_LENS_CORRECTION_PERCENTAGE;
     }
 
     static void buildInverseHomography(float yawDegrees, float pitchDegrees,

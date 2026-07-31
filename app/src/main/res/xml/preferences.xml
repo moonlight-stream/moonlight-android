@@ -296,12 +296,35 @@
             android:max="100"
             seekbar:step="1"
             android:text="@string/suffix_percentage" />
-        <com.limelight.preferences.SeekBarPreference
-            android:key="seekbar_sbs_lens_correction"
+        <CheckBoxPreference
+            android:key="checkbox_sbs_lens_horizontal_enabled"
             android:dependency="checkbox_enable_sbs"
-            android:title="@string/title_sbs_lens_correction"
-            android:summary="@string/summary_sbs_lens_correction"
-            android:dialogMessage="@string/summary_sbs_lens_correction"
+            android:title="@string/title_sbs_lens_horizontal_enabled"
+            android:summary="@string/summary_sbs_lens_horizontal_enabled"
+            android:defaultValue="true" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_lens_horizontal_correction"
+            android:dependency="checkbox_sbs_lens_horizontal_enabled"
+            android:title="@string/title_sbs_lens_horizontal_correction"
+            android:summary="@string/summary_sbs_lens_horizontal_correction"
+            android:dialogMessage="@string/summary_sbs_lens_horizontal_correction"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_lens_vertical_enabled"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_lens_vertical_enabled"
+            android:summary="@string/summary_sbs_lens_vertical_enabled"
+            android:defaultValue="true" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_lens_vertical_correction"
+            android:dependency="checkbox_sbs_lens_vertical_enabled"
+            android:title="@string/title_sbs_lens_vertical_correction"
+            android:summary="@string/summary_sbs_lens_vertical_correction"
+            android:dialogMessage="@string/summary_sbs_lens_vertical_correction"
             android:defaultValue="50"
             seekbar:min="0"
             android:max="100"

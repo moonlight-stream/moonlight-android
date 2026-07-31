@@ -73,6 +73,14 @@ public class PreferenceConfiguration {
     public static final String SBS_SEPARATION_PREF_STRING = "seekbar_sbs_separation";
     public static final String SBS_VERTICAL_POSITION_PREF_STRING = "seekbar_sbs_vertical_position";
     public static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
+    public static final String SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_lens_horizontal_enabled";
+    public static final String SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING =
+            "seekbar_sbs_lens_horizontal_correction";
+    public static final String SBS_LENS_VERTICAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_lens_vertical_enabled";
+    public static final String SBS_LENS_VERTICAL_CORRECTION_PREF_STRING =
+            "seekbar_sbs_lens_vertical_correction";
     public static final String SBS_CHROMATIC_CORRECTION_PREF_STRING = "sbs_chromatic_correction";
     public static final String SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING =
             "sbs_chromatic_horizontal_enabled";
@@ -196,14 +204,42 @@ public class PreferenceConfiguration {
     public int sbsScalePercentage;
     public int sbsSeparationPercentage;
     public int sbsVerticalPositionPercentage;
-    public int sbsLensCorrectionPercentage;
 
     public static SbsCalibrationSnapshot readSbsCalibrationPreferences(Context context) {
-        return readSbsCalibrationPreferences(PreferenceManager.getDefaultSharedPreferences(context));
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SbsCalibrationSnapshot snapshot = readSbsCalibrationPreferences(prefs);
+        migrateLegacySbsLensPreferences(prefs, snapshot);
+        return snapshot;
     }
 
     static SbsCalibrationSnapshot readSbsCalibrationPreferences(SharedPreferences prefs) {
         return SbsCalibrationSnapshot.fromPreferenceMap(prefs.getAll());
+    }
+
+    private static void migrateLegacySbsLensPreferences(SharedPreferences prefs,
+                                                         SbsCalibrationSnapshot snapshot) {
+        if (!prefs.contains(SBS_LENS_CORRECTION_PREF_STRING)) {
+            return;
+        }
+
+        SharedPreferences.Editor editor = prefs.edit();
+        if (!prefs.contains(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING)) {
+            editor.putBoolean(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
+                    snapshot.lensHorizontalEnabled);
+        }
+        if (!prefs.contains(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING)) {
+            editor.putInt(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
+                    snapshot.lensHorizontalCorrectionPercentage);
+        }
+        if (!prefs.contains(SBS_LENS_VERTICAL_ENABLED_PREF_STRING)) {
+            editor.putBoolean(SBS_LENS_VERTICAL_ENABLED_PREF_STRING,
+                    snapshot.lensVerticalEnabled);
+        }
+        if (!prefs.contains(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING)) {
+            editor.putInt(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING,
+                    snapshot.lensVerticalCorrectionPercentage);
+        }
+        editor.remove(SBS_LENS_CORRECTION_PREF_STRING).apply();
     }
 
     public static boolean writeSbsCalibrationPreferences(Context context,
@@ -212,7 +248,15 @@ public class PreferenceConfiguration {
         editor.putInt(SBS_SCALE_PREF_STRING, snapshot.scalePercentage);
         editor.putInt(SBS_SEPARATION_PREF_STRING, snapshot.separationPercentage);
         editor.putInt(SBS_VERTICAL_POSITION_PREF_STRING, snapshot.verticalPositionPercentage);
-        editor.putInt(SBS_LENS_CORRECTION_PREF_STRING, snapshot.lensCorrectionPercentage);
+        editor.putBoolean(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
+                snapshot.lensHorizontalEnabled);
+        editor.putInt(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
+                snapshot.lensHorizontalCorrectionPercentage);
+        editor.putBoolean(SBS_LENS_VERTICAL_ENABLED_PREF_STRING,
+                snapshot.lensVerticalEnabled);
+        editor.putInt(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING,
+                snapshot.lensVerticalCorrectionPercentage);
+        editor.remove(SBS_LENS_CORRECTION_PREF_STRING);
         editor.putBoolean(SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING,
                 snapshot.chromaticHorizontalEnabled);
         editor.putInt(SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING,
@@ -242,6 +286,10 @@ public class PreferenceConfiguration {
                 SBS_SEPARATION_PREF_STRING.equals(key) ||
                 SBS_VERTICAL_POSITION_PREF_STRING.equals(key) ||
                 SBS_LENS_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_LENS_VERTICAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_LENS_VERTICAL_CORRECTION_PREF_STRING.equals(key) ||
                 SBS_CHROMATIC_CORRECTION_PREF_STRING.equals(key) ||
                 SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
                 SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING.equals(key) ||
@@ -536,6 +584,10 @@ public class PreferenceConfiguration {
                 .remove(SBS_SEPARATION_PREF_STRING)
                 .remove(SBS_VERTICAL_POSITION_PREF_STRING)
                 .remove(SBS_LENS_CORRECTION_PREF_STRING)
+                .remove(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING)
+                .remove(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING)
+                .remove(SBS_LENS_VERTICAL_ENABLED_PREF_STRING)
+                .remove(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING)
                 .apply();
     }
 
@@ -680,8 +732,6 @@ public class PreferenceConfiguration {
         config.sbsScalePercentage = prefs.getInt(SBS_SCALE_PREF_STRING, DEFAULT_SBS_SCALE);
         config.sbsSeparationPercentage = prefs.getInt(SBS_SEPARATION_PREF_STRING, DEFAULT_SBS_SEPARATION);
         config.sbsVerticalPositionPercentage = prefs.getInt(SBS_VERTICAL_POSITION_PREF_STRING, DEFAULT_SBS_VERTICAL_POSITION);
-        config.sbsLensCorrectionPercentage = prefs.getInt(SBS_LENS_CORRECTION_PREF_STRING, DEFAULT_SBS_LENS_CORRECTION);
-
         config.language = prefs.getString(LANGUAGE_PREF_STRING, DEFAULT_LANGUAGE);
 
         // Checkbox preferences

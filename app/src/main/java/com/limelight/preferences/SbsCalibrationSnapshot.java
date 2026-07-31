@@ -16,7 +16,10 @@ public final class SbsCalibrationSnapshot {
     public final int scalePercentage;
     public final int separationPercentage;
     public final int verticalPositionPercentage;
-    public final int lensCorrectionPercentage;
+    public final boolean lensHorizontalEnabled;
+    public final int lensHorizontalCorrectionPercentage;
+    public final boolean lensVerticalEnabled;
+    public final int lensVerticalCorrectionPercentage;
     public final boolean chromaticHorizontalEnabled;
     public final int chromaticHorizontalCorrectionPercentage;
     public final boolean chromaticVerticalEnabled;
@@ -34,7 +37,11 @@ public final class SbsCalibrationSnapshot {
     public final float rightPitchCorrectionDegrees;
 
     private SbsCalibrationSnapshot(int scalePercentage, int separationPercentage,
-                                   int verticalPositionPercentage, int lensCorrectionPercentage,
+                                   int verticalPositionPercentage,
+                                   boolean lensHorizontalEnabled,
+                                   int lensHorizontalCorrectionPercentage,
+                                   boolean lensVerticalEnabled,
+                                   int lensVerticalCorrectionPercentage,
                                    boolean chromaticHorizontalEnabled,
                                    int chromaticHorizontalCorrectionPercentage,
                                    boolean chromaticVerticalEnabled,
@@ -50,7 +57,10 @@ public final class SbsCalibrationSnapshot {
         this.scalePercentage = scalePercentage;
         this.separationPercentage = separationPercentage;
         this.verticalPositionPercentage = verticalPositionPercentage;
-        this.lensCorrectionPercentage = lensCorrectionPercentage;
+        this.lensHorizontalEnabled = lensHorizontalEnabled;
+        this.lensHorizontalCorrectionPercentage = lensHorizontalCorrectionPercentage;
+        this.lensVerticalEnabled = lensVerticalEnabled;
+        this.lensVerticalCorrectionPercentage = lensVerticalCorrectionPercentage;
         this.chromaticHorizontalEnabled = chromaticHorizontalEnabled;
         this.chromaticHorizontalCorrectionPercentage =
                 chromaticHorizontalCorrectionPercentage;
@@ -74,6 +84,9 @@ public final class SbsCalibrationSnapshot {
                 PreferenceConfiguration.DEFAULT_SBS_SCALE,
                 PreferenceConfiguration.DEFAULT_SBS_SEPARATION,
                 PreferenceConfiguration.DEFAULT_SBS_VERTICAL_POSITION,
+                true,
+                PreferenceConfiguration.DEFAULT_SBS_LENS_CORRECTION,
+                true,
                 PreferenceConfiguration.DEFAULT_SBS_LENS_CORRECTION,
                 true,
                 0,
@@ -94,7 +107,9 @@ public final class SbsCalibrationSnapshot {
 
     public static SbsCalibrationSnapshot create(
             int scalePercentage, int separationPercentage, int verticalPositionPercentage,
-            int lensCorrectionPercentage, boolean chromaticHorizontalEnabled,
+            boolean lensHorizontalEnabled, int lensHorizontalCorrectionPercentage,
+            boolean lensVerticalEnabled, int lensVerticalCorrectionPercentage,
+            boolean chromaticHorizontalEnabled,
             int chromaticHorizontalCorrectionPercentage, boolean chromaticVerticalEnabled,
             int chromaticVerticalCorrectionPercentage,
             float commonHorizontalOffsetPercentage, float leftHorizontalOffsetPercentage,
@@ -106,7 +121,10 @@ public final class SbsCalibrationSnapshot {
                 clamp(scalePercentage, 50, 100),
                 clamp(separationPercentage, 0, 100),
                 clamp(verticalPositionPercentage, 0, 100),
-                clamp(lensCorrectionPercentage, 0, 100),
+                lensHorizontalEnabled,
+                clamp(lensHorizontalCorrectionPercentage, 0, 100),
+                lensVerticalEnabled,
+                clamp(lensVerticalCorrectionPercentage, 0, 100),
                 chromaticHorizontalEnabled,
                 clamp(chromaticHorizontalCorrectionPercentage,
                         MIN_CHROMATIC_CORRECTION_PERCENTAGE,
@@ -141,8 +159,18 @@ public final class SbsCalibrationSnapshot {
                         PreferenceConfiguration.DEFAULT_SBS_SEPARATION),
                 getInt(values, PreferenceConfiguration.SBS_VERTICAL_POSITION_PREF_STRING,
                         PreferenceConfiguration.DEFAULT_SBS_VERTICAL_POSITION),
-                getInt(values, PreferenceConfiguration.SBS_LENS_CORRECTION_PREF_STRING,
-                        PreferenceConfiguration.DEFAULT_SBS_LENS_CORRECTION),
+                getBoolean(values,
+                        PreferenceConfiguration.SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING, true),
+                getInt(values,
+                        PreferenceConfiguration.SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
+                        getInt(values, PreferenceConfiguration.SBS_LENS_CORRECTION_PREF_STRING,
+                                PreferenceConfiguration.DEFAULT_SBS_LENS_CORRECTION)),
+                getBoolean(values,
+                        PreferenceConfiguration.SBS_LENS_VERTICAL_ENABLED_PREF_STRING, true),
+                getInt(values,
+                        PreferenceConfiguration.SBS_LENS_VERTICAL_CORRECTION_PREF_STRING,
+                        getInt(values, PreferenceConfiguration.SBS_LENS_CORRECTION_PREF_STRING,
+                                PreferenceConfiguration.DEFAULT_SBS_LENS_CORRECTION)),
                 getBoolean(values,
                         PreferenceConfiguration.SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING, true),
                 getInt(values,
@@ -174,7 +202,14 @@ public final class SbsCalibrationSnapshot {
         values.put(PreferenceConfiguration.SBS_SCALE_PREF_STRING, scalePercentage);
         values.put(PreferenceConfiguration.SBS_SEPARATION_PREF_STRING, separationPercentage);
         values.put(PreferenceConfiguration.SBS_VERTICAL_POSITION_PREF_STRING, verticalPositionPercentage);
-        values.put(PreferenceConfiguration.SBS_LENS_CORRECTION_PREF_STRING, lensCorrectionPercentage);
+        values.put(PreferenceConfiguration.SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
+                lensHorizontalEnabled);
+        values.put(PreferenceConfiguration.SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
+                lensHorizontalCorrectionPercentage);
+        values.put(PreferenceConfiguration.SBS_LENS_VERTICAL_ENABLED_PREF_STRING,
+                lensVerticalEnabled);
+        values.put(PreferenceConfiguration.SBS_LENS_VERTICAL_CORRECTION_PREF_STRING,
+                lensVerticalCorrectionPercentage);
         values.put(PreferenceConfiguration.SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING,
                 chromaticHorizontalEnabled);
         values.put(PreferenceConfiguration.SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING,

@@ -15,7 +15,10 @@ public class SbsCalibrationSnapshotTest {
         assertEquals(80, snapshot.scalePercentage);
         assertEquals(50, snapshot.separationPercentage);
         assertEquals(50, snapshot.verticalPositionPercentage);
-        assertEquals(50, snapshot.lensCorrectionPercentage);
+        assertEquals(true, snapshot.lensHorizontalEnabled);
+        assertEquals(50, snapshot.lensHorizontalCorrectionPercentage);
+        assertEquals(true, snapshot.lensVerticalEnabled);
+        assertEquals(50, snapshot.lensVerticalCorrectionPercentage);
         assertEquals(true, snapshot.chromaticHorizontalEnabled);
         assertEquals(0, snapshot.chromaticHorizontalCorrectionPercentage);
         assertEquals(true, snapshot.chromaticVerticalEnabled);
@@ -30,14 +33,16 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void valuesAreClampedToSafeRanges() {
         SbsCalibrationSnapshot snapshot = SbsCalibrationSnapshot.create(
-                1, 200, -1, 500, true, 500, false, -500, -100, -100, 100,
+                1, 200, -1, true, 500, false, -500,
+                true, 500, false, -500, -100, -100, 100,
                 Float.NaN, Float.POSITIVE_INFINITY,
                 -100, 100, -100, 100, -100, 100);
 
         assertEquals(50, snapshot.scalePercentage);
         assertEquals(100, snapshot.separationPercentage);
         assertEquals(0, snapshot.verticalPositionPercentage);
-        assertEquals(100, snapshot.lensCorrectionPercentage);
+        assertEquals(100, snapshot.lensHorizontalCorrectionPercentage);
+        assertEquals(0, snapshot.lensVerticalCorrectionPercentage);
         assertEquals(100, snapshot.chromaticHorizontalCorrectionPercentage);
         assertEquals(-100, snapshot.chromaticVerticalCorrectionPercentage);
         assertEquals(-25.0f, snapshot.commonHorizontalOffsetPercentage, 0.0f);
@@ -53,7 +58,8 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void preferenceRoundTripPreservesSnapshot() {
         SbsCalibrationSnapshot original = SbsCalibrationSnapshot.create(
-                73, 42, 61, 22, true, -35, false, 28,
+                73, 42, 61, true, 22, false, 77,
+                true, -35, false, 28,
                 6.5f, -3.5f, 4.5f, 2.0f, -2.0f,
                 8.0f, -6.0f, 1.5f, -1.5f, 2.5f, -2.5f);
 
@@ -61,6 +67,12 @@ public class SbsCalibrationSnapshotTest {
                 SbsCalibrationSnapshot.fromPreferenceMap(original.toPreferenceMap());
 
         assertEquals(original.scalePercentage, restored.scalePercentage);
+        assertEquals(original.lensHorizontalEnabled, restored.lensHorizontalEnabled);
+        assertEquals(original.lensHorizontalCorrectionPercentage,
+                restored.lensHorizontalCorrectionPercentage);
+        assertEquals(original.lensVerticalEnabled, restored.lensVerticalEnabled);
+        assertEquals(original.lensVerticalCorrectionPercentage,
+                restored.lensVerticalCorrectionPercentage);
         assertEquals(original.chromaticHorizontalEnabled,
                 restored.chromaticHorizontalEnabled);
         assertEquals(original.chromaticHorizontalCorrectionPercentage,
@@ -90,7 +102,10 @@ public class SbsCalibrationSnapshotTest {
         assertEquals(67, snapshot.scalePercentage);
         assertEquals(39, snapshot.separationPercentage);
         assertEquals(58, snapshot.verticalPositionPercentage);
-        assertEquals(41, snapshot.lensCorrectionPercentage);
+        assertEquals(true, snapshot.lensHorizontalEnabled);
+        assertEquals(41, snapshot.lensHorizontalCorrectionPercentage);
+        assertEquals(true, snapshot.lensVerticalEnabled);
+        assertEquals(41, snapshot.lensVerticalCorrectionPercentage);
         assertEquals(true, snapshot.chromaticHorizontalEnabled);
         assertEquals(0, snapshot.chromaticHorizontalCorrectionPercentage);
         assertEquals(true, snapshot.chromaticVerticalEnabled);
@@ -116,7 +131,8 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void commonAndPerEyeAnglesAreAddedWithoutDestroyingDifference() {
         SbsCalibrationSnapshot snapshot = SbsCalibrationSnapshot.create(
-                80, 50, 50, 50, true, 0, true, 0, 0, 0, 0, 0, 0,
+                80, 50, 50, true, 50, true, 50,
+                true, 0, true, 0, 0, 0, 0, 0, 0,
                 10, -4, 2, -3, 1, -2);
 
         assertEquals(12.0f, snapshot.leftYawDegrees(), 0.0f);
@@ -129,7 +145,8 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void commonHorizontalOffsetMovesConfiguredPairTogether() {
         SbsCalibrationSnapshot snapshot = SbsCalibrationSnapshot.create(
-                80, 50, 50, 50, true, 0, true, 0, 7, -3, 5, 0, 0,
+                80, 50, 50, true, 50, true, 50,
+                true, 0, true, 0, 7, -3, 5, 0, 0,
                 0, 0, 0, 0, 0, 0);
 
         assertEquals(4.0f, snapshot.leftHorizontalCenterPercentage(), 0.0f);

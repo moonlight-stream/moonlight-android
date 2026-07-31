@@ -21,6 +21,7 @@ public final class SbsCalibrationSnapshot {
     public final int headTrackingHorizontalSensitivityPercentage;
     public final boolean headTrackingVerticalEnabled;
     public final int headTrackingVerticalSensitivityPercentage;
+    public final int headTrackingEdgeReachPercentage;
     public final boolean lensHorizontalEnabled;
     public final int lensHorizontalCorrectionPercentage;
     public final boolean lensVerticalEnabled;
@@ -48,6 +49,7 @@ public final class SbsCalibrationSnapshot {
                                    int headTrackingHorizontalSensitivityPercentage,
                                    boolean headTrackingVerticalEnabled,
                                    int headTrackingVerticalSensitivityPercentage,
+                                   int headTrackingEdgeReachPercentage,
                                    boolean lensHorizontalEnabled,
                                    int lensHorizontalCorrectionPercentage,
                                    boolean lensVerticalEnabled,
@@ -74,6 +76,7 @@ public final class SbsCalibrationSnapshot {
         this.headTrackingVerticalEnabled = headTrackingVerticalEnabled;
         this.headTrackingVerticalSensitivityPercentage =
                 headTrackingVerticalSensitivityPercentage;
+        this.headTrackingEdgeReachPercentage = headTrackingEdgeReachPercentage;
         this.lensHorizontalEnabled = lensHorizontalEnabled;
         this.lensHorizontalCorrectionPercentage = lensHorizontalCorrectionPercentage;
         this.lensVerticalEnabled = lensVerticalEnabled;
@@ -106,6 +109,7 @@ public final class SbsCalibrationSnapshot {
                 PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY,
                 true,
                 PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY,
+                PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_EDGE_REACH,
                 true,
                 PreferenceConfiguration.DEFAULT_SBS_LENS_CORRECTION,
                 true,
@@ -132,6 +136,7 @@ public final class SbsCalibrationSnapshot {
             boolean headTrackingEnabled, boolean headTrackingHorizontalEnabled,
             int headTrackingHorizontalSensitivityPercentage, boolean headTrackingVerticalEnabled,
             int headTrackingVerticalSensitivityPercentage,
+            int headTrackingEdgeReachPercentage,
             boolean lensHorizontalEnabled, int lensHorizontalCorrectionPercentage,
             boolean lensVerticalEnabled, int lensVerticalCorrectionPercentage,
             boolean chromaticHorizontalEnabled,
@@ -151,6 +156,7 @@ public final class SbsCalibrationSnapshot {
                 clamp(headTrackingHorizontalSensitivityPercentage, 0, 100),
                 headTrackingVerticalEnabled,
                 clamp(headTrackingVerticalSensitivityPercentage, 0, 100),
+                clamp(headTrackingEdgeReachPercentage, 0, 100),
                 lensHorizontalEnabled,
                 clamp(lensHorizontalCorrectionPercentage, 0, 100),
                 lensVerticalEnabled,
@@ -203,6 +209,9 @@ public final class SbsCalibrationSnapshot {
                 getInt(values,
                         PreferenceConfiguration.SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING,
                         PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY),
+                getInt(values,
+                        PreferenceConfiguration.SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING,
+                        PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_EDGE_REACH),
                 getBoolean(values,
                         PreferenceConfiguration.SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING, true),
                 getInt(values,
@@ -256,6 +265,8 @@ public final class SbsCalibrationSnapshot {
                 headTrackingVerticalEnabled);
         values.put(PreferenceConfiguration.SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING,
                 headTrackingVerticalSensitivityPercentage);
+        values.put(PreferenceConfiguration.SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING,
+                headTrackingEdgeReachPercentage);
         values.put(PreferenceConfiguration.SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
                 lensHorizontalEnabled);
         values.put(PreferenceConfiguration.SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,

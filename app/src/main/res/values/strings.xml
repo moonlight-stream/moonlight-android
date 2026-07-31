@@ -268,6 +268,8 @@
     <string name="summary_sbs_head_tracking_vertical_enabled">Move both images up and down when you tilt your head.</string>
     <string name="title_sbs_head_tracking_vertical_sensitivity">Vertical head tracking sensitivity</string>
     <string name="summary_sbs_head_tracking_vertical_sensitivity">Control vertical image movement per degree of head rotation.</string>
+    <string name="title_sbs_head_tracking_edge_reach">Head tracking edge reach</string>
+    <string name="summary_sbs_head_tracking_edge_reach" formatted="false">Choose how far an image edge can move into view. At 0% no outside area is revealed; at 100% the edge can reach the lens center.</string>
     <string name="title_sbs_lens_horizontal_enabled">Enable horizontal SBS lens correction</string>
     <string name="summary_sbs_lens_horizontal_enabled">Apply geometric lens compensation along the horizontal axis.</string>
     <string name="title_sbs_lens_horizontal_correction">Horizontal SBS lens correction strength</string>

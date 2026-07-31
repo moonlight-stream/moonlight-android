@@ -74,6 +74,7 @@
     const definitions = [
       ['head', 'headTrackingHorizontalSensitivity', 'Horizontal sensitivity', 0, 100, 1, '%', 'headTrackingHorizontalEnabled'],
       ['head', 'headTrackingVerticalSensitivity', 'Vertical sensitivity', 0, 100, 1, '%', 'headTrackingVerticalEnabled'],
+      ['head', 'headTrackingEdgeReach', 'Edge reach', 0, 100, 1, '%'],
       ['base', 'scale', 'Scale', 50, 100, 1, '%'],
       ['base', 'separation', 'Separation', 0, 100, 1, '%'],
       ['base', 'verticalPosition', 'Vertical position', 0, 100, 1, '%'],
@@ -165,6 +166,8 @@
           (headAxis && !headTrackingCheckbox.checked);
       }
       recenterButton.disabled = !headTrackingCheckbox.checked;
+      const edgeReach = inputs.get('headTrackingEdgeReach');
+      edgeReach.range.disabled = edgeReach.number.disabled = !headTrackingCheckbox.checked;
     }
 
     function schedulePreview() {

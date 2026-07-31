@@ -288,6 +288,7 @@ public final class SbsCalibrationServer {
                 parseInt(parameters, "headTrackingHorizontalSensitivity"),
                 parseBoolean(parameters, "headTrackingVerticalEnabled"),
                 parseInt(parameters, "headTrackingVerticalSensitivity"),
+                parseInt(parameters, "headTrackingEdgeReach"),
                 parseBoolean(parameters, "lensHorizontalEnabled"),
                 parseInt(parameters, "lensHorizontalCorrection"),
                 parseBoolean(parameters, "lensVerticalEnabled"),
@@ -402,6 +403,7 @@ public final class SbsCalibrationServer {
                 "\"headTrackingHorizontalSensitivity\":%d," +
                 "\"headTrackingVerticalEnabled\":%b," +
                 "\"headTrackingVerticalSensitivity\":%d," +
+                "\"headTrackingEdgeReach\":%d," +
                 "\"lensHorizontalEnabled\":%b,\"lensHorizontalCorrection\":%d," +
                 "\"lensVerticalEnabled\":%b,\"lensVerticalCorrection\":%d," +
                 "\"chromaticHorizontalEnabled\":%b," +
@@ -420,6 +422,7 @@ public final class SbsCalibrationServer {
                 snapshot.headTrackingHorizontalSensitivityPercentage,
                 snapshot.headTrackingVerticalEnabled,
                 snapshot.headTrackingVerticalSensitivityPercentage,
+                snapshot.headTrackingEdgeReachPercentage,
                 snapshot.lensHorizontalEnabled,
                 snapshot.lensHorizontalCorrectionPercentage,
                 snapshot.lensVerticalEnabled,

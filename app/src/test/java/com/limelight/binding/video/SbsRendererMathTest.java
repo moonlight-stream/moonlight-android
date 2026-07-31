@@ -51,4 +51,32 @@ public class SbsRendererMathTest {
         assertEquals(0.5f,
                 SbsRenderer.getHeadTrackingOffset(-20.0f, 100, 0.5f), 0.00001f);
     }
+
+    @Test
+    public void verticalHeadTrackingMovesImageWithHeadPitch() {
+        assertEquals(0.4f,
+                SbsRenderer.getVerticalHeadTrackingOffset(20.0f, 50, 1.0f), 0.00001f);
+        assertEquals(-0.4f,
+                SbsRenderer.getVerticalHeadTrackingOffset(-20.0f, 50, 1.0f), 0.00001f);
+    }
+
+    @Test
+    public void fullScaleCoversTheWholeEyeViewportWithoutStretching() {
+        float scale = SbsRenderer.getViewportCoverScale(960, 1080, 3072, 1440, 100);
+
+        assertEquals(2304.0f, 3072 * scale, 0.00001f);
+        assertEquals(1080.0f, 1440 * scale, 0.00001f);
+    }
+
+    @Test
+    public void edgeReachControlsHowFarContentCanMoveIntoTheLensCenter() {
+        assertEquals(1.4f,
+                SbsRenderer.getHeadTrackingMaximumMagnitude(2.4f, 0), 0.00001f);
+        assertEquals(1.9f,
+                SbsRenderer.getHeadTrackingMaximumMagnitude(2.4f, 50), 0.00001f);
+        assertEquals(2.4f,
+                SbsRenderer.getHeadTrackingMaximumMagnitude(2.4f, 100), 0.00001f);
+        assertEquals(0.25f,
+                SbsRenderer.getHeadTrackingMaximumMagnitude(0.5f, 50), 0.00001f);
+    }
 }

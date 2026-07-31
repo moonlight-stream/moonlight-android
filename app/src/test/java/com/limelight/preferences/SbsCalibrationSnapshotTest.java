@@ -20,6 +20,7 @@ public class SbsCalibrationSnapshotTest {
         assertEquals(50, snapshot.headTrackingHorizontalSensitivityPercentage);
         assertEquals(true, snapshot.headTrackingVerticalEnabled);
         assertEquals(50, snapshot.headTrackingVerticalSensitivityPercentage);
+        assertEquals(100, snapshot.headTrackingEdgeReachPercentage);
         assertEquals(true, snapshot.lensHorizontalEnabled);
         assertEquals(50, snapshot.lensHorizontalCorrectionPercentage);
         assertEquals(true, snapshot.lensVerticalEnabled);
@@ -38,7 +39,7 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void valuesAreClampedToSafeRanges() {
         SbsCalibrationSnapshot snapshot = SbsCalibrationSnapshot.create(
-                1, 200, -1, true, false, 500, true, -500,
+                1, 200, -1, true, false, 500, true, -500, 500,
                 true, 500, false, -500,
                 true, 500, false, -500, -100, -100, 100,
                 Float.NaN, Float.POSITIVE_INFINITY,
@@ -52,6 +53,7 @@ public class SbsCalibrationSnapshotTest {
         assertEquals(100, snapshot.headTrackingHorizontalSensitivityPercentage);
         assertEquals(true, snapshot.headTrackingVerticalEnabled);
         assertEquals(0, snapshot.headTrackingVerticalSensitivityPercentage);
+        assertEquals(100, snapshot.headTrackingEdgeReachPercentage);
         assertEquals(100, snapshot.lensHorizontalCorrectionPercentage);
         assertEquals(0, snapshot.lensVerticalCorrectionPercentage);
         assertEquals(100, snapshot.chromaticHorizontalCorrectionPercentage);
@@ -69,7 +71,7 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void preferenceRoundTripPreservesSnapshot() {
         SbsCalibrationSnapshot original = SbsCalibrationSnapshot.create(
-                73, 42, 61, true, false, 35, true, 68,
+                73, 42, 61, true, false, 35, true, 68, 83,
                 true, 22, false, 77,
                 true, -35, false, 28,
                 6.5f, -3.5f, 4.5f, 2.0f, -2.0f,
@@ -87,6 +89,8 @@ public class SbsCalibrationSnapshotTest {
         assertEquals(original.headTrackingVerticalEnabled, restored.headTrackingVerticalEnabled);
         assertEquals(original.headTrackingVerticalSensitivityPercentage,
                 restored.headTrackingVerticalSensitivityPercentage);
+        assertEquals(original.headTrackingEdgeReachPercentage,
+                restored.headTrackingEdgeReachPercentage);
         assertEquals(original.lensHorizontalEnabled, restored.lensHorizontalEnabled);
         assertEquals(original.lensHorizontalCorrectionPercentage,
                 restored.lensHorizontalCorrectionPercentage);
@@ -127,6 +131,7 @@ public class SbsCalibrationSnapshotTest {
         assertEquals(50, snapshot.headTrackingHorizontalSensitivityPercentage);
         assertEquals(true, snapshot.headTrackingVerticalEnabled);
         assertEquals(50, snapshot.headTrackingVerticalSensitivityPercentage);
+        assertEquals(100, snapshot.headTrackingEdgeReachPercentage);
         assertEquals(true, snapshot.lensHorizontalEnabled);
         assertEquals(41, snapshot.lensHorizontalCorrectionPercentage);
         assertEquals(true, snapshot.lensVerticalEnabled);
@@ -156,7 +161,7 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void commonAndPerEyeAnglesAreAddedWithoutDestroyingDifference() {
         SbsCalibrationSnapshot snapshot = SbsCalibrationSnapshot.create(
-                80, 50, 50, false, true, 50, true, 50,
+                80, 50, 50, false, true, 50, true, 50, 100,
                 true, 50, true, 50,
                 true, 0, true, 0, 0, 0, 0, 0, 0,
                 10, -4, 2, -3, 1, -2);
@@ -171,7 +176,7 @@ public class SbsCalibrationSnapshotTest {
     @Test
     public void commonHorizontalOffsetMovesConfiguredPairTogether() {
         SbsCalibrationSnapshot snapshot = SbsCalibrationSnapshot.create(
-                80, 50, 50, false, true, 50, true, 50,
+                80, 50, 50, false, true, 50, true, 50, 100,
                 true, 50, true, 50,
                 true, 0, true, 0, 7, -3, 5, 0, 0,
                 0, 0, 0, 0, 0, 0);

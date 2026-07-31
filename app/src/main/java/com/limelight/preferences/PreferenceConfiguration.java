@@ -82,6 +82,8 @@ public class PreferenceConfiguration {
             "checkbox_sbs_head_tracking_vertical_enabled";
     public static final String SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING =
             "seekbar_sbs_head_tracking_vertical_sensitivity";
+    public static final String SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING =
+            "seekbar_sbs_head_tracking_edge_reach";
     public static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
     public static final String SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING =
             "checkbox_sbs_lens_horizontal_enabled";
@@ -159,6 +161,7 @@ public class PreferenceConfiguration {
     public static final int DEFAULT_SBS_SEPARATION = 50;
     public static final int DEFAULT_SBS_VERTICAL_POSITION = 50;
     public static final int DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY = 50;
+    public static final int DEFAULT_SBS_HEAD_TRACKING_EDGE_REACH = 100;
     public static final int DEFAULT_SBS_LENS_CORRECTION = 50;
     public static final float DEFAULT_SBS_OFFSET = 0.0f;
     public static final float DEFAULT_SBS_ANGLE = 0.0f;
@@ -268,6 +271,8 @@ public class PreferenceConfiguration {
                 snapshot.headTrackingVerticalEnabled);
         editor.putInt(SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING,
                 snapshot.headTrackingVerticalSensitivityPercentage);
+        editor.putInt(SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING,
+                snapshot.headTrackingEdgeReachPercentage);
         editor.putBoolean(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
                 snapshot.lensHorizontalEnabled);
         editor.putInt(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
@@ -310,6 +315,7 @@ public class PreferenceConfiguration {
                 SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING.equals(key) ||
                 SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING.equals(key) ||
                 SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING.equals(key) ||
                 SBS_LENS_CORRECTION_PREF_STRING.equals(key) ||
                 SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
                 SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING.equals(key) ||
@@ -613,6 +619,7 @@ public class PreferenceConfiguration {
                 .remove(SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING)
                 .remove(SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING)
                 .remove(SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING)
                 .remove(SBS_LENS_CORRECTION_PREF_STRING)
                 .remove(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING)
                 .remove(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING)

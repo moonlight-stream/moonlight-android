@@ -400,21 +400,14 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private void drawEyes(SbsCalibrationSnapshot calibration) {
         int eyeWidth = outputWidth / 2;
         float videoAspectRatio = (float) videoWidth / videoHeight;
-        int fittedWidth = eyeWidth;
-        int fittedHeight = Math.round(fittedWidth / videoAspectRatio);
-        if (fittedHeight > outputHeight) {
-            fittedHeight = outputHeight;
-            fittedWidth = Math.round(fittedHeight * videoAspectRatio);
-        }
-
-        int imageWidth = Math.max(1,
-                Math.round(fittedWidth * calibration.scalePercentage / 100.0f));
-        int imageHeight = Math.max(1,
-                Math.round(fittedHeight * calibration.scalePercentage / 100.0f));
-        int horizontalMargin = eyeWidth - imageWidth;
+        float imageScale = getViewportCoverScale(eyeWidth, outputHeight,
+                videoWidth, videoHeight, calibration.scalePercentage);
+        int imageWidth = Math.max(1, Math.round(videoWidth * imageScale));
+        int imageHeight = Math.max(1, Math.round(videoHeight * imageScale));
+        int horizontalMargin = Math.max(0, eyeWidth - imageWidth);
         int separationOffset = Math.round((calibration.separationPercentage - 50) /
                 50.0f * horizontalMargin / 2.0f);
-        int verticalMargin = outputHeight - imageHeight;
+        int verticalMargin = Math.max(0, outputHeight - imageHeight);
         int imageY = Math.round(verticalMargin *
                 (100 - calibration.verticalPositionPercentage) / 100.0f);
 
@@ -438,14 +431,20 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         SbsHeadTracker.Pose headPose = headTracker.getPose();
         if (calibration.headTrackingEnabled) {
             if (calibration.headTrackingHorizontalEnabled) {
+                float maximumHorizontalOffset = getHeadTrackingMaximumMagnitude(imageHalfWidth,
+                        calibration.headTrackingEdgeReachPercentage);
                 float horizontalOffset = getHeadTrackingOffset(headPose.yawDegrees,
-                        calibration.headTrackingHorizontalSensitivityPercentage, imageHalfWidth);
+                        calibration.headTrackingHorizontalSensitivityPercentage,
+                        maximumHorizontalOffset);
                 leftCenter += horizontalOffset;
                 rightCenter += horizontalOffset;
             }
             if (calibration.headTrackingVerticalEnabled) {
-                float verticalOffset = getHeadTrackingOffset(headPose.pitchDegrees,
-                        calibration.headTrackingVerticalSensitivityPercentage, imageHalfHeight);
+                float maximumVerticalOffset = getHeadTrackingMaximumMagnitude(imageHalfHeight,
+                        calibration.headTrackingEdgeReachPercentage);
+                float verticalOffset = getVerticalHeadTrackingOffset(headPose.pitchDegrees,
+                        calibration.headTrackingVerticalSensitivityPercentage,
+                        maximumVerticalOffset);
                 leftVerticalCenter += verticalOffset;
                 rightVerticalCenter += verticalOffset;
             }
@@ -497,6 +496,33 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         float sensitivity = Math.max(0, Math.min(100, sensitivityPercentage)) / 100.0f;
         float offset = -angleDegrees * sensitivity * MAX_HEAD_TRACKING_SHIFT_PER_DEGREE;
         return Math.max(-maximumMagnitude, Math.min(maximumMagnitude, offset));
+    }
+
+    static float getVerticalHeadTrackingOffset(float pitchDegrees, int sensitivityPercentage,
+                                               float maximumMagnitude) {
+        return -getHeadTrackingOffset(pitchDegrees, sensitivityPercentage, maximumMagnitude);
+    }
+
+    static float getHeadTrackingMaximumMagnitude(float imageHalfSize,
+                                                  int edgeReachPercentage) {
+        if (!Float.isFinite(imageHalfSize) || imageHalfSize <= 0.0f) {
+            return 0.0f;
+        }
+        float edgeReach = Math.max(0, Math.min(100, edgeReachPercentage)) / 100.0f;
+        float noOutsideContent = Math.max(0.0f, imageHalfSize - 1.0f);
+        return noOutsideContent + Math.min(1.0f, imageHalfSize) * edgeReach;
+    }
+
+    static float getViewportCoverScale(int viewportWidth, int viewportHeight,
+                                       int sourceWidth, int sourceHeight,
+                                       int scalePercentage) {
+        if (viewportWidth <= 0 || viewportHeight <= 0 ||
+                sourceWidth <= 0 || sourceHeight <= 0) {
+            return 0.0f;
+        }
+        float coverScale = Math.max((float) viewportWidth / sourceWidth,
+                (float) viewportHeight / sourceHeight);
+        return coverScale * Math.max(50, Math.min(100, scalePercentage)) / 100.0f;
     }
 
     static void buildInverseHomography(float yawDegrees, float pitchDegrees,

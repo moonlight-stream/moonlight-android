@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Moonlight SBS calibration</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101216; color: #eef1f6; }
+    body { max-width: 780px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 6px; font-size: 1.65rem; }
+    .hint { color: #aeb7c5; margin: 0 0 20px; }
+    .warning { background: #3b2c12; border: 1px solid #70551f; border-radius: 8px; padding: 10px 12px; }
+    .panel { background: #191d24; border: 1px solid #303743; border-radius: 12px; padding: 16px; margin: 16px 0; }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    button { border: 1px solid #566277; background: #262d38; color: inherit; border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+    button.active, button.primary { background: #285ca8; border-color: #4382d8; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; bottom: 0; background: #101216e8; padding: 12px 0; }
+    .control { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(180px, 2fr) 82px; gap: 12px; align-items: center; margin: 13px 0; }
+    .switch { display: block; margin: 8px 0 14px; }
+    input[type=range] { width: 100%; }
+    input[type=number] { width: 72px; padding: 7px; background: #0e1116; color: inherit; border: 1px solid #465164; border-radius: 6px; }
+    .mode-panel[hidden] { display: none; }
+    #status { min-height: 1.4em; color: #9fc4ff; }
+    #status.error { color: #ff9b9b; }
+    @media (max-width: 580px) { .control { grid-template-columns: 1fr 76px; } .control label { grid-column: 1 / -1; } }
+  </style>
+</head>
+<body>
+  <h1>Moonlight SBS calibration</h1>
+  <p class="hint">Changes preview live. Save is the only action that writes settings on the phone.</p>
+  <p class="warning">Prototype LAN server: no authentication or TLS. Disable it on untrusted networks.</p>
+
+  <section class="panel">
+    <h2>Head-controlled viewport</h2>
+    <label class="switch"><input id="headTrackingEnabled" type="checkbox"> Enable head tracking</label>
+    <p class="hint">Moves both already calibrated images together. Centering does not change or save image settings.</p>
+    <div id="head-controls"></div>
+    <button type="button" id="recenter">Center view</button>
+  </section>
+
+  <section class="panel">
+    <h2>Image</h2>
+    <div id="base-controls"></div>
+  </section>
+
+  <nav class="modes" aria-label="Eye selection">
+    <button type="button" data-mode="both" class="active">Both</button>
+    <button type="button" data-mode="left">Left</button>
+    <button type="button" data-mode="right">Right</button>
+  </nav>
+
+  <section class="panel mode-panel" data-panel="both">
+    <h2>Both eyes</h2>
+    <p class="hint">Common controls are composed with, and do not replace, each eye correction.</p>
+    <div id="both-controls"></div>
+  </section>
+  <section class="panel mode-panel" data-panel="left" hidden>
+    <h2>Left eye correction</h2>
+    <div id="left-controls"></div>
+  </section>
+  <section class="panel mode-panel" data-panel="right" hidden>
+    <h2>Right eye correction</h2>
+    <div id="right-controls"></div>
+  </section>
+
+  <div id="status" role="status"></div>
+  <div class="actions">
+    <button type="button" id="save" class="primary">Save</button>
+    <button type="button" id="revert">Cancel / Revert</button>
+    <button type="button" id="reset">Reset defaults</button>
+  </div>
+
+  <script>
+    const definitions = [
+      ['head', 'headTrackingHorizontalSensitivity', 'Horizontal sensitivity', 0, 100, 1, '%', 'headTrackingHorizontalEnabled'],
+      ['head', 'headTrackingVerticalSensitivity', 'Vertical sensitivity', 0, 100, 1, '%', 'headTrackingVerticalEnabled'],
+      ['head', 'headTrackingEdgeReach', 'Edge reach', 0, 100, 1, '%'],
+      ['base', 'scale', 'Scale', 50, 100, 1, '%'],
+      ['base', 'separation', 'Separation', 0, 100, 1, '%'],
+      ['base', 'verticalPosition', 'Vertical position', 0, 100, 1, '%'],
+      ['base', 'lensHorizontalCorrection', 'Horizontal lens correction', 0, 100, 1, '%', 'lensHorizontalEnabled'],
+      ['base', 'lensVerticalCorrection', 'Vertical lens correction', 0, 100, 1, '%', 'lensVerticalEnabled'],
+      ['base', 'chromaticHorizontalCorrection', 'Horizontal chromatic correction', -100, 100, 1, '%', 'chromaticHorizontalEnabled'],
+      ['base', 'chromaticVerticalCorrection', 'Vertical chromatic correction', -100, 100, 1, '%', 'chromaticVerticalEnabled'],
+      ['both', 'commonHorizontalOffset', 'Common horizontal offset', -25, 25, 0.1, '%'],
+      ['both', 'commonYaw', 'Common yaw', -30, 30, 0.1, '°'],
+      ['both', 'commonPitch', 'Common pitch', -30, 30, 0.1, '°'],
+      ['left', 'leftHorizontalOffset', 'Horizontal offset', -25, 25, 0.1, '%'],
+      ['left', 'leftVerticalOffset', 'Vertical offset', -25, 25, 0.1, '%'],
+      ['left', 'leftYawCorrection', 'Yaw correction', -15, 15, 0.1, '°'],
+      ['left', 'leftPitchCorrection', 'Pitch correction', -15, 15, 0.1, '°'],
+      ['right', 'rightHorizontalOffset', 'Horizontal offset', -25, 25, 0.1, '%'],
+      ['right', 'rightVerticalOffset', 'Vertical offset', -25, 25, 0.1, '%'],
+      ['right', 'rightYawCorrection', 'Yaw correction', -15, 15, 0.1, '°'],
+      ['right', 'rightPitchCorrection', 'Pitch correction', -15, 15, 0.1, '°']
+    ];
+    const inputs = new Map();
+    const toggles = new Map();
+    let previewTimer;
+    let previewRequest;
+    let revision = 0;
+    const headTrackingCheckbox = document.getElementById('headTrackingEnabled');
+    const recenterButton = document.getElementById('recenter');
+
+    for (const [group, name, label, min, max, step, unit, enabledName] of definitions) {
+      const row = document.createElement('div');
+      row.className = 'control';
+      row.innerHTML = enabledName ?
+        `<label><input id="${enabledName}" type="checkbox"> ${label}</label>` :
+        `<label for="${name}">${label}</label>`;
+      row.innerHTML +=
+        `<input id="${name}" type="range" min="${min}" max="${max}" step="${step}">` +
+        `<label><input aria-label="${label} numeric value" type="number" min="${min}" max="${max}" step="${step}"> ${unit}</label>`;
+      document.getElementById(`${group}-controls`).appendChild(row);
+      const range = row.querySelector('input[type=range]');
+      const number = row.querySelector('input[type=number]');
+      inputs.set(name, { range, number });
+      if (enabledName) {
+        const checkbox = row.querySelector('input[type=checkbox]');
+        toggles.set(enabledName, { checkbox, range, number });
+        checkbox.addEventListener('change', () => {
+          updateEnabledControls();
+          schedulePreview();
+        });
+      }
+      range.addEventListener('input', () => { number.value = range.value; schedulePreview(); });
+      number.addEventListener('input', () => { range.value = number.value; schedulePreview(); });
+    }
+
+    headTrackingCheckbox.addEventListener('change', () => {
+      updateEnabledControls();
+      schedulePreview();
+    });
+
+    for (const button of document.querySelectorAll('[data-mode]')) {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('[data-mode]').forEach(item => item.classList.toggle('active', item === button));
+        document.querySelectorAll('[data-panel]').forEach(panel => panel.hidden = panel.dataset.panel !== button.dataset.mode);
+      });
+    }
+
+    function values() {
+      const result = { headTrackingEnabled: headTrackingCheckbox.checked };
+      for (const [name, pair] of inputs) result[name] = pair.number.value;
+      for (const [name, toggle] of toggles) result[name] = toggle.checkbox.checked;
+      return result;
+    }
+
+    function hydrate(state) {
+      headTrackingCheckbox.checked = state.headTrackingEnabled;
+      for (const [name, pair] of inputs) {
+        pair.range.value = state[name];
+        pair.number.value = state[name];
+      }
+      for (const [name, toggle] of toggles) {
+        toggle.checkbox.checked = state[name];
+      }
+      updateEnabledControls();
+    }
+
+    function updateEnabledControls() {
+      for (const [name, toggle] of toggles) {
+        const headAxis = name === 'headTrackingHorizontalEnabled' || name === 'headTrackingVerticalEnabled';
+        toggle.checkbox.disabled = headAxis && !headTrackingCheckbox.checked;
+        toggle.range.disabled = toggle.number.disabled = !toggle.checkbox.checked ||
+          (headAxis && !headTrackingCheckbox.checked);
+      }
+      recenterButton.disabled = !headTrackingCheckbox.checked;
+      const edgeReach = inputs.get('headTrackingEdgeReach');
+      edgeReach.range.disabled = edgeReach.number.disabled = !headTrackingCheckbox.checked;
+    }
+
+    function schedulePreview() {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(sendPreview, 45);
+    }
+
+    function cancelPreview() {
+      clearTimeout(previewTimer);
+      if (previewRequest) previewRequest.abort();
+      previewRequest = undefined;
+    }
+
+    async function sendPreview() {
+      if (previewRequest) previewRequest.abort();
+      previewRequest = new AbortController();
+      const body = new URLSearchParams(values());
+      revision = Math.max(revision + 1, Date.now() * 1000);
+      body.set('revision', String(revision));
+      try {
+        await request('/api/preview', body, previewRequest.signal);
+        setStatus('Live preview');
+      } catch (error) {
+        if (error.name !== 'AbortError') setStatus(error.message, true);
+      }
+    }
+
+    async function request(path, body, signal) {
+      const options = body === undefined ? {} : { method: 'POST', body, signal };
+      const response = await fetch(path, options);
+      if (!response.ok) throw new Error(await response.text() || `HTTP ${response.status}`);
+      return response.json();
+    }
+
+    function setStatus(message, error = false) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.classList.toggle('error', error);
+    }
+
+    document.getElementById('save').addEventListener('click', async () => {
+      cancelPreview();
+      try { hydrate(await request('/api/save', new URLSearchParams(values()))); setStatus('Saved'); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    document.getElementById('revert').addEventListener('click', async () => {
+      cancelPreview();
+      try { hydrate(await request('/api/revert', new URLSearchParams())); setStatus('Reverted to saved values'); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    document.getElementById('reset').addEventListener('click', async () => {
+      cancelPreview();
+      try { hydrate(await request('/api/reset', new URLSearchParams())); setStatus('Safe defaults previewed; press Save to keep them'); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    recenterButton.addEventListener('click', async () => {
+      cancelPreview();
+      try {
+        const body = new URLSearchParams(values());
+        revision = Math.max(revision + 1, Date.now() * 1000);
+        body.set('revision', String(revision));
+        await request('/api/preview', body);
+        await request('/api/recenter', new URLSearchParams());
+        setStatus('View centered');
+      }
+      catch (error) { setStatus(error.message, true); }
+    });
+
+    request('/api/state').then(hydrate).then(() => setStatus('Connected')).catch(error => setStatus(error.message, true));
+  </script>
+</body>
+</html>

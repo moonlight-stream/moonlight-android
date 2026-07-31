@@ -1,0 +1,19 @@
+---
+description: Цикл качества для Android, JNI и low-latency rendering
+alwaysApply: true
+---
+
+# Quality Loop
+
+1. Кратко зафиксировать владельцев, boundaries, thread/lifecycle инварианты и
+   проверки.
+2. Реализовать минимальный согласованный diff.
+3. Выполнить self-review с фокусом на race, stale callbacks, double release,
+   normal-mode regression, aspect/transform и дополнительный frame latency.
+4. Запустить `assembleNonRootDebug`, `test`, `lint` и релевантные focused checks.
+5. Для video/input/lifecycle изменений явно отделить compile verification от
+   обязательного последующего device smoke test.
+
+Код должен быть production-ready. Ошибки не глотать, настройки не хардкодить,
+I/O и rendering ownership не смешивать. Production comments пишутся по-английски
+и объясняют только неочевидные причины и инварианты.

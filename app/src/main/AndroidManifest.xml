@@ -42,6 +42,7 @@
         android:required="false"/>
 
     <application
+        android:name=".MoonlightApplication"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/backup_rules_s"

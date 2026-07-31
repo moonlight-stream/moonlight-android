@@ -1,0 +1,19 @@
+---
+description: Context7 обязателен перед кодом по Android SDK и внешним API
+alwaysApply: true
+---
+
+# Context7 перед кодом
+
+Перед кодом с Android SDK, MediaCodec, Surface/SurfaceTexture, EGL/OpenGL ES,
+Gradle/AGP, JNI/NDK или сторонней библиотекой:
+
+1. Выполнить Context7 resolve и query-docs для актуального API.
+2. Не полагаться на память модели по lifecycle, thread или version semantics.
+3. Сверить minSdk 21, compileSdk 34, Java 11 source level и реальные версии
+   зависимостей проекта.
+4. Если документация и код upstream расходятся, зафиксировать расхождение, а не
+   «исправлять» молча по общему знанию.
+
+Без Context7 допустима чисто внутренняя логика, комментарии/тесты без новых API
+или повтор уже проверенного API в той же сессии и версии.

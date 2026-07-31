@@ -1,0 +1,16 @@
+---
+description: Узкий scope без случайного форка protocol или соседнего рефакторинга
+alwaysApply: true
+---
+
+# Scope Discipline
+
+- Делать только запрошенное или явно согласованное.
+- Не смешивать SBS-фичу, upstream cleanup, protocol changes и style refactor.
+- Не трогать Sunshine и `moonlight-common-c`, если задача локальна Android UI.
+- Не добавлять Cardboard/OpenXR/distortion/head tracking «заодно».
+- Не раздувать `Game` или decoder класс логикой, которой владеет отдельный
+  compositor/config/input компонент.
+- Временные хаки и расширение scope требуют явного согласия пользователя.
+
+Финал: что сделано, что проверено, был ли device test и обновлялись ли memories.

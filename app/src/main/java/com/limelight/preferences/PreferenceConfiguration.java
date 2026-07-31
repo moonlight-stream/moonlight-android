@@ -68,6 +68,54 @@ public class PreferenceConfiguration {
     private static final String GAMEPAD_TOUCHPAD_AS_MOUSE_PREF_STRING = "checkbox_gamepad_touchpad_as_mouse";
     private static final String GAMEPAD_MOTION_SENSORS_PREF_STRING = "checkbox_gamepad_motion_sensors";
     private static final String GAMEPAD_MOTION_FALLBACK_PREF_STRING = "checkbox_gamepad_motion_fallback";
+    private static final String ENABLE_SBS_PREF_STRING = "checkbox_enable_sbs";
+    public static final String SBS_SCALE_PREF_STRING = "seekbar_sbs_scale";
+    public static final String SBS_SEPARATION_PREF_STRING = "seekbar_sbs_separation";
+    public static final String SBS_VERTICAL_POSITION_PREF_STRING = "seekbar_sbs_vertical_position";
+    public static final String SBS_HEAD_TRACKING_ENABLED_PREF_STRING =
+            "checkbox_sbs_head_tracking_enabled";
+    public static final String SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_head_tracking_horizontal_enabled";
+    public static final String SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING =
+            "seekbar_sbs_head_tracking_horizontal_sensitivity";
+    public static final String SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_head_tracking_vertical_enabled";
+    public static final String SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING =
+            "seekbar_sbs_head_tracking_vertical_sensitivity";
+    public static final String SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING =
+            "seekbar_sbs_head_tracking_edge_reach";
+    public static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
+    public static final String SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_lens_horizontal_enabled";
+    public static final String SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING =
+            "seekbar_sbs_lens_horizontal_correction";
+    public static final String SBS_LENS_VERTICAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_lens_vertical_enabled";
+    public static final String SBS_LENS_VERTICAL_CORRECTION_PREF_STRING =
+            "seekbar_sbs_lens_vertical_correction";
+    public static final String SBS_CHROMATIC_CORRECTION_PREF_STRING = "sbs_chromatic_correction";
+    public static final String SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING =
+            "sbs_chromatic_horizontal_enabled";
+    public static final String SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING =
+            "sbs_chromatic_horizontal_correction";
+    public static final String SBS_CHROMATIC_VERTICAL_ENABLED_PREF_STRING =
+            "sbs_chromatic_vertical_enabled";
+    public static final String SBS_CHROMATIC_VERTICAL_CORRECTION_PREF_STRING =
+            "sbs_chromatic_vertical_correction";
+    public static final String SBS_COMMON_HORIZONTAL_OFFSET_PREF_STRING =
+            "sbs_common_horizontal_offset";
+    public static final String SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING = "sbs_left_horizontal_offset";
+    public static final String SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING = "sbs_right_horizontal_offset";
+    public static final String SBS_LEFT_VERTICAL_OFFSET_PREF_STRING = "sbs_left_vertical_offset";
+    public static final String SBS_RIGHT_VERTICAL_OFFSET_PREF_STRING = "sbs_right_vertical_offset";
+    public static final String SBS_COMMON_YAW_PREF_STRING = "sbs_common_yaw";
+    public static final String SBS_COMMON_PITCH_PREF_STRING = "sbs_common_pitch";
+    public static final String SBS_LEFT_YAW_CORRECTION_PREF_STRING = "sbs_left_yaw_correction";
+    public static final String SBS_RIGHT_YAW_CORRECTION_PREF_STRING = "sbs_right_yaw_correction";
+    public static final String SBS_LEFT_PITCH_CORRECTION_PREF_STRING = "sbs_left_pitch_correction";
+    public static final String SBS_RIGHT_PITCH_CORRECTION_PREF_STRING = "sbs_right_pitch_correction";
+    public static final String ENABLE_SBS_CALIBRATION_SERVER_PREF_STRING = "checkbox_enable_sbs_calibration_server";
+    public static final String SBS_CALIBRATION_SERVER_PORT_PREF_STRING = "sbs_calibration_server_port";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -108,6 +156,17 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE = false;
     private static final boolean DEFAULT_GAMEPAD_MOTION_SENSORS = true;
     private static final boolean DEFAULT_GAMEPAD_MOTION_FALLBACK = false;
+    private static final boolean DEFAULT_ENABLE_SBS = false;
+    public static final int DEFAULT_SBS_SCALE = 80;
+    public static final int DEFAULT_SBS_SEPARATION = 50;
+    public static final int DEFAULT_SBS_VERTICAL_POSITION = 50;
+    public static final int DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY = 50;
+    public static final int DEFAULT_SBS_HEAD_TRACKING_EDGE_REACH = 100;
+    public static final int DEFAULT_SBS_LENS_CORRECTION = 50;
+    public static final float DEFAULT_SBS_OFFSET = 0.0f;
+    public static final float DEFAULT_SBS_ANGLE = 0.0f;
+    public static final boolean DEFAULT_ENABLE_SBS_CALIBRATION_SERVER = false;
+    public static final int DEFAULT_SBS_CALIBRATION_SERVER_PORT = 48180;
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;
@@ -155,6 +214,130 @@ public class PreferenceConfiguration {
     public boolean gamepadMotionSensors;
     public boolean gamepadTouchpadAsMouse;
     public boolean gamepadMotionSensorsFallbackToDevice;
+    public boolean enableSbs;
+    public int sbsScalePercentage;
+    public int sbsSeparationPercentage;
+    public int sbsVerticalPositionPercentage;
+
+    public static SbsCalibrationSnapshot readSbsCalibrationPreferences(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SbsCalibrationSnapshot snapshot = readSbsCalibrationPreferences(prefs);
+        migrateLegacySbsLensPreferences(prefs, snapshot);
+        return snapshot;
+    }
+
+    static SbsCalibrationSnapshot readSbsCalibrationPreferences(SharedPreferences prefs) {
+        return SbsCalibrationSnapshot.fromPreferenceMap(prefs.getAll());
+    }
+
+    private static void migrateLegacySbsLensPreferences(SharedPreferences prefs,
+                                                         SbsCalibrationSnapshot snapshot) {
+        if (!prefs.contains(SBS_LENS_CORRECTION_PREF_STRING)) {
+            return;
+        }
+
+        SharedPreferences.Editor editor = prefs.edit();
+        if (!prefs.contains(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING)) {
+            editor.putBoolean(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
+                    snapshot.lensHorizontalEnabled);
+        }
+        if (!prefs.contains(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING)) {
+            editor.putInt(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
+                    snapshot.lensHorizontalCorrectionPercentage);
+        }
+        if (!prefs.contains(SBS_LENS_VERTICAL_ENABLED_PREF_STRING)) {
+            editor.putBoolean(SBS_LENS_VERTICAL_ENABLED_PREF_STRING,
+                    snapshot.lensVerticalEnabled);
+        }
+        if (!prefs.contains(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING)) {
+            editor.putInt(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING,
+                    snapshot.lensVerticalCorrectionPercentage);
+        }
+        editor.remove(SBS_LENS_CORRECTION_PREF_STRING).apply();
+    }
+
+    public static boolean writeSbsCalibrationPreferences(Context context,
+                                                          SbsCalibrationSnapshot snapshot) {
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putInt(SBS_SCALE_PREF_STRING, snapshot.scalePercentage);
+        editor.putInt(SBS_SEPARATION_PREF_STRING, snapshot.separationPercentage);
+        editor.putInt(SBS_VERTICAL_POSITION_PREF_STRING, snapshot.verticalPositionPercentage);
+        editor.putBoolean(SBS_HEAD_TRACKING_ENABLED_PREF_STRING, snapshot.headTrackingEnabled);
+        editor.putBoolean(SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING,
+                snapshot.headTrackingHorizontalEnabled);
+        editor.putInt(SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING,
+                snapshot.headTrackingHorizontalSensitivityPercentage);
+        editor.putBoolean(SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING,
+                snapshot.headTrackingVerticalEnabled);
+        editor.putInt(SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING,
+                snapshot.headTrackingVerticalSensitivityPercentage);
+        editor.putInt(SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING,
+                snapshot.headTrackingEdgeReachPercentage);
+        editor.putBoolean(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
+                snapshot.lensHorizontalEnabled);
+        editor.putInt(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
+                snapshot.lensHorizontalCorrectionPercentage);
+        editor.putBoolean(SBS_LENS_VERTICAL_ENABLED_PREF_STRING,
+                snapshot.lensVerticalEnabled);
+        editor.putInt(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING,
+                snapshot.lensVerticalCorrectionPercentage);
+        editor.remove(SBS_LENS_CORRECTION_PREF_STRING);
+        editor.putBoolean(SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING,
+                snapshot.chromaticHorizontalEnabled);
+        editor.putInt(SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING,
+                snapshot.chromaticHorizontalCorrectionPercentage);
+        editor.putBoolean(SBS_CHROMATIC_VERTICAL_ENABLED_PREF_STRING,
+                snapshot.chromaticVerticalEnabled);
+        editor.putInt(SBS_CHROMATIC_VERTICAL_CORRECTION_PREF_STRING,
+                snapshot.chromaticVerticalCorrectionPercentage);
+        editor.remove(SBS_CHROMATIC_CORRECTION_PREF_STRING);
+        editor.putFloat(SBS_COMMON_HORIZONTAL_OFFSET_PREF_STRING,
+                snapshot.commonHorizontalOffsetPercentage);
+        editor.putFloat(SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING, snapshot.leftHorizontalOffsetPercentage);
+        editor.putFloat(SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING, snapshot.rightHorizontalOffsetPercentage);
+        editor.putFloat(SBS_LEFT_VERTICAL_OFFSET_PREF_STRING, snapshot.leftVerticalOffsetPercentage);
+        editor.putFloat(SBS_RIGHT_VERTICAL_OFFSET_PREF_STRING, snapshot.rightVerticalOffsetPercentage);
+        editor.putFloat(SBS_COMMON_YAW_PREF_STRING, snapshot.commonYawDegrees);
+        editor.putFloat(SBS_COMMON_PITCH_PREF_STRING, snapshot.commonPitchDegrees);
+        editor.putFloat(SBS_LEFT_YAW_CORRECTION_PREF_STRING, snapshot.leftYawCorrectionDegrees);
+        editor.putFloat(SBS_RIGHT_YAW_CORRECTION_PREF_STRING, snapshot.rightYawCorrectionDegrees);
+        editor.putFloat(SBS_LEFT_PITCH_CORRECTION_PREF_STRING, snapshot.leftPitchCorrectionDegrees);
+        editor.putFloat(SBS_RIGHT_PITCH_CORRECTION_PREF_STRING, snapshot.rightPitchCorrectionDegrees);
+        return editor.commit();
+    }
+
+    public static boolean isSbsCalibrationPreference(String key) {
+        return SBS_SCALE_PREF_STRING.equals(key) ||
+                SBS_SEPARATION_PREF_STRING.equals(key) ||
+                SBS_VERTICAL_POSITION_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_ENABLED_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING.equals(key) ||
+                SBS_LENS_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_LENS_VERTICAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_LENS_VERTICAL_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_VERTICAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_VERTICAL_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_COMMON_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_LEFT_VERTICAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_RIGHT_VERTICAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_COMMON_YAW_PREF_STRING.equals(key) ||
+                SBS_COMMON_PITCH_PREF_STRING.equals(key) ||
+                SBS_LEFT_YAW_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_RIGHT_YAW_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_LEFT_PITCH_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_RIGHT_PITCH_CORRECTION_PREF_STRING.equals(key);
+    }
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -427,6 +610,21 @@ public class PreferenceConfiguration {
                 .remove(ENABLE_HDR_PREF_STRING)
                 .remove(UNLOCK_FPS_STRING)
                 .remove(FULL_RANGE_PREF_STRING)
+                .remove(ENABLE_SBS_PREF_STRING)
+                .remove(SBS_SCALE_PREF_STRING)
+                .remove(SBS_SEPARATION_PREF_STRING)
+                .remove(SBS_VERTICAL_POSITION_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_ENABLED_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_EDGE_REACH_PREF_STRING)
+                .remove(SBS_LENS_CORRECTION_PREF_STRING)
+                .remove(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING)
+                .remove(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING)
+                .remove(SBS_LENS_VERTICAL_ENABLED_PREF_STRING)
+                .remove(SBS_LENS_VERTICAL_CORRECTION_PREF_STRING)
                 .apply();
     }
 
@@ -568,6 +766,9 @@ public class PreferenceConfiguration {
 
         config.oscOpacity = prefs.getInt(OSC_OPACITY_PREF_STRING, DEFAULT_OPACITY);
 
+        config.sbsScalePercentage = prefs.getInt(SBS_SCALE_PREF_STRING, DEFAULT_SBS_SCALE);
+        config.sbsSeparationPercentage = prefs.getInt(SBS_SEPARATION_PREF_STRING, DEFAULT_SBS_SEPARATION);
+        config.sbsVerticalPositionPercentage = prefs.getInt(SBS_VERTICAL_POSITION_PREF_STRING, DEFAULT_SBS_VERTICAL_POSITION);
         config.language = prefs.getString(LANGUAGE_PREF_STRING, DEFAULT_LANGUAGE);
 
         // Checkbox preferences
@@ -601,6 +802,10 @@ public class PreferenceConfiguration {
         config.gamepadTouchpadAsMouse = prefs.getBoolean(GAMEPAD_TOUCHPAD_AS_MOUSE_PREF_STRING, DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE);
         config.gamepadMotionSensors = prefs.getBoolean(GAMEPAD_MOTION_SENSORS_PREF_STRING, DEFAULT_GAMEPAD_MOTION_SENSORS);
         config.gamepadMotionSensorsFallbackToDevice = prefs.getBoolean(GAMEPAD_MOTION_FALLBACK_PREF_STRING, DEFAULT_GAMEPAD_MOTION_FALLBACK);
+        config.enableSbs = prefs.getBoolean(ENABLE_SBS_PREF_STRING, DEFAULT_ENABLE_SBS);
+        if (config.enableSbs) {
+            config.absoluteMouseMode = false;
+        }
 
         return config;
     }

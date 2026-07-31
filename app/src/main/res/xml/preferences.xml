@@ -259,6 +259,145 @@
             android:summary="@string/summary_full_range"
             android:defaultValue="false" />
         <CheckBoxPreference
+            android:key="checkbox_enable_sbs"
+            android:title="@string/title_enable_sbs"
+            android:summary="@string/summary_enable_sbs"
+            android:defaultValue="false" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_scale"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_scale"
+            android:summary="@string/summary_sbs_scale"
+            android:dialogMessage="@string/summary_sbs_scale"
+            android:defaultValue="80"
+            seekbar:min="50"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_separation"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_separation"
+            android:summary="@string/summary_sbs_separation"
+            android:dialogMessage="@string/summary_sbs_separation"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_vertical_position"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_vertical_position"
+            android:summary="@string/summary_sbs_vertical_position"
+            android:dialogMessage="@string/summary_sbs_vertical_position"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_head_tracking_enabled"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_head_tracking_enabled"
+            android:summary="@string/summary_sbs_head_tracking_enabled"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_head_tracking_horizontal_enabled"
+            android:dependency="checkbox_sbs_head_tracking_enabled"
+            android:title="@string/title_sbs_head_tracking_horizontal_enabled"
+            android:summary="@string/summary_sbs_head_tracking_horizontal_enabled"
+            android:defaultValue="true" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_head_tracking_horizontal_sensitivity"
+            android:dependency="checkbox_sbs_head_tracking_horizontal_enabled"
+            android:title="@string/title_sbs_head_tracking_horizontal_sensitivity"
+            android:summary="@string/summary_sbs_head_tracking_horizontal_sensitivity"
+            android:dialogMessage="@string/summary_sbs_head_tracking_horizontal_sensitivity"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_head_tracking_vertical_enabled"
+            android:dependency="checkbox_sbs_head_tracking_enabled"
+            android:title="@string/title_sbs_head_tracking_vertical_enabled"
+            android:summary="@string/summary_sbs_head_tracking_vertical_enabled"
+            android:defaultValue="true" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_head_tracking_vertical_sensitivity"
+            android:dependency="checkbox_sbs_head_tracking_vertical_enabled"
+            android:title="@string/title_sbs_head_tracking_vertical_sensitivity"
+            android:summary="@string/summary_sbs_head_tracking_vertical_sensitivity"
+            android:dialogMessage="@string/summary_sbs_head_tracking_vertical_sensitivity"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_head_tracking_edge_reach"
+            android:dependency="checkbox_sbs_head_tracking_enabled"
+            android:title="@string/title_sbs_head_tracking_edge_reach"
+            android:summary="@string/summary_sbs_head_tracking_edge_reach"
+            android:dialogMessage="@string/summary_sbs_head_tracking_edge_reach"
+            android:defaultValue="100"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_lens_horizontal_enabled"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_lens_horizontal_enabled"
+            android:summary="@string/summary_sbs_lens_horizontal_enabled"
+            android:defaultValue="true" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_lens_horizontal_correction"
+            android:dependency="checkbox_sbs_lens_horizontal_enabled"
+            android:title="@string/title_sbs_lens_horizontal_correction"
+            android:summary="@string/summary_sbs_lens_horizontal_correction"
+            android:dialogMessage="@string/summary_sbs_lens_horizontal_correction"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_lens_vertical_enabled"
+            android:dependency="checkbox_enable_sbs"
+            android:title="@string/title_sbs_lens_vertical_enabled"
+            android:summary="@string/summary_sbs_lens_vertical_enabled"
+            android:defaultValue="true" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_lens_vertical_correction"
+            android:dependency="checkbox_sbs_lens_vertical_enabled"
+            android:title="@string/title_sbs_lens_vertical_correction"
+            android:summary="@string/summary_sbs_lens_vertical_correction"
+            android:dialogMessage="@string/summary_sbs_lens_vertical_correction"
+            android:defaultValue="50"
+            seekbar:min="0"
+            android:max="100"
+            seekbar:step="1"
+            android:text="@string/suffix_percentage" />
+        <CheckBoxPreference
+            android:key="checkbox_enable_sbs_calibration_server"
+            android:title="@string/title_enable_sbs_calibration_server"
+            android:summary="@string/summary_enable_sbs_calibration_server"
+            android:defaultValue="false" />
+        <EditTextPreference
+            android:key="sbs_calibration_server_port"
+            android:dependency="checkbox_enable_sbs_calibration_server"
+            android:title="@string/title_sbs_calibration_server_port"
+            android:summary="@string/summary_sbs_calibration_server_port"
+            android:inputType="number"
+            android:defaultValue="48180" />
+        <Preference
+            android:key="sbs_calibration_server_status"
+            android:title="@string/title_sbs_calibration_server_status"
+            android:selectable="false" />
+        <CheckBoxPreference
             android:key="checkbox_enable_perf_overlay"
             android:title="@string/title_enable_perf_overlay"
             android:summary="@string/summary_enable_perf_overlay"

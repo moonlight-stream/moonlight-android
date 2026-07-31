@@ -42,7 +42,7 @@
 
   <section class="panel mode-panel" data-panel="both">
     <h2>Both eyes</h2>
-    <p class="hint">Common perspective is composed with, and does not replace, each eye correction.</p>
+    <p class="hint">Common controls are composed with, and do not replace, each eye correction.</p>
     <div id="both-controls"></div>
   </section>
   <section class="panel mode-panel" data-panel="left" hidden>
@@ -67,6 +67,9 @@
       ['base', 'separation', 'Separation', 0, 100, 1, '%'],
       ['base', 'verticalPosition', 'Vertical position', 0, 100, 1, '%'],
       ['base', 'lensCorrection', 'Lens correction', 0, 100, 1, '%'],
+      ['base', 'chromaticHorizontalCorrection', 'Horizontal chromatic correction', -100, 100, 1, '%', 'chromaticHorizontalEnabled'],
+      ['base', 'chromaticVerticalCorrection', 'Vertical chromatic correction', -100, 100, 1, '%', 'chromaticVerticalEnabled'],
+      ['both', 'commonHorizontalOffset', 'Common horizontal offset', -25, 25, 0.1, '%'],
       ['both', 'commonYaw', 'Common yaw', -30, 30, 0.1, '°'],
       ['both', 'commonPitch', 'Common pitch', -30, 30, 0.1, '°'],
       ['left', 'leftHorizontalOffset', 'Horizontal offset', -25, 25, 0.1, '%'],
@@ -79,20 +82,32 @@
       ['right', 'rightPitchCorrection', 'Pitch correction', -15, 15, 0.1, '°']
     ];
     const inputs = new Map();
+    const toggles = new Map();
     let previewTimer;
     let previewRequest;
     let revision = 0;
 
-    for (const [group, name, label, min, max, step, unit] of definitions) {
+    for (const [group, name, label, min, max, step, unit, enabledName] of definitions) {
       const row = document.createElement('div');
       row.className = 'control';
-      row.innerHTML = `<label for="${name}">${label}</label>` +
+      row.innerHTML = enabledName ?
+        `<label><input id="${enabledName}" type="checkbox"> ${label}</label>` :
+        `<label for="${name}">${label}</label>`;
+      row.innerHTML +=
         `<input id="${name}" type="range" min="${min}" max="${max}" step="${step}">` +
         `<label><input aria-label="${label} numeric value" type="number" min="${min}" max="${max}" step="${step}"> ${unit}</label>`;
       document.getElementById(`${group}-controls`).appendChild(row);
       const range = row.querySelector('input[type=range]');
       const number = row.querySelector('input[type=number]');
       inputs.set(name, { range, number });
+      if (enabledName) {
+        const checkbox = row.querySelector('input[type=checkbox]');
+        toggles.set(enabledName, { checkbox, range, number });
+        checkbox.addEventListener('change', () => {
+          range.disabled = number.disabled = !checkbox.checked;
+          schedulePreview();
+        });
+      }
       range.addEventListener('input', () => { number.value = range.value; schedulePreview(); });
       number.addEventListener('input', () => { range.value = number.value; schedulePreview(); });
     }
@@ -107,6 +122,7 @@
     function values() {
       const result = {};
       for (const [name, pair] of inputs) result[name] = pair.number.value;
+      for (const [name, toggle] of toggles) result[name] = toggle.checkbox.checked;
       return result;
     }
 
@@ -114,6 +130,10 @@
       for (const [name, pair] of inputs) {
         pair.range.value = state[name];
         pair.number.value = state[name];
+      }
+      for (const [name, toggle] of toggles) {
+        toggle.checkbox.checked = state[name];
+        toggle.range.disabled = toggle.number.disabled = !toggle.checkbox.checked;
       }
     }
 

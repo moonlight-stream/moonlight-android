@@ -73,6 +73,17 @@ public class PreferenceConfiguration {
     public static final String SBS_SEPARATION_PREF_STRING = "seekbar_sbs_separation";
     public static final String SBS_VERTICAL_POSITION_PREF_STRING = "seekbar_sbs_vertical_position";
     public static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
+    public static final String SBS_CHROMATIC_CORRECTION_PREF_STRING = "sbs_chromatic_correction";
+    public static final String SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING =
+            "sbs_chromatic_horizontal_enabled";
+    public static final String SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING =
+            "sbs_chromatic_horizontal_correction";
+    public static final String SBS_CHROMATIC_VERTICAL_ENABLED_PREF_STRING =
+            "sbs_chromatic_vertical_enabled";
+    public static final String SBS_CHROMATIC_VERTICAL_CORRECTION_PREF_STRING =
+            "sbs_chromatic_vertical_correction";
+    public static final String SBS_COMMON_HORIZONTAL_OFFSET_PREF_STRING =
+            "sbs_common_horizontal_offset";
     public static final String SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING = "sbs_left_horizontal_offset";
     public static final String SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING = "sbs_right_horizontal_offset";
     public static final String SBS_LEFT_VERTICAL_OFFSET_PREF_STRING = "sbs_left_vertical_offset";
@@ -202,6 +213,17 @@ public class PreferenceConfiguration {
         editor.putInt(SBS_SEPARATION_PREF_STRING, snapshot.separationPercentage);
         editor.putInt(SBS_VERTICAL_POSITION_PREF_STRING, snapshot.verticalPositionPercentage);
         editor.putInt(SBS_LENS_CORRECTION_PREF_STRING, snapshot.lensCorrectionPercentage);
+        editor.putBoolean(SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING,
+                snapshot.chromaticHorizontalEnabled);
+        editor.putInt(SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING,
+                snapshot.chromaticHorizontalCorrectionPercentage);
+        editor.putBoolean(SBS_CHROMATIC_VERTICAL_ENABLED_PREF_STRING,
+                snapshot.chromaticVerticalEnabled);
+        editor.putInt(SBS_CHROMATIC_VERTICAL_CORRECTION_PREF_STRING,
+                snapshot.chromaticVerticalCorrectionPercentage);
+        editor.remove(SBS_CHROMATIC_CORRECTION_PREF_STRING);
+        editor.putFloat(SBS_COMMON_HORIZONTAL_OFFSET_PREF_STRING,
+                snapshot.commonHorizontalOffsetPercentage);
         editor.putFloat(SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING, snapshot.leftHorizontalOffsetPercentage);
         editor.putFloat(SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING, snapshot.rightHorizontalOffsetPercentage);
         editor.putFloat(SBS_LEFT_VERTICAL_OFFSET_PREF_STRING, snapshot.leftVerticalOffsetPercentage);
@@ -220,6 +242,12 @@ public class PreferenceConfiguration {
                 SBS_SEPARATION_PREF_STRING.equals(key) ||
                 SBS_VERTICAL_POSITION_PREF_STRING.equals(key) ||
                 SBS_LENS_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_HORIZONTAL_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_VERTICAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_CHROMATIC_VERTICAL_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_COMMON_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
                 SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
                 SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
                 SBS_LEFT_VERTICAL_OFFSET_PREF_STRING.equals(key) ||

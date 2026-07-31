@@ -281,6 +281,11 @@ public final class SbsCalibrationServer {
                 parseInt(parameters, "separation"),
                 parseInt(parameters, "verticalPosition"),
                 parseInt(parameters, "lensCorrection"),
+                parseBoolean(parameters, "chromaticHorizontalEnabled"),
+                parseInt(parameters, "chromaticHorizontalCorrection"),
+                parseBoolean(parameters, "chromaticVerticalEnabled"),
+                parseInt(parameters, "chromaticVerticalCorrection"),
+                parseFloat(parameters, "commonHorizontalOffset"),
                 parseFloat(parameters, "leftHorizontalOffset"),
                 parseFloat(parameters, "rightHorizontalOffset"),
                 parseFloat(parameters, "leftVerticalOffset"),
@@ -354,6 +359,17 @@ public final class SbsCalibrationServer {
         }
     }
 
+    private static boolean parseBoolean(Map<String, String> parameters, String name) {
+        String value = required(parameters, name);
+        if ("true".equals(value)) {
+            return true;
+        }
+        if ("false".equals(value)) {
+            return false;
+        }
+        throw new IllegalArgumentException("Invalid " + name);
+    }
+
     private static String required(Map<String, String> parameters, String name) {
         String value = parameters.get(name);
         if (value == null) {
@@ -370,13 +386,22 @@ public final class SbsCalibrationServer {
     static String toJson(SbsCalibrationSnapshot snapshot) {
         return String.format(Locale.US,
                 "{\"scale\":%d,\"separation\":%d,\"verticalPosition\":%d," +
-                "\"lensCorrection\":%d,\"leftHorizontalOffset\":%.3f," +
+                "\"lensCorrection\":%d,\"chromaticHorizontalEnabled\":%b," +
+                "\"chromaticHorizontalCorrection\":%d," +
+                "\"chromaticVerticalEnabled\":%b," +
+                "\"chromaticVerticalCorrection\":%d," +
+                "\"commonHorizontalOffset\":%.3f,\"leftHorizontalOffset\":%.3f," +
                 "\"rightHorizontalOffset\":%.3f,\"leftVerticalOffset\":%.3f," +
                 "\"rightVerticalOffset\":%.3f,\"commonYaw\":%.3f,\"commonPitch\":%.3f," +
                 "\"leftYawCorrection\":%.3f,\"rightYawCorrection\":%.3f," +
                 "\"leftPitchCorrection\":%.3f,\"rightPitchCorrection\":%.3f}",
                 snapshot.scalePercentage, snapshot.separationPercentage,
                 snapshot.verticalPositionPercentage, snapshot.lensCorrectionPercentage,
+                snapshot.chromaticHorizontalEnabled,
+                snapshot.chromaticHorizontalCorrectionPercentage,
+                snapshot.chromaticVerticalEnabled,
+                snapshot.chromaticVerticalCorrectionPercentage,
+                snapshot.commonHorizontalOffsetPercentage,
                 snapshot.leftHorizontalOffsetPercentage, snapshot.rightHorizontalOffsetPercentage,
                 snapshot.leftVerticalOffsetPercentage, snapshot.rightVerticalOffsetPercentage,
                 snapshot.commonYawDegrees, snapshot.commonPitchDegrees,

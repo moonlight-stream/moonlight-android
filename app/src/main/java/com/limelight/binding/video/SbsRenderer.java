@@ -30,6 +30,8 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private static final int START_TIMEOUT_SECONDS = 5;
     private static final int MAX_LENS_CORRECTION_PERCENTAGE = 100;
     private static final float MAX_DISTORTION_COEFFICIENT = 0.4f;
+    private static final int MAX_CHROMATIC_CORRECTION_PERCENTAGE = 100;
+    private static final float MAX_CHROMATIC_CORRECTION_COEFFICIENT = 0.02f;
 
     private static final float[] QUAD_VERTICES = {
             -1.0f, -1.0f, 0.0f, 0.0f,
@@ -57,23 +59,56 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             "uniform vec2 uImageHalfSize;\n" +
             "uniform vec2 uLensScale;\n" +
             "uniform float uDistortionCoefficient;\n" +
+            "uniform vec2 uChromaticCorrectionCoefficient;\n" +
             "varying vec2 vEyeCoordinate;\n" +
+            "bool mapTextureCoordinate(vec2 placedCoordinate, out vec2 textureCoordinate) {\n" +
+            "  vec3 sourceHomogeneous = uInverseHomography * vec3(placedCoordinate, 1.0);\n" +
+            "  if (sourceHomogeneous.z <= 0.0) {\n" +
+            "    return false;\n" +
+            "  }\n" +
+            "  vec2 sourceCoordinate = sourceHomogeneous.xy / sourceHomogeneous.z;\n" +
+            "  if (abs(sourceCoordinate.x) > 1.0 || abs(sourceCoordinate.y) > 1.0) {\n" +
+            "    return false;\n" +
+            "  }\n" +
+            "  vec2 videoCoordinate = sourceCoordinate * 0.5 + vec2(0.5);\n" +
+            "  textureCoordinate =\n" +
+            "      (uTextureMatrix * vec4(videoCoordinate, 0.0, 1.0)).xy;\n" +
+            "  return true;\n" +
+            "}\n" +
             "void main() {\n" +
             "  vec2 radialPosition = vEyeCoordinate * uLensScale;\n" +
+            "  float radiusSquared = dot(radialPosition, radialPosition);\n" +
             "  float distortionFactor = 1.0 + uDistortionCoefficient *\n" +
-            "      dot(radialPosition, radialPosition);\n" +
-            "  vec2 placedCoordinate = (vEyeCoordinate * distortionFactor - uImageCenter) /\n" +
+            "      radiusSquared;\n" +
+            "  vec2 greenPlacedCoordinate =\n" +
+            "      (vEyeCoordinate * distortionFactor - uImageCenter) /\n" +
             "      uImageHalfSize;\n" +
-            "  vec3 sourceHomogeneous = uInverseHomography * vec3(placedCoordinate, 1.0);\n" +
-            "  vec2 sourceCoordinate = sourceHomogeneous.xy / sourceHomogeneous.z;\n" +
-            "  if (sourceHomogeneous.z <= 0.0 || abs(sourceCoordinate.x) > 1.0 ||\n" +
-            "      abs(sourceCoordinate.y) > 1.0) {\n" +
+            "  vec2 greenTextureCoordinate;\n" +
+            "  if (!mapTextureCoordinate(greenPlacedCoordinate, greenTextureCoordinate)) {\n" +
             "    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n" +
+            "  } else if (all(lessThan(abs(uChromaticCorrectionCoefficient),\n" +
+            "      vec2(0.000001)))) {\n" +
+            "    gl_FragColor = texture2D(uTexture, greenTextureCoordinate);\n" +
             "  } else {\n" +
-            "    vec2 videoCoordinate = sourceCoordinate * 0.5 + vec2(0.5);\n" +
-            "    vec2 sampledTextureCoordinate =\n" +
-            "        (uTextureMatrix * vec4(videoCoordinate, 0.0, 1.0)).xy;\n" +
-            "    gl_FragColor = texture2D(uTexture, sampledTextureCoordinate);\n" +
+            "    vec2 chromaticOffset =\n" +
+            "        uChromaticCorrectionCoefficient * radiusSquared;\n" +
+            "    vec2 redPlacedCoordinate =\n" +
+            "        (vEyeCoordinate * (vec2(distortionFactor) + chromaticOffset) - uImageCenter) /\n" +
+            "        uImageHalfSize;\n" +
+            "    vec2 bluePlacedCoordinate =\n" +
+            "        (vEyeCoordinate * (vec2(distortionFactor) - chromaticOffset) - uImageCenter) /\n" +
+            "        uImageHalfSize;\n" +
+            "    vec2 redTextureCoordinate;\n" +
+            "    vec2 blueTextureCoordinate;\n" +
+            "    if (!mapTextureCoordinate(redPlacedCoordinate, redTextureCoordinate) ||\n" +
+            "        !mapTextureCoordinate(bluePlacedCoordinate, blueTextureCoordinate)) {\n" +
+            "      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n" +
+            "    } else {\n" +
+            "      vec4 redSample = texture2D(uTexture, redTextureCoordinate);\n" +
+            "      vec4 greenSample = texture2D(uTexture, greenTextureCoordinate);\n" +
+            "      vec4 blueSample = texture2D(uTexture, blueTextureCoordinate);\n" +
+            "      gl_FragColor = vec4(redSample.r, greenSample.g, blueSample.b, greenSample.a);\n" +
+            "    }\n" +
             "  }\n" +
             "}\n";
 
@@ -108,6 +143,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private int imageHalfSizeHandle;
     private int lensScaleHandle;
     private int distortionCoefficientHandle;
+    private int chromaticCorrectionCoefficientHandle;
     private volatile boolean outputPaused;
     private boolean renderPending;
     private boolean stopped;
@@ -244,6 +280,8 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         imageHalfSizeHandle = GLES20.glGetUniformLocation(shaderProgram, "uImageHalfSize");
         lensScaleHandle = GLES20.glGetUniformLocation(shaderProgram, "uLensScale");
         distortionCoefficientHandle = GLES20.glGetUniformLocation(shaderProgram, "uDistortionCoefficient");
+        chromaticCorrectionCoefficientHandle = GLES20.glGetUniformLocation(
+                shaderProgram, "uChromaticCorrectionCoefficient");
 
         vertexBuffer = ByteBuffer.allocateDirect(QUAD_VERTICES.length * Float.BYTES)
                 .order(ByteOrder.nativeOrder())
@@ -292,6 +330,13 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             float distortionCoefficient = calibration.lensCorrectionPercentage *
                     MAX_DISTORTION_COEFFICIENT / MAX_LENS_CORRECTION_PERCENTAGE;
             GLES20.glUniform1f(distortionCoefficientHandle, distortionCoefficient);
+            GLES20.glUniform2f(chromaticCorrectionCoefficientHandle,
+                    getChromaticCorrectionCoefficient(
+                            calibration.chromaticHorizontalEnabled,
+                            calibration.chromaticHorizontalCorrectionPercentage),
+                    getChromaticCorrectionCoefficient(
+                            calibration.chromaticVerticalEnabled,
+                            calibration.chromaticVerticalCorrectionPercentage));
 
             vertexBuffer.position(0);
             GLES20.glEnableVertexAttribArray(positionHandle);
@@ -356,9 +401,9 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         float imageHalfHeight = (float) imageHeight / outputHeight;
         float verticalCenter = (imageY + imageHeight / 2.0f) * 2.0f / outputHeight - 1.0f;
         float leftCenter = -2.0f * separationOffset / eyeWidth +
-                2.0f * calibration.leftHorizontalOffsetPercentage / 100.0f;
+                2.0f * calibration.leftHorizontalCenterPercentage() / 100.0f;
         float rightCenter = 2.0f * separationOffset / eyeWidth +
-                2.0f * calibration.rightHorizontalOffsetPercentage / 100.0f;
+                2.0f * calibration.rightHorizontalCenterPercentage() / 100.0f;
         float leftVerticalCenter = verticalCenter +
                 2.0f * calibration.leftVerticalOffsetPercentage / 100.0f;
         float rightVerticalCenter = verticalCenter +
@@ -384,6 +429,14 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         GLES20.glUniform2f(imageCenterHandle, horizontalCenter, verticalCenter);
         GLES20.glUniformMatrix3fv(inverseHomographyHandle, 1, false, inverseHomography, 0);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+    }
+
+    static float getChromaticCorrectionCoefficient(boolean enabled, int percentage) {
+        if (!enabled) {
+            return 0.0f;
+        }
+        return percentage * MAX_CHROMATIC_CORRECTION_COEFFICIENT /
+                MAX_CHROMATIC_CORRECTION_PERCENTAGE;
     }
 
     static void buildInverseHomography(float yawDegrees, float pitchDegrees,

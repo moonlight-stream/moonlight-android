@@ -24,6 +24,9 @@ public class SbsCalibrationServerTest {
     @Test
     public void snapshotParserClampsHttpValues() {
         String body = "scale=200&separation=50&verticalPosition=50&lensCorrection=50" +
+                "&chromaticHorizontalEnabled=true&chromaticHorizontalCorrection=500" +
+                "&chromaticVerticalEnabled=false&chromaticVerticalCorrection=-500" +
+                "&commonHorizontalOffset=-99" +
                 "&leftHorizontalOffset=-99&rightHorizontalOffset=0" +
                 "&leftVerticalOffset=0&rightVerticalOffset=0" +
                 "&commonYaw=0&commonPitch=0&leftYawCorrection=0" +
@@ -33,7 +36,23 @@ public class SbsCalibrationServerTest {
                 SbsCalibrationServer.parseSnapshot(SbsCalibrationServer.parseForm(body));
 
         assertEquals(100, snapshot.scalePercentage);
+        assertEquals(true, snapshot.chromaticHorizontalEnabled);
+        assertEquals(100, snapshot.chromaticHorizontalCorrectionPercentage);
+        assertEquals(false, snapshot.chromaticVerticalEnabled);
+        assertEquals(-100, snapshot.chromaticVerticalCorrectionPercentage);
+        assertEquals(-25.0f, snapshot.commonHorizontalOffsetPercentage, 0.0f);
         assertEquals(-25.0f, snapshot.leftHorizontalOffsetPercentage, 0.0f);
+    }
+
+    @Test
+    public void jsonIncludesNewLiveCalibrationFields() {
+        String json = SbsCalibrationServer.toJson(SbsCalibrationSnapshot.defaults());
+
+        assertTrue(json.contains("\"chromaticHorizontalEnabled\":true"));
+        assertTrue(json.contains("\"chromaticHorizontalCorrection\":0"));
+        assertTrue(json.contains("\"chromaticVerticalEnabled\":true"));
+        assertTrue(json.contains("\"chromaticVerticalCorrection\":0"));
+        assertTrue(json.contains("\"commonHorizontalOffset\":0.000"));
     }
 
     @Test

@@ -20,4 +20,15 @@ public class SbsRendererMathTest {
         assertEquals(0.0f, inverse[6], 0.00001f);
         assertEquals(0.0f, inverse[7], 0.00001f);
     }
+
+    @Test
+    public void chromaticCorrectionPercentageMapsSymmetrically() {
+        assertEquals(0.0f, SbsRenderer.getChromaticCorrectionCoefficient(true, 0), 0.0f);
+        assertEquals(0.02f,
+                SbsRenderer.getChromaticCorrectionCoefficient(true, 100), 0.00001f);
+        assertEquals(-0.02f,
+                SbsRenderer.getChromaticCorrectionCoefficient(true, -100), 0.00001f);
+        assertEquals(0.0f,
+                SbsRenderer.getChromaticCorrectionCoefficient(false, 100), 0.0f);
+    }
 }

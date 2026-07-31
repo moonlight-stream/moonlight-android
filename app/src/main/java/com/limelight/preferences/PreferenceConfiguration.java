@@ -72,6 +72,16 @@ public class PreferenceConfiguration {
     public static final String SBS_SCALE_PREF_STRING = "seekbar_sbs_scale";
     public static final String SBS_SEPARATION_PREF_STRING = "seekbar_sbs_separation";
     public static final String SBS_VERTICAL_POSITION_PREF_STRING = "seekbar_sbs_vertical_position";
+    public static final String SBS_HEAD_TRACKING_ENABLED_PREF_STRING =
+            "checkbox_sbs_head_tracking_enabled";
+    public static final String SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_head_tracking_horizontal_enabled";
+    public static final String SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING =
+            "seekbar_sbs_head_tracking_horizontal_sensitivity";
+    public static final String SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING =
+            "checkbox_sbs_head_tracking_vertical_enabled";
+    public static final String SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING =
+            "seekbar_sbs_head_tracking_vertical_sensitivity";
     public static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
     public static final String SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING =
             "checkbox_sbs_lens_horizontal_enabled";
@@ -148,6 +158,7 @@ public class PreferenceConfiguration {
     public static final int DEFAULT_SBS_SCALE = 80;
     public static final int DEFAULT_SBS_SEPARATION = 50;
     public static final int DEFAULT_SBS_VERTICAL_POSITION = 50;
+    public static final int DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY = 50;
     public static final int DEFAULT_SBS_LENS_CORRECTION = 50;
     public static final float DEFAULT_SBS_OFFSET = 0.0f;
     public static final float DEFAULT_SBS_ANGLE = 0.0f;
@@ -248,6 +259,15 @@ public class PreferenceConfiguration {
         editor.putInt(SBS_SCALE_PREF_STRING, snapshot.scalePercentage);
         editor.putInt(SBS_SEPARATION_PREF_STRING, snapshot.separationPercentage);
         editor.putInt(SBS_VERTICAL_POSITION_PREF_STRING, snapshot.verticalPositionPercentage);
+        editor.putBoolean(SBS_HEAD_TRACKING_ENABLED_PREF_STRING, snapshot.headTrackingEnabled);
+        editor.putBoolean(SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING,
+                snapshot.headTrackingHorizontalEnabled);
+        editor.putInt(SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING,
+                snapshot.headTrackingHorizontalSensitivityPercentage);
+        editor.putBoolean(SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING,
+                snapshot.headTrackingVerticalEnabled);
+        editor.putInt(SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING,
+                snapshot.headTrackingVerticalSensitivityPercentage);
         editor.putBoolean(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
                 snapshot.lensHorizontalEnabled);
         editor.putInt(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,
@@ -285,6 +305,11 @@ public class PreferenceConfiguration {
         return SBS_SCALE_PREF_STRING.equals(key) ||
                 SBS_SEPARATION_PREF_STRING.equals(key) ||
                 SBS_VERTICAL_POSITION_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_ENABLED_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING.equals(key) ||
+                SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING.equals(key) ||
                 SBS_LENS_CORRECTION_PREF_STRING.equals(key) ||
                 SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING.equals(key) ||
                 SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING.equals(key) ||
@@ -583,6 +608,11 @@ public class PreferenceConfiguration {
                 .remove(SBS_SCALE_PREF_STRING)
                 .remove(SBS_SEPARATION_PREF_STRING)
                 .remove(SBS_VERTICAL_POSITION_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_ENABLED_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING)
+                .remove(SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING)
                 .remove(SBS_LENS_CORRECTION_PREF_STRING)
                 .remove(SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING)
                 .remove(SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING)

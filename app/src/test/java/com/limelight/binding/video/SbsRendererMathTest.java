@@ -40,4 +40,15 @@ public class SbsRendererMathTest {
         assertEquals(0.0f,
                 SbsRenderer.getLensCorrectionCoefficient(false, 100), 0.0f);
     }
+
+    @Test
+    public void headTrackingSensitivityMapsAndClampsImageShift() {
+        assertEquals(0.0f, SbsRenderer.getHeadTrackingOffset(20.0f, 0, 1.0f), 0.0f);
+        assertEquals(-0.4f,
+                SbsRenderer.getHeadTrackingOffset(20.0f, 50, 1.0f), 0.00001f);
+        assertEquals(-0.5f,
+                SbsRenderer.getHeadTrackingOffset(20.0f, 100, 0.5f), 0.00001f);
+        assertEquals(0.5f,
+                SbsRenderer.getHeadTrackingOffset(-20.0f, 100, 0.5f), 0.00001f);
+    }
 }

@@ -16,6 +16,11 @@ public final class SbsCalibrationSnapshot {
     public final int scalePercentage;
     public final int separationPercentage;
     public final int verticalPositionPercentage;
+    public final boolean headTrackingEnabled;
+    public final boolean headTrackingHorizontalEnabled;
+    public final int headTrackingHorizontalSensitivityPercentage;
+    public final boolean headTrackingVerticalEnabled;
+    public final int headTrackingVerticalSensitivityPercentage;
     public final boolean lensHorizontalEnabled;
     public final int lensHorizontalCorrectionPercentage;
     public final boolean lensVerticalEnabled;
@@ -38,6 +43,11 @@ public final class SbsCalibrationSnapshot {
 
     private SbsCalibrationSnapshot(int scalePercentage, int separationPercentage,
                                    int verticalPositionPercentage,
+                                   boolean headTrackingEnabled,
+                                   boolean headTrackingHorizontalEnabled,
+                                   int headTrackingHorizontalSensitivityPercentage,
+                                   boolean headTrackingVerticalEnabled,
+                                   int headTrackingVerticalSensitivityPercentage,
                                    boolean lensHorizontalEnabled,
                                    int lensHorizontalCorrectionPercentage,
                                    boolean lensVerticalEnabled,
@@ -57,6 +67,13 @@ public final class SbsCalibrationSnapshot {
         this.scalePercentage = scalePercentage;
         this.separationPercentage = separationPercentage;
         this.verticalPositionPercentage = verticalPositionPercentage;
+        this.headTrackingEnabled = headTrackingEnabled;
+        this.headTrackingHorizontalEnabled = headTrackingHorizontalEnabled;
+        this.headTrackingHorizontalSensitivityPercentage =
+                headTrackingHorizontalSensitivityPercentage;
+        this.headTrackingVerticalEnabled = headTrackingVerticalEnabled;
+        this.headTrackingVerticalSensitivityPercentage =
+                headTrackingVerticalSensitivityPercentage;
         this.lensHorizontalEnabled = lensHorizontalEnabled;
         this.lensHorizontalCorrectionPercentage = lensHorizontalCorrectionPercentage;
         this.lensVerticalEnabled = lensVerticalEnabled;
@@ -84,6 +101,11 @@ public final class SbsCalibrationSnapshot {
                 PreferenceConfiguration.DEFAULT_SBS_SCALE,
                 PreferenceConfiguration.DEFAULT_SBS_SEPARATION,
                 PreferenceConfiguration.DEFAULT_SBS_VERTICAL_POSITION,
+                false,
+                true,
+                PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY,
+                true,
+                PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY,
                 true,
                 PreferenceConfiguration.DEFAULT_SBS_LENS_CORRECTION,
                 true,
@@ -107,6 +129,9 @@ public final class SbsCalibrationSnapshot {
 
     public static SbsCalibrationSnapshot create(
             int scalePercentage, int separationPercentage, int verticalPositionPercentage,
+            boolean headTrackingEnabled, boolean headTrackingHorizontalEnabled,
+            int headTrackingHorizontalSensitivityPercentage, boolean headTrackingVerticalEnabled,
+            int headTrackingVerticalSensitivityPercentage,
             boolean lensHorizontalEnabled, int lensHorizontalCorrectionPercentage,
             boolean lensVerticalEnabled, int lensVerticalCorrectionPercentage,
             boolean chromaticHorizontalEnabled,
@@ -121,6 +146,11 @@ public final class SbsCalibrationSnapshot {
                 clamp(scalePercentage, 50, 100),
                 clamp(separationPercentage, 0, 100),
                 clamp(verticalPositionPercentage, 0, 100),
+                headTrackingEnabled,
+                headTrackingHorizontalEnabled,
+                clamp(headTrackingHorizontalSensitivityPercentage, 0, 100),
+                headTrackingVerticalEnabled,
+                clamp(headTrackingVerticalSensitivityPercentage, 0, 100),
                 lensHorizontalEnabled,
                 clamp(lensHorizontalCorrectionPercentage, 0, 100),
                 lensVerticalEnabled,
@@ -159,6 +189,20 @@ public final class SbsCalibrationSnapshot {
                         PreferenceConfiguration.DEFAULT_SBS_SEPARATION),
                 getInt(values, PreferenceConfiguration.SBS_VERTICAL_POSITION_PREF_STRING,
                         PreferenceConfiguration.DEFAULT_SBS_VERTICAL_POSITION),
+                getBoolean(values,
+                        PreferenceConfiguration.SBS_HEAD_TRACKING_ENABLED_PREF_STRING, false),
+                getBoolean(values,
+                        PreferenceConfiguration.SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING,
+                        true),
+                getInt(values,
+                        PreferenceConfiguration.SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING,
+                        PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY),
+                getBoolean(values,
+                        PreferenceConfiguration.SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING,
+                        true),
+                getInt(values,
+                        PreferenceConfiguration.SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING,
+                        PreferenceConfiguration.DEFAULT_SBS_HEAD_TRACKING_SENSITIVITY),
                 getBoolean(values,
                         PreferenceConfiguration.SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING, true),
                 getInt(values,
@@ -202,6 +246,16 @@ public final class SbsCalibrationSnapshot {
         values.put(PreferenceConfiguration.SBS_SCALE_PREF_STRING, scalePercentage);
         values.put(PreferenceConfiguration.SBS_SEPARATION_PREF_STRING, separationPercentage);
         values.put(PreferenceConfiguration.SBS_VERTICAL_POSITION_PREF_STRING, verticalPositionPercentage);
+        values.put(PreferenceConfiguration.SBS_HEAD_TRACKING_ENABLED_PREF_STRING,
+                headTrackingEnabled);
+        values.put(PreferenceConfiguration.SBS_HEAD_TRACKING_HORIZONTAL_ENABLED_PREF_STRING,
+                headTrackingHorizontalEnabled);
+        values.put(PreferenceConfiguration.SBS_HEAD_TRACKING_HORIZONTAL_SENSITIVITY_PREF_STRING,
+                headTrackingHorizontalSensitivityPercentage);
+        values.put(PreferenceConfiguration.SBS_HEAD_TRACKING_VERTICAL_ENABLED_PREF_STRING,
+                headTrackingVerticalEnabled);
+        values.put(PreferenceConfiguration.SBS_HEAD_TRACKING_VERTICAL_SENSITIVITY_PREF_STRING,
+                headTrackingVerticalSensitivityPercentage);
         values.put(PreferenceConfiguration.SBS_LENS_HORIZONTAL_ENABLED_PREF_STRING,
                 lensHorizontalEnabled);
         values.put(PreferenceConfiguration.SBS_LENS_HORIZONTAL_CORRECTION_PREF_STRING,

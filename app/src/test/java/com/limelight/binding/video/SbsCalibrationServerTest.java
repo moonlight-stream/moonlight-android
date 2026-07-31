@@ -24,6 +24,11 @@ public class SbsCalibrationServerTest {
     @Test
     public void snapshotParserClampsHttpValues() {
         String body = "scale=200&separation=50&verticalPosition=50" +
+                "&headTrackingEnabled=true" +
+                "&headTrackingHorizontalEnabled=false" +
+                "&headTrackingHorizontalSensitivity=500" +
+                "&headTrackingVerticalEnabled=true" +
+                "&headTrackingVerticalSensitivity=-500" +
                 "&lensHorizontalEnabled=true&lensHorizontalCorrection=500" +
                 "&lensVerticalEnabled=false&lensVerticalCorrection=-500" +
                 "&chromaticHorizontalEnabled=true&chromaticHorizontalCorrection=500" +
@@ -38,6 +43,11 @@ public class SbsCalibrationServerTest {
                 SbsCalibrationServer.parseSnapshot(SbsCalibrationServer.parseForm(body));
 
         assertEquals(100, snapshot.scalePercentage);
+        assertEquals(true, snapshot.headTrackingEnabled);
+        assertEquals(false, snapshot.headTrackingHorizontalEnabled);
+        assertEquals(100, snapshot.headTrackingHorizontalSensitivityPercentage);
+        assertEquals(true, snapshot.headTrackingVerticalEnabled);
+        assertEquals(0, snapshot.headTrackingVerticalSensitivityPercentage);
         assertEquals(true, snapshot.lensHorizontalEnabled);
         assertEquals(100, snapshot.lensHorizontalCorrectionPercentage);
         assertEquals(false, snapshot.lensVerticalEnabled);
@@ -55,6 +65,11 @@ public class SbsCalibrationServerTest {
         String json = SbsCalibrationServer.toJson(SbsCalibrationSnapshot.defaults());
 
         assertTrue(json.contains("\"lensHorizontalEnabled\":true"));
+        assertTrue(json.contains("\"headTrackingEnabled\":false"));
+        assertTrue(json.contains("\"headTrackingHorizontalEnabled\":true"));
+        assertTrue(json.contains("\"headTrackingHorizontalSensitivity\":50"));
+        assertTrue(json.contains("\"headTrackingVerticalEnabled\":true"));
+        assertTrue(json.contains("\"headTrackingVerticalSensitivity\":50"));
         assertTrue(json.contains("\"lensHorizontalCorrection\":50"));
         assertTrue(json.contains("\"lensVerticalEnabled\":true"));
         assertTrue(json.contains("\"lensVerticalCorrection\":50"));

@@ -16,6 +16,7 @@
     button.active, button.primary { background: #285ca8; border-color: #4382d8; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; bottom: 0; background: #101216e8; padding: 12px 0; }
     .control { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(180px, 2fr) 82px; gap: 12px; align-items: center; margin: 13px 0; }
+    .switch { display: block; margin: 8px 0 14px; }
     input[type=range] { width: 100%; }
     input[type=number] { width: 72px; padding: 7px; background: #0e1116; color: inherit; border: 1px solid #465164; border-radius: 6px; }
     .mode-panel[hidden] { display: none; }
@@ -28,6 +29,14 @@
   <h1>Moonlight SBS calibration</h1>
   <p class="hint">Changes preview live. Save is the only action that writes settings on the phone.</p>
   <p class="warning">Prototype LAN server: no authentication or TLS. Disable it on untrusted networks.</p>
+
+  <section class="panel">
+    <h2>Head-controlled viewport</h2>
+    <label class="switch"><input id="headTrackingEnabled" type="checkbox"> Enable head tracking</label>
+    <p class="hint">Moves both already calibrated images together. Centering does not change or save image settings.</p>
+    <div id="head-controls"></div>
+    <button type="button" id="recenter">Center view</button>
+  </section>
 
   <section class="panel">
     <h2>Image</h2>
@@ -63,6 +72,8 @@
 
   <script>
     const definitions = [
+      ['head', 'headTrackingHorizontalSensitivity', 'Horizontal sensitivity', 0, 100, 1, '%', 'headTrackingHorizontalEnabled'],
+      ['head', 'headTrackingVerticalSensitivity', 'Vertical sensitivity', 0, 100, 1, '%', 'headTrackingVerticalEnabled'],
       ['base', 'scale', 'Scale', 50, 100, 1, '%'],
       ['base', 'separation', 'Separation', 0, 100, 1, '%'],
       ['base', 'verticalPosition', 'Vertical position', 0, 100, 1, '%'],
@@ -87,6 +98,8 @@
     let previewTimer;
     let previewRequest;
     let revision = 0;
+    const headTrackingCheckbox = document.getElementById('headTrackingEnabled');
+    const recenterButton = document.getElementById('recenter');
 
     for (const [group, name, label, min, max, step, unit, enabledName] of definitions) {
       const row = document.createElement('div');
@@ -105,13 +118,18 @@
         const checkbox = row.querySelector('input[type=checkbox]');
         toggles.set(enabledName, { checkbox, range, number });
         checkbox.addEventListener('change', () => {
-          range.disabled = number.disabled = !checkbox.checked;
+          updateEnabledControls();
           schedulePreview();
         });
       }
       range.addEventListener('input', () => { number.value = range.value; schedulePreview(); });
       number.addEventListener('input', () => { range.value = number.value; schedulePreview(); });
     }
+
+    headTrackingCheckbox.addEventListener('change', () => {
+      updateEnabledControls();
+      schedulePreview();
+    });
 
     for (const button of document.querySelectorAll('[data-mode]')) {
       button.addEventListener('click', () => {
@@ -121,21 +139,32 @@
     }
 
     function values() {
-      const result = {};
+      const result = { headTrackingEnabled: headTrackingCheckbox.checked };
       for (const [name, pair] of inputs) result[name] = pair.number.value;
       for (const [name, toggle] of toggles) result[name] = toggle.checkbox.checked;
       return result;
     }
 
     function hydrate(state) {
+      headTrackingCheckbox.checked = state.headTrackingEnabled;
       for (const [name, pair] of inputs) {
         pair.range.value = state[name];
         pair.number.value = state[name];
       }
       for (const [name, toggle] of toggles) {
         toggle.checkbox.checked = state[name];
-        toggle.range.disabled = toggle.number.disabled = !toggle.checkbox.checked;
       }
+      updateEnabledControls();
+    }
+
+    function updateEnabledControls() {
+      for (const [name, toggle] of toggles) {
+        const headAxis = name === 'headTrackingHorizontalEnabled' || name === 'headTrackingVerticalEnabled';
+        toggle.checkbox.disabled = headAxis && !headTrackingCheckbox.checked;
+        toggle.range.disabled = toggle.number.disabled = !toggle.checkbox.checked ||
+          (headAxis && !headTrackingCheckbox.checked);
+      }
+      recenterButton.disabled = !headTrackingCheckbox.checked;
     }
 
     function schedulePreview() {
@@ -189,6 +218,18 @@
     document.getElementById('reset').addEventListener('click', async () => {
       cancelPreview();
       try { hydrate(await request('/api/reset', new URLSearchParams())); setStatus('Safe defaults previewed; press Save to keep them'); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    recenterButton.addEventListener('click', async () => {
+      cancelPreview();
+      try {
+        const body = new URLSearchParams(values());
+        revision = Math.max(revision + 1, Date.now() * 1000);
+        body.set('revision', String(revision));
+        await request('/api/preview', body);
+        await request('/api/recenter', new URLSearchParams());
+        setStatus('View centered');
+      }
       catch (error) { setStatus(error.message, true); }
     });
 

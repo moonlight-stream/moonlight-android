@@ -17,6 +17,7 @@ import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
 import com.limelight.binding.video.PerfOverlayListener;
+import com.limelight.binding.video.SbsHeadTracker;
 import com.limelight.binding.video.SbsRenderer;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
@@ -155,6 +156,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     private MediaCodecDecoderRenderer decoderRenderer;
     private SbsRenderer sbsRenderer;
+    private SbsHeadTracker sbsHeadTracker;
     private boolean reportedCrash;
 
     private WifiManager.WifiLock highPerfWifiLock;
@@ -225,6 +227,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
         tombstonePrefs = Game.this.getSharedPreferences("DecoderTombstone", 0);
+        if (prefConfig.enableSbs) {
+            sbsHeadTracker = new SbsHeadTracker(this,
+                    MoonlightApplication.from(this).getCalibrationController());
+        }
 
         // Enter landscape unless we're on a square screen
         setPreferredOrientationForCurrentDisplay();
@@ -1042,6 +1048,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        if (sbsHeadTracker != null) {
+            sbsHeadTracker.stop();
+        }
 
         if (controllerHandler != null) {
             controllerHandler.destroy();
@@ -2225,6 +2235,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             connecting = connected = false;
             updatePipAutoEnter();
 
+            if (sbsHeadTracker != null) {
+                sbsHeadTracker.stop();
+            }
+
             controllerHandler.stop();
 
             // Update GameManager state to indicate we're no longer in game
@@ -2269,6 +2283,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 SbsRenderer renderer = new SbsRenderer(outputSurface, width, height,
                         prefConfig.width, prefConfig.height,
                         MoonlightApplication.from(this).getCalibrationController(),
+                        sbsHeadTracker,
                         exception -> runOnUiThread(() -> {
                             if (connecting || connected) {
                                 decoderRenderer.prepareForStop();
@@ -2304,6 +2319,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     renderer.updateOutputSize(sbsOutputWidth, sbsOutputHeight);
                     sbsInitializationGeneration = -1;
                     sbsRenderer = renderer;
+                    sbsHeadTracker.start(getWindowManager().getDefaultDisplay().getRotation(),
+                            renderer::requestRender);
                     startConnection(renderer.getDecoderSurface());
                 });
             } catch (Exception e) {

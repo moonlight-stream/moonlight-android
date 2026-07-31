@@ -5,15 +5,17 @@
   official project. The active feature branch is `feature/experimental-sbs`.
 - Product goal: duplicate one flat Moonlight stream into two side-by-side eye
   images for a OnePlus 11 in a SHINECON SC-G12. It is not stereo VR and does not
-  require Sunshine/protocol changes, OpenXR, a virtual room, or head tracking.
+  require Sunshine/protocol changes, OpenXR, or a virtual room. Optional local
+  3DoF head-controlled panning moves the already calibrated flat images.
 - The intended path is one network stream, one hardware MediaCodec decoder,
   `SurfaceTexture`/external OES, and one GLES composition pass with no CPU frame
   copies. The ordinary direct-to-Surface upstream path remains the default.
 - Ownership: `Game` orchestrates Activity/Surface/connection lifecycle;
   `MediaCodecDecoderRenderer` owns codec/pacing/recovery; `SbsRenderer` owns
-  EGL/OES/SurfaceTexture and decoder Surface; `PreferenceConfiguration` owns
-  persisted local SBS settings; `NvConnection` owns connection cancellation and
-  native permit lifecycle.
+  EGL/OES/SurfaceTexture, decoder Surface and SBS composition; `SbsHeadTracker`
+  owns the rotation sensor thread, relative pose and recenter baseline;
+  `PreferenceConfiguration` owns persisted local SBS settings; `NvConnection`
+  owns connection cancellation and native permit lifecycle.
 - Current SBS MVP provides duplicated eyes, aspect-fit black surround, virtual
   screen scale, separation, common/per-eye placement and perspective controls,
   independent horizontal/vertical one-term lens correction, and independent
@@ -29,7 +31,9 @@
   both effective coefficients are zero, the original single-sample path remains.
   The legacy scalar preference migrates to both enabled axes. Common horizontal
   offset moves the already calibrated eye pair without changing the per-eye difference.
-  A headset-specific optical profile, Cardboard integration and head tracking
-  remain future scopes requiring a user decision.
+  Optional head-controlled panning has a master toggle plus independent X/Y
+  enable and sensitivity; it uses a local rotation-vector sensor and web recenter
+  without changing either eye's saved calibration. A headset-specific optical
+  profile and Cardboard integration remain future scopes requiring a user decision.
 - Start further discovery with `mem:tech_stack`, `mem:conventions`,
   `mem:suggested_commands`, and `mem:task_completion`.

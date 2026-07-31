@@ -258,6 +258,16 @@
     <string name="summary_sbs_separation">Move the left and right images closer together or farther apart. 50% is centered.</string>
     <string name="title_sbs_vertical_position">SBS vertical position</string>
     <string name="summary_sbs_vertical_position">Move both images down or up. 50% is centered.</string>
+    <string name="title_sbs_head_tracking_enabled">Enable head-controlled SBS viewport</string>
+    <string name="summary_sbs_head_tracking_enabled">Move both calibrated images using phone orientation sensors. The current pose is centered when streaming starts or the feature is enabled.</string>
+    <string name="title_sbs_head_tracking_horizontal_enabled">Enable horizontal head tracking</string>
+    <string name="summary_sbs_head_tracking_horizontal_enabled">Move both images left and right when you turn your head.</string>
+    <string name="title_sbs_head_tracking_horizontal_sensitivity">Horizontal head tracking sensitivity</string>
+    <string name="summary_sbs_head_tracking_horizontal_sensitivity">Control horizontal image movement per degree of head rotation.</string>
+    <string name="title_sbs_head_tracking_vertical_enabled">Enable vertical head tracking</string>
+    <string name="summary_sbs_head_tracking_vertical_enabled">Move both images up and down when you tilt your head.</string>
+    <string name="title_sbs_head_tracking_vertical_sensitivity">Vertical head tracking sensitivity</string>
+    <string name="summary_sbs_head_tracking_vertical_sensitivity">Control vertical image movement per degree of head rotation.</string>
     <string name="title_sbs_lens_horizontal_enabled">Enable horizontal SBS lens correction</string>
     <string name="summary_sbs_lens_horizontal_enabled">Apply geometric lens compensation along the horizontal axis.</string>
     <string name="title_sbs_lens_horizontal_correction">Horizontal SBS lens correction strength</string>

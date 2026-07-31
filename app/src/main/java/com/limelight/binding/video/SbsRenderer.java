@@ -32,6 +32,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private static final float MAX_DISTORTION_COEFFICIENT = 0.4f;
     private static final int MAX_CHROMATIC_CORRECTION_PERCENTAGE = 100;
     private static final float MAX_CHROMATIC_CORRECTION_COEFFICIENT = 0.02f;
+    private static final float MAX_HEAD_TRACKING_SHIFT_PER_DEGREE = 0.04f;
 
     private static final float[] QUAD_VERTICES = {
             -1.0f, -1.0f, 0.0f, 0.0f,
@@ -118,6 +119,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private final int videoWidth;
     private final int videoHeight;
     private final SbsCalibrationController calibrationController;
+    private final SbsHeadTracker headTracker;
     private final FailureListener failureListener;
     private final HandlerThread renderThread;
     private final Handler renderHandler;
@@ -146,12 +148,15 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private int chromaticCorrectionCoefficientHandle;
     private volatile boolean outputPaused;
     private boolean renderPending;
+    private boolean frameAvailable;
+    private boolean hasDecodedFrame;
     private boolean stopped;
     private boolean failureReported;
 
     public SbsRenderer(Surface outputSurface, int outputWidth, int outputHeight,
                        int videoWidth, int videoHeight,
                        SbsCalibrationController calibrationController,
+                       SbsHeadTracker headTracker,
                        FailureListener failureListener) throws Exception {
         this.outputSurface = outputSurface;
         this.outputWidth = outputWidth;
@@ -159,6 +164,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
         this.calibrationController = calibrationController;
+        this.headTracker = headTracker;
         this.failureListener = failureListener;
 
         renderThread = new HandlerThread("Video - SBS Renderer");
@@ -202,7 +208,17 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        if (!renderPending && !outputPaused && !stopped) {
+        frameAvailable = true;
+        scheduleRender();
+    }
+
+    public void requestRender() {
+        renderHandler.post(this::scheduleRender);
+    }
+
+    private void scheduleRender() {
+        if (!renderPending && !outputPaused && !stopped &&
+                (frameAvailable || hasDecodedFrame)) {
             renderPending = true;
             renderHandler.post(this::renderFrame);
         }
@@ -315,8 +331,14 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
 
         try {
             makeCurrent();
-            decoderSurfaceTexture.updateTexImage();
-            decoderSurfaceTexture.getTransformMatrix(textureMatrix);
+            if (frameAvailable) {
+                frameAvailable = false;
+                decoderSurfaceTexture.updateTexImage();
+                decoderSurfaceTexture.getTransformMatrix(textureMatrix);
+                hasDecodedFrame = true;
+            } else if (!hasDecodedFrame) {
+                return;
+            }
 
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
             GLES20.glUseProgram(shaderProgram);
@@ -413,6 +435,22 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         float rightVerticalCenter = verticalCenter +
                 2.0f * calibration.rightVerticalOffsetPercentage / 100.0f;
 
+        SbsHeadTracker.Pose headPose = headTracker.getPose();
+        if (calibration.headTrackingEnabled) {
+            if (calibration.headTrackingHorizontalEnabled) {
+                float horizontalOffset = getHeadTrackingOffset(headPose.yawDegrees,
+                        calibration.headTrackingHorizontalSensitivityPercentage, imageHalfWidth);
+                leftCenter += horizontalOffset;
+                rightCenter += horizontalOffset;
+            }
+            if (calibration.headTrackingVerticalEnabled) {
+                float verticalOffset = getHeadTrackingOffset(headPose.pitchDegrees,
+                        calibration.headTrackingVerticalSensitivityPercentage, imageHalfHeight);
+                leftVerticalCenter += verticalOffset;
+                rightVerticalCenter += verticalOffset;
+            }
+        }
+
         if (matrixSnapshot != calibration) {
             buildInverseHomography(calibration.leftYawDegrees(), calibration.leftPitchDegrees(),
                     videoAspectRatio, leftInverseHomography);
@@ -449,6 +487,16 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         }
         return percentage * MAX_DISTORTION_COEFFICIENT /
                 MAX_LENS_CORRECTION_PERCENTAGE;
+    }
+
+    static float getHeadTrackingOffset(float angleDegrees, int sensitivityPercentage,
+                                       float maximumMagnitude) {
+        if (!Float.isFinite(angleDegrees) || maximumMagnitude <= 0.0f) {
+            return 0.0f;
+        }
+        float sensitivity = Math.max(0, Math.min(100, sensitivityPercentage)) / 100.0f;
+        float offset = -angleDegrees * sensitivity * MAX_HEAD_TRACKING_SHIFT_PER_DEGREE;
+        return Math.max(-maximumMagnitude, Math.min(maximumMagnitude, offset));
     }
 
     static void buildInverseHomography(float yawDegrees, float pitchDegrees,

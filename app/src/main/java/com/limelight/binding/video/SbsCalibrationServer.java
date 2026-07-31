@@ -241,6 +241,9 @@ public final class SbsCalibrationServer {
                 writeJson(output, 200, controller.revert());
             } else if ("POST".equals(method) && "/api/reset".equals(path)) {
                 writeJson(output, 200, controller.reset());
+            } else if ("POST".equals(method) && "/api/recenter".equals(path)) {
+                controller.requestHeadTrackingRecenter();
+                writeJson(output, 200, controller.getLiveSnapshot());
             } else {
                 writeResponse(output, 404, "text/plain; charset=utf-8", "Not found");
             }
@@ -280,6 +283,11 @@ public final class SbsCalibrationServer {
                 parseInt(parameters, "scale"),
                 parseInt(parameters, "separation"),
                 parseInt(parameters, "verticalPosition"),
+                parseBoolean(parameters, "headTrackingEnabled"),
+                parseBoolean(parameters, "headTrackingHorizontalEnabled"),
+                parseInt(parameters, "headTrackingHorizontalSensitivity"),
+                parseBoolean(parameters, "headTrackingVerticalEnabled"),
+                parseInt(parameters, "headTrackingVerticalSensitivity"),
                 parseBoolean(parameters, "lensHorizontalEnabled"),
                 parseInt(parameters, "lensHorizontalCorrection"),
                 parseBoolean(parameters, "lensVerticalEnabled"),
@@ -389,6 +397,11 @@ public final class SbsCalibrationServer {
     static String toJson(SbsCalibrationSnapshot snapshot) {
         return String.format(Locale.US,
                 "{\"scale\":%d,\"separation\":%d,\"verticalPosition\":%d," +
+                "\"headTrackingEnabled\":%b," +
+                "\"headTrackingHorizontalEnabled\":%b," +
+                "\"headTrackingHorizontalSensitivity\":%d," +
+                "\"headTrackingVerticalEnabled\":%b," +
+                "\"headTrackingVerticalSensitivity\":%d," +
                 "\"lensHorizontalEnabled\":%b,\"lensHorizontalCorrection\":%d," +
                 "\"lensVerticalEnabled\":%b,\"lensVerticalCorrection\":%d," +
                 "\"chromaticHorizontalEnabled\":%b," +
@@ -402,6 +415,11 @@ public final class SbsCalibrationServer {
                 "\"leftPitchCorrection\":%.3f,\"rightPitchCorrection\":%.3f}",
                 snapshot.scalePercentage, snapshot.separationPercentage,
                 snapshot.verticalPositionPercentage,
+                snapshot.headTrackingEnabled,
+                snapshot.headTrackingHorizontalEnabled,
+                snapshot.headTrackingHorizontalSensitivityPercentage,
+                snapshot.headTrackingVerticalEnabled,
+                snapshot.headTrackingVerticalSensitivityPercentage,
                 snapshot.lensHorizontalEnabled,
                 snapshot.lensHorizontalCorrectionPercentage,
                 snapshot.lensVerticalEnabled,

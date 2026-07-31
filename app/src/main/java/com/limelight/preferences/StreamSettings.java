@@ -26,11 +26,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.widget.Toast;
 
 import com.limelight.LimeLog;
+import com.limelight.MoonlightApplication;
 import com.limelight.PcView;
 import com.limelight.R;
 import com.limelight.binding.video.MediaCodecHelper;
+import com.limelight.binding.video.SbsCalibrationServer;
 import com.limelight.utils.Dialog;
 import com.limelight.utils.UiHelper;
 
@@ -121,7 +124,8 @@ public class StreamSettings extends Activity {
         }
     }
 
-    public static class SettingsFragment extends PreferenceFragment {
+    public static class SettingsFragment extends PreferenceFragment implements
+            MoonlightApplication.CalibrationServerStatusListener {
         private int nativeResolutionStartIndex = Integer.MAX_VALUE;
         private boolean nativeFramerateShown = false;
 
@@ -276,6 +280,20 @@ public class StreamSettings extends Activity {
 
             addPreferencesFromResource(R.xml.preferences);
             PreferenceScreen screen = getPreferenceScreen();
+
+            findPreference(PreferenceConfiguration.SBS_CALIBRATION_SERVER_PORT_PREF_STRING)
+                    .setOnPreferenceChangeListener((preference, newValue) -> {
+                        try {
+                            int port = Integer.parseInt(newValue.toString());
+                            if (SbsCalibrationServer.isValidPort(port)) {
+                                return true;
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                        Toast.makeText(getActivity(), R.string.invalid_sbs_calibration_server_port,
+                                Toast.LENGTH_LONG).show();
+                        return false;
+                    });
 
             // hide on-screen controls category on non touch screen devices
             if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
@@ -667,6 +685,26 @@ public class StreamSettings extends Activity {
                     return true;
                 }
             });
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            MoonlightApplication.from(getActivity()).addCalibrationServerStatusListener(this);
+        }
+
+        @Override
+        public void onPause() {
+            MoonlightApplication.from(getActivity()).removeCalibrationServerStatusListener(this);
+            super.onPause();
+        }
+
+        @Override
+        public void onCalibrationServerStatusChanged(SbsCalibrationServer.Status status) {
+            Preference preference = findPreference("sbs_calibration_server_status");
+            if (preference != null) {
+                preference.setSummary(status.detail);
+            }
         }
     }
 }

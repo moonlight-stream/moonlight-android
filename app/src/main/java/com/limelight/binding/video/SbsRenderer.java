@@ -13,6 +13,7 @@ import android.os.HandlerThread;
 import android.view.Surface;
 
 import com.limelight.LimeLog;
+import com.limelight.preferences.SbsCalibrationSnapshot;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -40,43 +41,39 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private static final String VERTEX_SHADER =
             "attribute vec2 aPosition;\n" +
             "attribute vec2 aTextureCoordinate;\n" +
-            "uniform mat4 uTextureMatrix;\n" +
-            "varying vec2 vTextureCoordinate;\n" +
-            "varying vec2 vLensDelta;\n" +
-            "varying vec2 vTextureLensDelta;\n" +
+            "varying vec2 vEyeCoordinate;\n" +
             "void main() {\n" +
-            "  vec2 lensDelta = aTextureCoordinate - vec2(0.5);\n" +
             "  gl_Position = vec4(aPosition, 0.0, 1.0);\n" +
-            "  vTextureCoordinate = (uTextureMatrix * vec4(aTextureCoordinate, 0.0, 1.0)).xy;\n" +
-            "  vLensDelta = lensDelta;\n" +
-            "  vTextureLensDelta = (uTextureMatrix * vec4(lensDelta, 0.0, 0.0)).xy;\n" +
+            "  vEyeCoordinate = aTextureCoordinate * 2.0 - vec2(1.0);\n" +
             "}\n";
 
     private static final String FRAGMENT_SHADER =
             "#extension GL_OES_EGL_image_external : require\n" +
             "precision mediump float;\n" +
             "uniform samplerExternalOES uTexture;\n" +
+            "uniform mat4 uTextureMatrix;\n" +
+            "uniform mat3 uInverseHomography;\n" +
+            "uniform vec2 uImageCenter;\n" +
+            "uniform vec2 uImageHalfSize;\n" +
             "uniform vec2 uLensScale;\n" +
             "uniform float uDistortionCoefficient;\n" +
-            "varying vec2 vTextureCoordinate;\n" +
-            "varying vec2 vLensDelta;\n" +
-            "varying vec2 vTextureLensDelta;\n" +
+            "varying vec2 vEyeCoordinate;\n" +
             "void main() {\n" +
-            "  if (uDistortionCoefficient == 0.0) {\n" +
-            "    gl_FragColor = texture2D(uTexture, vTextureCoordinate);\n" +
+            "  vec2 radialPosition = vEyeCoordinate * uLensScale;\n" +
+            "  float distortionFactor = 1.0 + uDistortionCoefficient *\n" +
+            "      dot(radialPosition, radialPosition);\n" +
+            "  vec2 placedCoordinate = (vEyeCoordinate * distortionFactor - uImageCenter) /\n" +
+            "      uImageHalfSize;\n" +
+            "  vec3 sourceHomogeneous = uInverseHomography * vec3(placedCoordinate, 1.0);\n" +
+            "  vec2 sourceCoordinate = sourceHomogeneous.xy / sourceHomogeneous.z;\n" +
+            "  if (sourceHomogeneous.z <= 0.0 || abs(sourceCoordinate.x) > 1.0 ||\n" +
+            "      abs(sourceCoordinate.y) > 1.0) {\n" +
+            "    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n" +
             "  } else {\n" +
-            "    vec2 radialPosition = vLensDelta * uLensScale;\n" +
-            "    float distortionFactor = 1.0 +\n" +
-            "        uDistortionCoefficient * dot(radialPosition, radialPosition);\n" +
-            "    vec2 warpedTextureCoordinate = vec2(0.5) + vLensDelta * distortionFactor;\n" +
-            "    if (warpedTextureCoordinate.x < 0.0 || warpedTextureCoordinate.x > 1.0 ||\n" +
-            "        warpedTextureCoordinate.y < 0.0 || warpedTextureCoordinate.y > 1.0) {\n" +
-            "      gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n" +
-            "    } else {\n" +
-            "      vec2 sampledTextureCoordinate = vTextureCoordinate +\n" +
-            "          vTextureLensDelta * (distortionFactor - 1.0);\n" +
-            "      gl_FragColor = texture2D(uTexture, sampledTextureCoordinate);\n" +
-            "    }\n" +
+            "    vec2 videoCoordinate = sourceCoordinate * 0.5 + vec2(0.5);\n" +
+            "    vec2 sampledTextureCoordinate =\n" +
+            "        (uTextureMatrix * vec4(videoCoordinate, 0.0, 1.0)).xy;\n" +
+            "    gl_FragColor = texture2D(uTexture, sampledTextureCoordinate);\n" +
             "  }\n" +
             "}\n";
 
@@ -85,14 +82,14 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private int outputHeight;
     private final int videoWidth;
     private final int videoHeight;
-    private final int scalePercentage;
-    private final int separationPercentage;
-    private final int verticalPositionPercentage;
-    private final float distortionCoefficient;
+    private final SbsCalibrationController calibrationController;
     private final FailureListener failureListener;
     private final HandlerThread renderThread;
     private final Handler renderHandler;
     private final float[] textureMatrix = new float[16];
+    private final float[] leftInverseHomography = new float[9];
+    private final float[] rightInverseHomography = new float[9];
+    private SbsCalibrationSnapshot matrixSnapshot;
 
     private EGLDisplay eglDisplay = EGL14.EGL_NO_DISPLAY;
     private EGLContext eglContext = EGL14.EGL_NO_CONTEXT;
@@ -104,7 +101,11 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private int shaderProgram;
     private int positionHandle;
     private int textureCoordinateHandle;
+    private int textureSamplerHandle;
     private int textureMatrixHandle;
+    private int inverseHomographyHandle;
+    private int imageCenterHandle;
+    private int imageHalfSizeHandle;
     private int lensScaleHandle;
     private int distortionCoefficientHandle;
     private volatile boolean outputPaused;
@@ -113,22 +114,15 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
     private boolean failureReported;
 
     public SbsRenderer(Surface outputSurface, int outputWidth, int outputHeight,
-                       int videoWidth, int videoHeight, int scalePercentage,
-                       int separationPercentage, int verticalPositionPercentage,
-                       int lensCorrectionPercentage,
+                       int videoWidth, int videoHeight,
+                       SbsCalibrationController calibrationController,
                        FailureListener failureListener) throws Exception {
         this.outputSurface = outputSurface;
         this.outputWidth = outputWidth;
         this.outputHeight = outputHeight;
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
-        this.scalePercentage = scalePercentage;
-        this.separationPercentage = separationPercentage;
-        this.verticalPositionPercentage = verticalPositionPercentage;
-        int clampedLensCorrectionPercentage = Math.max(0,
-                Math.min(MAX_LENS_CORRECTION_PERCENTAGE, lensCorrectionPercentage));
-        this.distortionCoefficient = clampedLensCorrectionPercentage *
-                MAX_DISTORTION_COEFFICIENT / MAX_LENS_CORRECTION_PERCENTAGE;
+        this.calibrationController = calibrationController;
         this.failureListener = failureListener;
 
         renderThread = new HandlerThread("Video - SBS Renderer");
@@ -243,7 +237,11 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         shaderProgram = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
         positionHandle = GLES20.glGetAttribLocation(shaderProgram, "aPosition");
         textureCoordinateHandle = GLES20.glGetAttribLocation(shaderProgram, "aTextureCoordinate");
+        textureSamplerHandle = GLES20.glGetUniformLocation(shaderProgram, "uTexture");
         textureMatrixHandle = GLES20.glGetUniformLocation(shaderProgram, "uTextureMatrix");
+        inverseHomographyHandle = GLES20.glGetUniformLocation(shaderProgram, "uInverseHomography");
+        imageCenterHandle = GLES20.glGetUniformLocation(shaderProgram, "uImageCenter");
+        imageHalfSizeHandle = GLES20.glGetUniformLocation(shaderProgram, "uImageHalfSize");
         lensScaleHandle = GLES20.glGetUniformLocation(shaderProgram, "uLensScale");
         distortionCoefficientHandle = GLES20.glGetUniformLocation(shaderProgram, "uDistortionCoefficient");
 
@@ -286,8 +284,13 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             GLES20.glUseProgram(shaderProgram);
             GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId);
-            GLES20.glUniform1i(GLES20.glGetUniformLocation(shaderProgram, "uTexture"), 0);
+            GLES20.glUniform1i(textureSamplerHandle, 0);
             GLES20.glUniformMatrix4fv(textureMatrixHandle, 1, false, textureMatrix, 0);
+
+            // A single immutable snapshot prevents HTTP updates from tearing across one frame.
+            SbsCalibrationSnapshot calibration = calibrationController.getLiveSnapshot();
+            float distortionCoefficient = calibration.lensCorrectionPercentage *
+                    MAX_DISTORTION_COEFFICIENT / MAX_LENS_CORRECTION_PERCENTAGE;
             GLES20.glUniform1f(distortionCoefficientHandle, distortionCoefficient);
 
             vertexBuffer.position(0);
@@ -299,7 +302,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             GLES20.glVertexAttribPointer(textureCoordinateHandle, 2, GLES20.GL_FLOAT, false,
                     4 * Float.BYTES, vertexBuffer);
 
-            drawEyes();
+            drawEyes(calibration);
 
             GLES20.glDisableVertexAttribArray(positionHandle);
             GLES20.glDisableVertexAttribArray(textureCoordinateHandle);
@@ -323,7 +326,7 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
         }
     }
 
-    private void drawEyes() {
+    private void drawEyes(SbsCalibrationSnapshot calibration) {
         int eyeWidth = outputWidth / 2;
         float videoAspectRatio = (float) videoWidth / videoHeight;
         int fittedWidth = eyeWidth;
@@ -333,23 +336,102 @@ public final class SbsRenderer implements SurfaceTexture.OnFrameAvailableListene
             fittedWidth = Math.round(fittedHeight * videoAspectRatio);
         }
 
-        int imageWidth = Math.max(1, Math.round(fittedWidth * scalePercentage / 100.0f));
-        int imageHeight = Math.max(1, Math.round(fittedHeight * scalePercentage / 100.0f));
+        int imageWidth = Math.max(1,
+                Math.round(fittedWidth * calibration.scalePercentage / 100.0f));
+        int imageHeight = Math.max(1,
+                Math.round(fittedHeight * calibration.scalePercentage / 100.0f));
         int horizontalMargin = eyeWidth - imageWidth;
-        int separationOffset = Math.round((separationPercentage - 50) / 50.0f * horizontalMargin / 2.0f);
+        int separationOffset = Math.round((calibration.separationPercentage - 50) /
+                50.0f * horizontalMargin / 2.0f);
         int verticalMargin = outputHeight - imageHeight;
-        int imageY = Math.round(verticalMargin * (100 - verticalPositionPercentage) / 100.0f);
+        int imageY = Math.round(verticalMargin *
+                (100 - calibration.verticalPositionPercentage) / 100.0f);
 
-        // Keep radial distance in output pixels so screen scaling changes optical correction naturally.
+        // Lens coordinates are fixed to each physical eye viewport, independent of image placement.
         float lensRadius = Math.max(1.0f, Math.min(eyeWidth, outputHeight) / 2.0f);
-        GLES20.glUniform2f(lensScaleHandle, imageWidth / lensRadius, imageHeight / lensRadius);
+        GLES20.glUniform2f(lensScaleHandle,
+                eyeWidth / (2.0f * lensRadius), outputHeight / (2.0f * lensRadius));
 
-        int leftX = horizontalMargin / 2 - separationOffset;
-        int rightX = eyeWidth + horizontalMargin / 2 + separationOffset;
-        GLES20.glViewport(leftX, imageY, imageWidth, imageHeight);
+        float imageHalfWidth = (float) imageWidth / eyeWidth;
+        float imageHalfHeight = (float) imageHeight / outputHeight;
+        float verticalCenter = (imageY + imageHeight / 2.0f) * 2.0f / outputHeight - 1.0f;
+        float leftCenter = -2.0f * separationOffset / eyeWidth +
+                2.0f * calibration.leftHorizontalOffsetPercentage / 100.0f;
+        float rightCenter = 2.0f * separationOffset / eyeWidth +
+                2.0f * calibration.rightHorizontalOffsetPercentage / 100.0f;
+        float leftVerticalCenter = verticalCenter +
+                2.0f * calibration.leftVerticalOffsetPercentage / 100.0f;
+        float rightVerticalCenter = verticalCenter +
+                2.0f * calibration.rightVerticalOffsetPercentage / 100.0f;
+
+        if (matrixSnapshot != calibration) {
+            buildInverseHomography(calibration.leftYawDegrees(), calibration.leftPitchDegrees(),
+                    videoAspectRatio, leftInverseHomography);
+            buildInverseHomography(calibration.rightYawDegrees(), calibration.rightPitchDegrees(),
+                    videoAspectRatio, rightInverseHomography);
+            matrixSnapshot = calibration;
+        }
+
+        GLES20.glUniform2f(imageHalfSizeHandle, imageHalfWidth, imageHalfHeight);
+        GLES20.glViewport(0, 0, eyeWidth, outputHeight);
+        drawEye(leftCenter, leftVerticalCenter, leftInverseHomography);
+        GLES20.glViewport(eyeWidth, 0, outputWidth - eyeWidth, outputHeight);
+        drawEye(rightCenter, rightVerticalCenter, rightInverseHomography);
+    }
+
+    private void drawEye(float horizontalCenter, float verticalCenter,
+                         float[] inverseHomography) {
+        GLES20.glUniform2f(imageCenterHandle, horizontalCenter, verticalCenter);
+        GLES20.glUniformMatrix3fv(inverseHomographyHandle, 1, false, inverseHomography, 0);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-        GLES20.glViewport(rightX, imageY, imageWidth, imageHeight);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+    }
+
+    static void buildInverseHomography(float yawDegrees, float pitchDegrees,
+                                       float aspectRatio, float[] output) {
+        double yaw = Math.toRadians(yawDegrees);
+        double pitch = Math.toRadians(pitchDegrees);
+        float cosineYaw = (float) Math.cos(yaw);
+        float sineYaw = (float) Math.sin(yaw);
+        float cosinePitch = (float) Math.cos(pitch);
+        float sinePitch = (float) Math.sin(pitch);
+
+        // Pinhole projection of a centered planar quad. Camera distance controls perspective
+        // strength without introducing a stereo camera or another rendering pass.
+        float cameraDistance = 3.0f;
+        float h00 = cameraDistance * cosineYaw;
+        float h01 = cameraDistance * sineYaw * sinePitch / aspectRatio;
+        float h02 = 0.0f;
+        float h10 = 0.0f;
+        float h11 = cameraDistance * cosinePitch;
+        float h12 = 0.0f;
+        float h20 = sineYaw * aspectRatio;
+        float h21 = -cosineYaw * sinePitch;
+        float h22 = cameraDistance;
+
+        float determinant = h00 * (h11 * h22 - h12 * h21) -
+                h01 * (h10 * h22 - h12 * h20) +
+                h02 * (h10 * h21 - h11 * h20);
+        float inverseDeterminant = 1.0f / determinant;
+        float i00 = (h11 * h22 - h12 * h21) * inverseDeterminant;
+        float i01 = (h02 * h21 - h01 * h22) * inverseDeterminant;
+        float i02 = (h01 * h12 - h02 * h11) * inverseDeterminant;
+        float i10 = (h12 * h20 - h10 * h22) * inverseDeterminant;
+        float i11 = (h00 * h22 - h02 * h20) * inverseDeterminant;
+        float i12 = (h02 * h10 - h00 * h12) * inverseDeterminant;
+        float i20 = (h10 * h21 - h11 * h20) * inverseDeterminant;
+        float i21 = (h01 * h20 - h00 * h21) * inverseDeterminant;
+        float i22 = (h00 * h11 - h01 * h10) * inverseDeterminant;
+
+        // GLES matrices are column-major.
+        output[0] = i00;
+        output[1] = i10;
+        output[2] = i20;
+        output[3] = i01;
+        output[4] = i11;
+        output[5] = i21;
+        output[6] = i02;
+        output[7] = i12;
+        output[8] = i22;
     }
 
     private void makeCurrent() {

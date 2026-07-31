@@ -308,6 +308,22 @@
             seekbar:step="1"
             android:text="@string/suffix_percentage" />
         <CheckBoxPreference
+            android:key="checkbox_enable_sbs_calibration_server"
+            android:title="@string/title_enable_sbs_calibration_server"
+            android:summary="@string/summary_enable_sbs_calibration_server"
+            android:defaultValue="false" />
+        <EditTextPreference
+            android:key="sbs_calibration_server_port"
+            android:dependency="checkbox_enable_sbs_calibration_server"
+            android:title="@string/title_sbs_calibration_server_port"
+            android:summary="@string/summary_sbs_calibration_server_port"
+            android:inputType="number"
+            android:defaultValue="48180" />
+        <Preference
+            android:key="sbs_calibration_server_status"
+            android:title="@string/title_sbs_calibration_server_status"
+            android:selectable="false" />
+        <CheckBoxPreference
             android:key="checkbox_enable_perf_overlay"
             android:title="@string/title_enable_perf_overlay"
             android:summary="@string/summary_enable_perf_overlay"

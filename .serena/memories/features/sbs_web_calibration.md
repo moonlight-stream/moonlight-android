@@ -1,0 +1,10 @@
+# Удалённая веб-калибровка SBS
+
+- Встроенный прототипный LAN HTTP-сервер запускается на уровне процесса через `MoonlightApplication`, только если `checkbox_enable_sbs_calibration_server=true`; Foreground Service нет, default выключен. TCP port и статус/URL находятся в Android streaming settings.
+- `SbsCalibrationServer` владеет блокирующим `ServerSocket`, HTTP API и asset `app/src/main/assets/sbs_calibration.html`. Без клиента сервер блокируется в `accept()` и не poll-ит. Авторизация/TLS/mDNS намеренно отсутствуют.
+- `SbsCalibrationController` владеет live/saved state. Render thread читает один immutable `SbsCalibrationSnapshot` через atomic reference; preview не пишет preferences, Save сохраняет целый snapshot, Revert возвращает saved, Reset только preview-ит safe defaults до Save.
+- `PreferenceConfiguration` владеет persisted keys/defaults. Старые scale/separation/vertical/lens keys сохранены; новые offsets и yaw/pitch corrections по умолчанию нулевые.
+- `SbsRenderer` применяет snapshot в существующем OES GLES2 pass: full eye viewport, inverse perspective homography для yaw/pitch и radial inverse lookup вокруг фиксированного физического центра линзы. Новых texture/FBO/pass, CPU frame copies и изменений decoder/Surface lifecycle нет. Direct-to-Surface normal mode не затронут.
+- HTTP API: `GET /api/state`, `POST /api/preview`, `/api/save`, `/api/revert`, `/api/reset`; form-urlencoded body, JSON snapshot response. Slider UI debounce/abort-ит промежуточные preview.
+- Unit tests находятся в `app/src/test/java/com/limelight/{preferences,binding/video}` и покрывают defaults/clamp, map round-trip/legacy prefs, common+per-eye sums, HTTP parsing/validation и identity homography.
+- Полная runtime-проверка требует device smoke: normal/SBS, live sliders, Save/Revert/Reset, connect/disconnect, background/foreground, Surface recreation, 1440p60 HEVC, orientation/aspect и latency.

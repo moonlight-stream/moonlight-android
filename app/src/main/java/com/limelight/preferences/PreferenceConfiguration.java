@@ -69,10 +69,22 @@ public class PreferenceConfiguration {
     private static final String GAMEPAD_MOTION_SENSORS_PREF_STRING = "checkbox_gamepad_motion_sensors";
     private static final String GAMEPAD_MOTION_FALLBACK_PREF_STRING = "checkbox_gamepad_motion_fallback";
     private static final String ENABLE_SBS_PREF_STRING = "checkbox_enable_sbs";
-    private static final String SBS_SCALE_PREF_STRING = "seekbar_sbs_scale";
-    private static final String SBS_SEPARATION_PREF_STRING = "seekbar_sbs_separation";
-    private static final String SBS_VERTICAL_POSITION_PREF_STRING = "seekbar_sbs_vertical_position";
-    private static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
+    public static final String SBS_SCALE_PREF_STRING = "seekbar_sbs_scale";
+    public static final String SBS_SEPARATION_PREF_STRING = "seekbar_sbs_separation";
+    public static final String SBS_VERTICAL_POSITION_PREF_STRING = "seekbar_sbs_vertical_position";
+    public static final String SBS_LENS_CORRECTION_PREF_STRING = "seekbar_sbs_lens_correction";
+    public static final String SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING = "sbs_left_horizontal_offset";
+    public static final String SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING = "sbs_right_horizontal_offset";
+    public static final String SBS_LEFT_VERTICAL_OFFSET_PREF_STRING = "sbs_left_vertical_offset";
+    public static final String SBS_RIGHT_VERTICAL_OFFSET_PREF_STRING = "sbs_right_vertical_offset";
+    public static final String SBS_COMMON_YAW_PREF_STRING = "sbs_common_yaw";
+    public static final String SBS_COMMON_PITCH_PREF_STRING = "sbs_common_pitch";
+    public static final String SBS_LEFT_YAW_CORRECTION_PREF_STRING = "sbs_left_yaw_correction";
+    public static final String SBS_RIGHT_YAW_CORRECTION_PREF_STRING = "sbs_right_yaw_correction";
+    public static final String SBS_LEFT_PITCH_CORRECTION_PREF_STRING = "sbs_left_pitch_correction";
+    public static final String SBS_RIGHT_PITCH_CORRECTION_PREF_STRING = "sbs_right_pitch_correction";
+    public static final String ENABLE_SBS_CALIBRATION_SERVER_PREF_STRING = "checkbox_enable_sbs_calibration_server";
+    public static final String SBS_CALIBRATION_SERVER_PORT_PREF_STRING = "sbs_calibration_server_port";
 
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
@@ -114,10 +126,14 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_GAMEPAD_MOTION_SENSORS = true;
     private static final boolean DEFAULT_GAMEPAD_MOTION_FALLBACK = false;
     private static final boolean DEFAULT_ENABLE_SBS = false;
-    private static final int DEFAULT_SBS_SCALE = 80;
-    private static final int DEFAULT_SBS_SEPARATION = 50;
-    private static final int DEFAULT_SBS_VERTICAL_POSITION = 50;
-    private static final int DEFAULT_SBS_LENS_CORRECTION = 50;
+    public static final int DEFAULT_SBS_SCALE = 80;
+    public static final int DEFAULT_SBS_SEPARATION = 50;
+    public static final int DEFAULT_SBS_VERTICAL_POSITION = 50;
+    public static final int DEFAULT_SBS_LENS_CORRECTION = 50;
+    public static final float DEFAULT_SBS_OFFSET = 0.0f;
+    public static final float DEFAULT_SBS_ANGLE = 0.0f;
+    public static final boolean DEFAULT_ENABLE_SBS_CALIBRATION_SERVER = false;
+    public static final int DEFAULT_SBS_CALIBRATION_SERVER_PORT = 48180;
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;
@@ -170,6 +186,51 @@ public class PreferenceConfiguration {
     public int sbsSeparationPercentage;
     public int sbsVerticalPositionPercentage;
     public int sbsLensCorrectionPercentage;
+
+    public static SbsCalibrationSnapshot readSbsCalibrationPreferences(Context context) {
+        return readSbsCalibrationPreferences(PreferenceManager.getDefaultSharedPreferences(context));
+    }
+
+    static SbsCalibrationSnapshot readSbsCalibrationPreferences(SharedPreferences prefs) {
+        return SbsCalibrationSnapshot.fromPreferenceMap(prefs.getAll());
+    }
+
+    public static boolean writeSbsCalibrationPreferences(Context context,
+                                                          SbsCalibrationSnapshot snapshot) {
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
+        editor.putInt(SBS_SCALE_PREF_STRING, snapshot.scalePercentage);
+        editor.putInt(SBS_SEPARATION_PREF_STRING, snapshot.separationPercentage);
+        editor.putInt(SBS_VERTICAL_POSITION_PREF_STRING, snapshot.verticalPositionPercentage);
+        editor.putInt(SBS_LENS_CORRECTION_PREF_STRING, snapshot.lensCorrectionPercentage);
+        editor.putFloat(SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING, snapshot.leftHorizontalOffsetPercentage);
+        editor.putFloat(SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING, snapshot.rightHorizontalOffsetPercentage);
+        editor.putFloat(SBS_LEFT_VERTICAL_OFFSET_PREF_STRING, snapshot.leftVerticalOffsetPercentage);
+        editor.putFloat(SBS_RIGHT_VERTICAL_OFFSET_PREF_STRING, snapshot.rightVerticalOffsetPercentage);
+        editor.putFloat(SBS_COMMON_YAW_PREF_STRING, snapshot.commonYawDegrees);
+        editor.putFloat(SBS_COMMON_PITCH_PREF_STRING, snapshot.commonPitchDegrees);
+        editor.putFloat(SBS_LEFT_YAW_CORRECTION_PREF_STRING, snapshot.leftYawCorrectionDegrees);
+        editor.putFloat(SBS_RIGHT_YAW_CORRECTION_PREF_STRING, snapshot.rightYawCorrectionDegrees);
+        editor.putFloat(SBS_LEFT_PITCH_CORRECTION_PREF_STRING, snapshot.leftPitchCorrectionDegrees);
+        editor.putFloat(SBS_RIGHT_PITCH_CORRECTION_PREF_STRING, snapshot.rightPitchCorrectionDegrees);
+        return editor.commit();
+    }
+
+    public static boolean isSbsCalibrationPreference(String key) {
+        return SBS_SCALE_PREF_STRING.equals(key) ||
+                SBS_SEPARATION_PREF_STRING.equals(key) ||
+                SBS_VERTICAL_POSITION_PREF_STRING.equals(key) ||
+                SBS_LENS_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_LEFT_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_RIGHT_HORIZONTAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_LEFT_VERTICAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_RIGHT_VERTICAL_OFFSET_PREF_STRING.equals(key) ||
+                SBS_COMMON_YAW_PREF_STRING.equals(key) ||
+                SBS_COMMON_PITCH_PREF_STRING.equals(key) ||
+                SBS_LEFT_YAW_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_RIGHT_YAW_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_LEFT_PITCH_CORRECTION_PREF_STRING.equals(key) ||
+                SBS_RIGHT_PITCH_CORRECTION_PREF_STRING.equals(key);
+    }
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option

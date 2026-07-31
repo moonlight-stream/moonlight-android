@@ -2268,10 +2268,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             try {
                 SbsRenderer renderer = new SbsRenderer(outputSurface, width, height,
                         prefConfig.width, prefConfig.height,
-                        prefConfig.sbsScalePercentage,
-                        prefConfig.sbsSeparationPercentage,
-                        prefConfig.sbsVerticalPositionPercentage,
-                        prefConfig.sbsLensCorrectionPercentage,
+                        MoonlightApplication.from(this).getCalibrationController(),
                         exception -> runOnUiThread(() -> {
                             if (connecting || connected) {
                                 decoderRenderer.prepareForStop();

@@ -117,7 +117,8 @@ private data class GameMenuPalette(
 @Composable
 internal fun GameMenuScreen(
     state: GameMenuComposeUiState,
-    callbacks: GameMenuCallbacks
+    callbacks: GameMenuCallbacks,
+    useFabricTexture: Boolean = true
 ) {
     val palette = gameMenuPalette()
     val configuration = LocalConfiguration.current
@@ -148,7 +149,8 @@ internal fun GameMenuScreen(
                         .fillMaxWidth()
                         .gameMenuFabricBackground(
                             baseColor = palette.dialogBackground,
-                            darkTheme = palette.darkTheme
+                            darkTheme = palette.darkTheme,
+                            textureEnabled = useFabricTexture
                         )
                 ) {
                     GameMenuContent(
@@ -311,6 +313,16 @@ private fun rememberGameMenuMaxHeight(): Dp {
 }
 
 private fun Modifier.gameMenuFabricBackground(
+    baseColor: Color,
+    darkTheme: Boolean,
+    textureEnabled: Boolean
+): Modifier = if (textureEnabled) {
+    gameMenuFabricTexture(baseColor, darkTheme)
+} else {
+    background(baseColor)
+}
+
+private fun Modifier.gameMenuFabricTexture(
     baseColor: Color,
     darkTheme: Boolean
 ): Modifier = drawWithCache {

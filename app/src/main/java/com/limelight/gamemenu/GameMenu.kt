@@ -75,6 +75,7 @@ class GameMenu(
     private val bitrateCardController = BitrateCardController(game, conn)
     private val audioHapticsCardController = AudioHapticsCardController(game)
     private val gyroCardController = GyroCardController(game)
+    private val renderingProfile = GameMenuRenderingProfile.from(game)
     init {
         showMenu()
     }
@@ -647,7 +648,11 @@ class GameMenu(
         val composeView = ComposeView(game).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent {
-                GameMenuScreen(state.value, callbacks)
+                GameMenuScreen(
+                    state = state.value,
+                    callbacks = callbacks,
+                    useFabricTexture = renderingProfile.useFabricTexture
+                )
             }
         }
         dialog = ComponentDialog(game, R.style.GameMenuDialogStyle).apply {
@@ -954,7 +959,7 @@ class GameMenu(
     private fun setupDialogProperties(dialog: ComponentDialog) {
         dialog.window?.let { window ->
             val layoutParams = window.attributes
-            layoutParams.alpha = DIALOG_ALPHA
+            layoutParams.alpha = renderingProfile.windowAlpha
             layoutParams.dimAmount = DIALOG_DIM_AMOUNT
             layoutParams.width = resolveDialogWidth()
             layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -964,6 +969,7 @@ class GameMenu(
             window.setBackgroundDrawable(
                 android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)
             )
+            window.setWindowAnimations(renderingProfile.dialogAnimationStyle)
         }
     }
 
@@ -1402,8 +1408,6 @@ class GameMenu(
 
     companion object {
         private const val TEST_GAME_FOCUS_DELAY = 10L
-        // Keep Compose surfaces opaque and blend the dialog once at the window level.
-        private const val DIALOG_ALPHA = 0.85f
         private const val DIALOG_DIM_AMOUNT = 0.0f
         private const val DIALOG_LANDSCAPE_WIDTH_FRACTION = 0.88f
         private const val DIALOG_PORTRAIT_WIDTH_FRACTION = 0.95f

@@ -291,6 +291,12 @@
         <item name="android:windowExitAnimation">@anim/game_menu_dialog_exit</item>
     </style>
 
+    <!-- Low-end profile: preserve the slide but avoid an alpha animation. -->
+    <style name="GameMenuDialogAnimationLowEnd">
+        <item name="android:windowEnterAnimation">@anim/game_menu_dialog_enter_low_end</item>
+        <item name="android:windowExitAnimation">@anim/game_menu_dialog_exit_low_end</item>
+    </style>
+
     <!-- 通用弹窗样式 -->
     <style name="AppDialogStyle" parent="Theme.AppCompat.Dialog.Alert">
         <item name="android:windowBackground">@drawable/app_dialog_bg_cute</item>

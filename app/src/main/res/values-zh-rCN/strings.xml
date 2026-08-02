@@ -1414,7 +1414,15 @@
     <string name="crown_store_tab_store">超市王冠</string>
     <string name="crown_store_tab_mine">我的王冠</string>
     <string name="crown_store_store_summary">来看看大家晒在 GitHub 上的王冠配置，喜欢哪套就带回本地。</string>
-    <string name="crown_store_my_summary">这里是你的王冠小工坊：整理本地配置、打包分享，也可以投稿到 GitHub Store。</string>
+    <string name="crown_store_my_summary">管理配置、导入分享包、投稿喜欢的布局。</string>
+    <string name="crown_store_my_workspace_title">你的王冠空间</string>
+    <string name="crown_store_local_profiles">本地配置</string>
+    <string name="crown_store_profile_count">%1$d 套</string>
+    <string name="crown_store_profile_unit">套配置</string>
+    <string name="crown_store_profile_active">当前使用</string>
+    <string name="crown_store_legacy_tool_summary">从旧版 .mdat 文件恢复王冠配置。</string>
+    <string name="crown_store_action_open">打开</string>
+    <string name="crown_store_action_import_package">导入分享包</string>
     <string name="crown_store_action_refresh">刷新一下</string>
     <string name="crown_store_action_import_profile">收下这套</string>
     <string name="crown_store_action_report_profile">举报</string>
@@ -1427,7 +1435,7 @@
     <string name="crown_store_action_back">返回</string>
     <string name="crown_store_empty_state_title">这里还没有王冠</string>
     <string name="crown_store_empty_state_message">等配置被合并进 GitHub Store 后，就会乖乖出现在这里。</string>
-    <string name="crown_store_my_empty_message">这里还空空的。先创建或导入一套王冠配置，再回来分享吧。</string>
+    <string name="crown_store_my_empty_message">还没有本地配置。导入或创建一套王冠配置后，它会显示在这里。</string>
     <string name="crown_store_local_tools">本地小工具</string>
     <string name="crown_store_local_profile_id">本地 ID：%1$s</string>
     <string name="crown_store_layout_basis">适配：%1$s</string>

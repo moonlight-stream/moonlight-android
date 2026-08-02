@@ -690,7 +690,15 @@
     <string name="crown_store_tab_store">Crown Market</string>
     <string name="crown_store_tab_mine">My Crowns</string>
     <string name="crown_store_store_summary">Browse Crown layouts shared on GitHub. Pick one you like and bring it home.</string>
-    <string name="crown_store_my_summary">Your Crown workshop: manage local profiles, pack shares, and submit favorites to the GitHub Store.</string>
+    <string name="crown_store_my_summary">Manage profiles, import packages, and publish layouts.</string>
+    <string name="crown_store_my_workspace_title">Your Crown space</string>
+    <string name="crown_store_local_profiles">Local profiles</string>
+    <string name="crown_store_profile_count">Profiles: %1$d</string>
+    <string name="crown_store_profile_unit">Profiles</string>
+    <string name="crown_store_profile_active">Active</string>
+    <string name="crown_store_legacy_tool_summary">Restore a Crown profile from a legacy .mdat file.</string>
+    <string name="crown_store_action_open">Open</string>
+    <string name="crown_store_action_import_package">Import package</string>
     <string name="crown_store_action_refresh">Refresh</string>
     <string name="crown_store_action_import_profile">Bring Home</string>
     <string name="crown_store_action_report_profile">Report</string>
@@ -703,7 +711,7 @@
     <string name="crown_store_action_back">Back</string>
     <string name="crown_store_empty_state_title">No crowns here yet</string>
     <string name="crown_store_empty_state_message">Once a profile is merged into the GitHub Store repo, it will pop up here.</string>
-    <string name="crown_store_my_empty_message">It is empty here. Create or import a Crown profile first, then come back to share it.</string>
+    <string name="crown_store_my_empty_message">No local profiles yet. Import or create a Crown profile and it will appear here.</string>
     <string name="crown_store_local_tools">Local toolkit</string>
     <string name="crown_store_local_profile_id">Local ID: %1$s</string>
     <string name="crown_store_layout_basis">Fit: %1$s</string>

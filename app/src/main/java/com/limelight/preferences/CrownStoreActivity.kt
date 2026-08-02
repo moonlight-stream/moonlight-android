@@ -24,8 +24,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -50,6 +51,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button as ComposeButton
@@ -58,6 +60,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -65,7 +68,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -97,11 +99,11 @@ import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
-import java.net.URLEncoder
 import java.net.URL
-import java.util.Calendar
+import java.net.URLEncoder
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.LinkedHashMap
 import java.util.Locale
@@ -117,7 +119,8 @@ class CrownStoreActivity : AppCompatActivity() {
 
     private data class LocalCrownProfile(
         val id: String,
-        val name: String
+        val name: String,
+        val isActive: Boolean
     )
 
     private data class CrownStoreUiState(
@@ -329,7 +332,7 @@ class CrownStoreActivity : AppCompatActivity() {
                                     .fillMaxSize()
                                     .padding(innerPadding)
                                     .verticalScroll(rememberScrollState())
-                                    .padding(horizontal = 16.dp, vertical = 10.dp)
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
                             ) {
                                 CrownMineTabContent(state.localProfiles)
                             }
@@ -513,24 +516,13 @@ class CrownStoreActivity : AppCompatActivity() {
 
     @Composable
     private fun CrownMineTabContent(profiles: List<LocalCrownProfile>) {
-        CrownBodyText(stringResource(R.string.crown_store_my_summary))
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            CrownActionButton(
-                text = stringResource(R.string.crown_share_action_import),
-                iconRes = R.drawable.phc_action_plus,
-                modifier = Modifier.weight(1f)
-            ) {
-                openCrownShareDocument()
-            }
-            CrownActionButton(
-                text = stringResource(R.string.crown_share_action_import_url),
-                iconRes = R.drawable.phc_plug,
-                modifier = Modifier.weight(1f)
-            ) {
-                showCrownShareUrlImportDialog()
-            }
-        }
+        CrownMineHero(profiles.size)
+        Spacer(modifier = Modifier.height(18.dp))
+        CrownSectionHeader(
+            title = stringResource(R.string.crown_store_local_profiles),
+            iconRes = R.drawable.phc_list,
+            countText = stringResource(R.string.crown_store_profile_count, profiles.size)
+        )
         Spacer(modifier = Modifier.height(10.dp))
         if (profiles.isEmpty()) {
             CrownStateCard(
@@ -538,22 +530,171 @@ class CrownStoreActivity : AppCompatActivity() {
                 message = stringResource(R.string.crown_store_my_empty_message)
             )
         } else {
-            CrownLocalProfilesGrid(profiles)
+            CrownLocalProfilesList(profiles)
         }
-        Spacer(modifier = Modifier.height(14.dp))
-        Text(
-            text = stringResource(R.string.crown_store_local_tools),
-            color = colorResource(R.color.crown_text_primary),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold
+        Spacer(modifier = Modifier.height(18.dp))
+        CrownSectionHeader(
+            title = stringResource(R.string.crown_store_local_tools),
+            iconRes = R.drawable.phc_settings
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        CrownActionButton(
-            text = stringResource(R.string.crown_config_action_import_legacy),
-            iconRes = R.drawable.phc_list,
-            modifier = Modifier.fillMaxWidth()
+        Spacer(modifier = Modifier.height(10.dp))
+        CrownLegacyToolsCard()
+    }
+
+    @Composable
+    private fun CrownMineHero(profileCount: Int) {
+        CrownProfileCard {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .background(
+                            color = colorResource(R.color.crown_accent_pressed),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.phc_crown),
+                        contentDescription = null,
+                        tint = colorResource(R.color.crown_accent),
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.crown_store_my_workspace_title),
+                        color = colorResource(R.color.crown_text_primary),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    CrownBodyText(stringResource(R.string.crown_store_my_summary), maxLines = 2)
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = colorResource(R.color.crown_input_background),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = profileCount.toString(),
+                            color = colorResource(R.color.crown_accent),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(R.string.crown_store_profile_unit),
+                            color = colorResource(R.color.crown_text_secondary),
+                            fontSize = 10.sp
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CrownActionButton(
+                    text = stringResource(R.string.crown_store_action_import_package),
+                    iconRes = R.drawable.phc_action_plus,
+                    primary = true,
+                    compact = true,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    openCrownShareDocument()
+                }
+                CrownActionButton(
+                    text = stringResource(R.string.crown_share_action_import_url),
+                    iconRes = R.drawable.phc_plug,
+                    compact = true,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    showCrownShareUrlImportDialog()
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CrownSectionHeader(title: String, iconRes: Int, countText: String? = null) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            openLegacyImportDocument()
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                tint = colorResource(R.color.crown_accent),
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = title,
+                color = colorResource(R.color.crown_text_primary),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            if (!countText.isNullOrBlank()) {
+                Text(
+                    text = countText,
+                    color = colorResource(R.color.crown_text_secondary),
+                    fontSize = 11.sp,
+                    modifier = Modifier
+                        .background(
+                            color = colorResource(R.color.crown_input_background),
+                            shape = RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 9.dp, vertical = 4.dp)
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun CrownLegacyToolsCard() {
+        CrownProfileCard {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.phc_list),
+                    contentDescription = null,
+                    tint = colorResource(R.color.crown_text_secondary),
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.crown_config_action_import_legacy),
+                        color = colorResource(R.color.crown_text_primary),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(3.dp))
+                    CrownBodyText(stringResource(R.string.crown_store_legacy_tool_summary), maxLines = 2)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                CrownActionButton(
+                    text = stringResource(R.string.crown_store_action_open),
+                    iconRes = R.drawable.phc_action_plus,
+                    compact = true
+                ) {
+                    openLegacyImportDocument()
+                }
+            }
         }
     }
 
@@ -674,17 +815,10 @@ class CrownStoreActivity : AppCompatActivity() {
     }
 
     @Composable
-    private fun CrownLocalProfilesGrid(profiles: List<LocalCrownProfile>) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            profiles.chunked(2).forEach { rowProfiles ->
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    rowProfiles.forEach { profile ->
-                        CrownLocalProfileCard(profile, Modifier.weight(1f))
-                    }
-                    if (rowProfiles.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
+    private fun CrownLocalProfilesList(profiles: List<LocalCrownProfile>) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            profiles.forEach { profile ->
+                CrownLocalProfileCard(profile)
             }
         }
     }
@@ -699,42 +833,54 @@ class CrownStoreActivity : AppCompatActivity() {
                 detectTapGestures(onLongPress = { showDeleteLocalProfileDialog(profile) })
             }
         ) {
-            CrownCardTitle(profile.name)
-            CrownMetaText(getString(R.string.crown_store_local_profile_id, profile.id), strong = false)
+            Row(verticalAlignment = Alignment.Top) {
+                Column(modifier = Modifier.weight(1f)) {
+                    CrownCardTitle(profile.name, maxLines = 1)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    CrownMetaText(getString(R.string.crown_store_local_profile_id, profile.id), strong = false)
+                }
+                if (profile.isActive) {
+                    CrownStatusChip(stringResource(R.string.crown_store_profile_active))
+                }
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                CrownActionButton(
-                    text = stringResource(R.string.crown_store_action_publish_profile),
-                    iconRes = R.drawable.phc_action_check,
-                    primary = true,
-                    compact = true,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    showCrownStorePublishMetadataDialog(profile.id, profile.name)
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    CrownActionButton(
+                        text = stringResource(R.string.crown_store_action_publish_profile),
+                        iconRes = R.drawable.phc_action_check,
+                        primary = true,
+                        compact = true,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        showCrownStorePublishMetadataDialog(profile.id, profile.name)
+                    }
+                    CrownActionButton(
+                        text = stringResource(R.string.crown_store_action_export_share),
+                        iconRes = R.drawable.phc_action_copy,
+                        compact = true,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        exportCrownSharePackage(profile.id, profile.name)
+                    }
                 }
-                CrownActionButton(
-                    text = stringResource(R.string.crown_store_action_export_share),
-                    iconRes = R.drawable.phc_action_copy,
-                    compact = true,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    exportCrownSharePackage(profile.id, profile.name)
-                }
-                CrownActionButton(
-                    text = stringResource(R.string.crown_store_action_export_legacy_short),
-                    iconRes = R.drawable.phc_list,
-                    compact = true,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    exportLegacyConfig(profile.id, profile.name)
-                }
-                CrownActionButton(
-                    text = stringResource(R.string.crown_store_action_merge_short),
-                    iconRes = R.drawable.phc_plug,
-                    compact = true,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    openLegacyMergeDocument(profile.id)
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    CrownActionButton(
+                        text = stringResource(R.string.crown_store_action_export_legacy_short),
+                        iconRes = R.drawable.phc_list,
+                        compact = true,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        exportLegacyConfig(profile.id, profile.name)
+                    }
+                    CrownActionButton(
+                        text = stringResource(R.string.crown_store_action_merge_short),
+                        iconRes = R.drawable.phc_plug,
+                        compact = true,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        openLegacyMergeDocument(profile.id)
+                    }
                 }
             }
         }
@@ -747,13 +893,18 @@ class CrownStoreActivity : AppCompatActivity() {
     ) {
         Card(
             modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = colorResource(R.color.crown_section_background)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+            border = BorderStroke(
+                width = 1.dp,
+                color = colorResource(R.color.crown_section_border)
             )
         ) {
             Column(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier.padding(16.dp),
                 content = content
             )
         }
@@ -954,6 +1105,32 @@ class CrownStoreActivity : AppCompatActivity() {
     }
 
     @Composable
+    private fun CrownStatusChip(text: String) {
+        Row(
+            modifier = Modifier
+                .background(
+                    color = colorResource(R.color.crown_accent_pressed),
+                    shape = RoundedCornerShape(50)
+                )
+                .padding(horizontal = 8.dp, vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(colorResource(R.color.crown_accent), CircleShape)
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = text,
+                color = colorResource(R.color.crown_accent),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+
+    @Composable
     private fun CrownActionButton(
         text: String,
         iconRes: Int,
@@ -967,12 +1144,24 @@ class CrownStoreActivity : AppCompatActivity() {
         ComposeButton(
             onClick = onClick,
             modifier = modifier.height(if (compact) 38.dp else 44.dp),
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = container,
                 contentColor = content
             ),
-            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
+            border = BorderStroke(
+                width = 1.dp,
+                color = if (primary) {
+                    colorResource(R.color.crown_accent).copy(alpha = 0.75f)
+                } else {
+                    colorResource(R.color.crown_input_border)
+                }
+            ),
+            contentPadding = if (compact) {
+                PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+            } else {
+                ButtonDefaults.ButtonWithIconContentPadding
+            }
         ) {
             Icon(
                 painter = painterResource(iconRes),
@@ -980,10 +1169,10 @@ class CrownStoreActivity : AppCompatActivity() {
                 tint = content,
                 modifier = Modifier.size(if (compact) 16.dp else 18.dp)
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(if (compact) 4.dp else 6.dp))
             Text(
                 text = text,
-                fontSize = if (compact) 11.sp else 13.sp,
+                fontSize = if (compact) 10.5.sp else 13.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -1035,8 +1224,11 @@ class CrownStoreActivity : AppCompatActivity() {
     }
 
     private fun loadLocalProfiles(): List<LocalCrownProfile> {
+        val activeConfigId = PreferenceManager.getDefaultSharedPreferences(this)
+            .getLong(CURRENT_CROWN_CONFIG_ID_KEY, DEFAULT_CROWN_CONFIG_ID)
+            .toString()
         return loadConfigMap(helper).map { (id, name) ->
-            LocalCrownProfile(id = id, name = name)
+            LocalCrownProfile(id = id, name = name, isActive = id == activeConfigId)
         }
     }
 

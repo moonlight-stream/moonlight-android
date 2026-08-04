@@ -380,6 +380,7 @@ class ControllerHandler(
         defaultContext.hatYAxis = MotionEvent.AXIS_HAT_Y
         defaultContext.controllerNumber = 0
         defaultContext.assignedControllerNumber = true
+        defaultContext.controllerArrival.markReported()
         defaultContext.external = false
 
         // Some devices (GPD XD) have a back button which sends input events
@@ -535,10 +536,14 @@ class ControllerHandler(
             currentControllers = (currentControllers.toInt() and (1 shl context.controllerNumber.toInt()).inv()).toShort()
         }
 
-        // If this device sent data as a gamepad, zero the values before removing.
+        // If this device was reported to the host, zero the values before removing.
         // We must do this after clearing the currentControllers entry so this
         // causes the device to be removed on the server PC.
-        if (context.assignedControllerNumber) {
+        //
+        // An assigned controller whose arrival is still pending has never sent a
+        // normal input packet. Sending a removal packet for it can create a legacy
+        // Xbox controller on hosts that keep controller 0 active.
+        if (context.controllerArrival.isReported) {
             conn.sendControllerInput(
                 context.controllerNumber, getActiveControllerMask(),
                 0,
@@ -576,9 +581,9 @@ class ControllerHandler(
 
     // Called before sending input but after we've determined that this
     // is definitely a controller (not a keyboard, mouse, or something else)
-    private fun assignControllerNumberIfNeeded(context: GenericControllerContext) {
+    private fun assignControllerNumberIfNeeded(context: GenericControllerContext): Boolean {
         if (context.assignedControllerNumber) {
-            return
+            return false
         }
 
         if (context is InputDeviceContext) {
@@ -679,7 +684,39 @@ class ControllerHandler(
         hapticsCoordinator.onSinkChanged(context.controllerNumber)
 
         // Report attributes of this new controller to the host
-        context.sendControllerArrival()
+        reportControllerArrival(context)
+        return true
+    }
+
+    private fun reportControllerArrival(context: GenericControllerContext): Boolean =
+        synchronized(context.controllerArrival) {
+            if (context.controllerArrival.isReported) {
+                return@synchronized true
+            }
+
+            context.controllerArrival.recordAttempt(context.sendControllerArrival())
+        }
+
+    internal fun retryPendingControllerArrivals() {
+        mainThreadHandler.post {
+            if (stopped) {
+                return@post
+            }
+
+            for (i in 0 until inputDeviceContexts.size()) {
+                val context = inputDeviceContexts.valueAt(i)
+                if (context.assignedControllerNumber &&
+                    !context.controllerArrival.isReported &&
+                    reportControllerArrival(context)
+                ) {
+                    sendControllerInputPacket(context)
+                }
+            }
+
+            // USB contexts are owned by their driver threads and continuously
+            // report state, so they retry through sendControllerInputPacket().
+            // Don't iterate their SparseArray from the main thread here.
+        }
     }
 
     // ========== Device Context Creation ==========
@@ -1122,7 +1159,15 @@ class ControllerHandler(
     }
 
     internal fun sendControllerInputPacket(originalContext: GenericControllerContext) {
-        assignControllerNumberIfNeeded(originalContext)
+        val newlyAssigned = assignControllerNumberIfNeeded(originalContext)
+        if (!originalContext.controllerArrival.isReported) {
+            // assignControllerNumberIfNeeded() already made the first attempt. If
+            // the input stream wasn't ready yet, keep the input state but don't let
+            // a legacy controller packet create an Xbox device before our metadata.
+            if (newlyAssigned || !reportControllerArrival(originalContext)) {
+                return
+            }
+        }
         hapticsCoordinator.noteControllerInput(originalContext)
 
         // Take the context's controller number and fuse all inputs with the same number

@@ -905,6 +905,13 @@ class Game : Activity(), SurfaceHolder.Callback,
             decoderRenderer = null
         }
 
+        // The Game activity may survive while the stream is stopped. Refresh the
+        // controller motion settings before rebuilding the handler so a resumed
+        // session doesn't keep the values captured by onCreate().
+        prefConfig.refreshControllerMotionPreferencesFrom(
+            PreferenceConfiguration.readPreferences(this, currentTargetDisplay)
+        )
+
         createConnectionAndHandler()
 
         audioVibrationService?.controllerHandler = controllerHandler
@@ -1585,6 +1592,7 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     override fun connectionStarted() {
         connectionCallbackHandler.connectionStarted()
+        controllerHandler.retryPendingControllerArrivals()
         startClipboardSyncIfEnabled()
     }
 

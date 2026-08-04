@@ -19,6 +19,11 @@ import kotlin.math.sqrt
 
 class PreferenceConfiguration {
 
+    internal fun refreshControllerMotionPreferencesFrom(latest: PreferenceConfiguration) {
+        gamepadMotionSensors = latest.gamepadMotionSensors
+        gamepadMotionSensorsFallbackToDevice = latest.gamepadMotionSensorsFallbackToDevice
+    }
+
     enum class FormatOption {
         AUTO,
         FORCE_AV1,

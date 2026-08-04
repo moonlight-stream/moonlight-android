@@ -41,6 +41,7 @@ open class GenericControllerContext(
 
     var assignedControllerNumber: Boolean = false
     var reservedControllerNumber: Boolean = false
+    internal val controllerArrival = ControllerArrivalTracker()
     var controllerNumber: Short = 0
 
     var inputMap: Int = 0
@@ -121,7 +122,7 @@ open class GenericControllerContext(
         handler.mainThreadHandler.removeCallbacks(mouseEmulationRunnable)
     }
 
-    open fun sendControllerArrival() {}
+    open fun sendControllerArrival(): Int = 0
 }
 
 // =================================================================================
@@ -248,8 +249,8 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
     }
 
     @TargetApi(31)
-    override fun sendControllerArrival() {
-        val inputDev = inputDevice ?: return
+    override fun sendControllerArrival(): Int {
+        val inputDev = inputDevice ?: return -1
         val type: Byte = when (inputDev.vendorId) {
             0x045e -> MoonBridge.LI_CTYPE_XBOX // Microsoft
             0x054c -> MoonBridge.LI_CTYPE_PS   // Sony
@@ -323,14 +324,10 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
             capabilities = (capabilities.toInt() or MoonBridge.LI_CCAP_GYRO.toInt()).toShort()
         }
 
+        val emulatingMotionSensors = type != MoonBridge.LI_CTYPE_PS && sensorManager != null
         val reportedType: Byte
-        if (type != MoonBridge.LI_CTYPE_PS && sensorManager != null) {
+        if (emulatingMotionSensors) {
             // Override the detected controller type if we're emulating motion sensors on an Xbox controller
-            Toast.makeText(
-                handler.activityContext,
-                handler.activityContext.resources.getText(R.string.toast_controller_type_changed),
-                Toast.LENGTH_LONG
-            ).show()
             reportedType = MoonBridge.LI_CTYPE_UNKNOWN
 
             // Remember that we should enable the clickpad emulation combo (Select+LB) for this device
@@ -359,13 +356,25 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
             }
         }
 
-        handler.conn.sendControllerArrivalEvent(
+        val result = handler.conn.sendControllerArrivalEvent(
             controllerNumber.toByte(), handler.getActiveControllerMask(),
             reportedType, supportedButtonFlags, capabilities
         )
+        if (result != 0) {
+            return result
+        }
+
+        if (emulatingMotionSensors) {
+            Toast.makeText(
+                handler.activityContext,
+                handler.activityContext.resources.getText(R.string.toast_controller_type_changed),
+                Toast.LENGTH_LONG
+            ).show()
+        }
 
         // After reporting arrival to the host, send initial battery state and begin monitoring
         handler.backgroundThreadHandler.post(batteryStateUpdateRunnable)
+        return result
     }
 
     fun migrateContext(oldContext: InputDeviceContext) {
@@ -389,6 +398,9 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
         // Copy over existing controller number state
         this.assignedControllerNumber = oldContext.assignedControllerNumber
         this.reservedControllerNumber = oldContext.reservedControllerNumber
+        if (oldContext.controllerArrival.isReported) {
+            this.controllerArrival.markReported()
+        }
         this.controllerNumber = oldContext.controllerNumber
 
         // We may have set this device to use the built-in sensor manager. If so, do that again.
@@ -402,8 +414,11 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
         // Re-enable sensors on the new context
         enableSensors()
 
-        // Refresh battery state and start the battery state polling again
-        handler.backgroundThreadHandler.post(batteryStateUpdateRunnable)
+        // Resume battery polling only if the host already knows this controller.
+        // A pending arrival starts polling after its first successful retry.
+        if (controllerArrival.isReported) {
+            handler.backgroundThreadHandler.post(batteryStateUpdateRunnable)
+        }
     }
 
     fun disableSensors() {
@@ -446,9 +461,9 @@ class UsbDeviceContext(handler: ControllerHandler) : GenericControllerContext(ha
         // Nothing for now
     }
 
-    override fun sendControllerArrival() {
-        val dev = device ?: return
-        handler.conn.sendControllerArrivalEvent(
+    override fun sendControllerArrival(): Int {
+        val dev = device ?: return -1
+        return handler.conn.sendControllerArrivalEvent(
             controllerNumber.toByte(), handler.getActiveControllerMask(),
             dev.type, dev.supportedButtonFlags, dev.capabilities
         )

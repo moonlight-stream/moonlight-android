@@ -15,6 +15,7 @@ import com.limelight.nvstream.http.ComputerDetails
 import com.limelight.nvstream.http.NvHTTP
 import com.limelight.nvstream.jni.MoonBridge
 import com.limelight.utils.Dialog
+import com.limelight.utils.NetHelper
 import com.limelight.utils.ServerHelper
 import com.limelight.utils.SpinnerDialog
 import com.limelight.utils.UiHelper
@@ -158,6 +159,7 @@ class AddComputerManually : Activity() {
     @Throws(InterruptedException::class)
     private fun doAddPc(rawUserInput: String) {
         var wrongSiteLocal = false
+        var activeNetworkIsVpn = false
         var invalidInput = false
         var success: Boolean
         var portTestResult: Int
@@ -185,7 +187,10 @@ class AddComputerManually : Activity() {
                 details.manualAddress = ComputerDetails.AddressTuple(host, port)
                 success = managerBinder!!.addComputerBlocking(details)
                 if (!success) {
-                    wrongSiteLocal = isWrongSubnetSiteLocalAddress(host)
+                    activeNetworkIsVpn = NetHelper.isActiveNetworkVpn(this)
+                    // A VPN may route private subnets that don't match any local
+                    // interface address, so the LAN subnet heuristic is invalid.
+                    wrongSiteLocal = !activeNetworkIsVpn && isWrongSubnetSiteLocalAddress(host)
                 }
             } else {
                 success = false
@@ -200,7 +205,7 @@ class AddComputerManually : Activity() {
             invalidInput = true
         }
 
-        if (!success && !wrongSiteLocal && !invalidInput) {
+        if (!success && !wrongSiteLocal && !invalidInput && !activeNetworkIsVpn) {
             portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443,
                     MoonBridge.ML_PORT_FLAG_TCP_47984 or MoonBridge.ML_PORT_FLAG_TCP_47989)
         } else {
@@ -217,10 +222,11 @@ class AddComputerManually : Activity() {
             Dialog.displayDialog(this, resources.getString(R.string.conn_error_title), resources.getString(R.string.addpc_wrong_sitelocal), false)
         } else if (!success) {
             setAddingState(false)
-            var dialogText = if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
-                resources.getString(R.string.nettest_text_blocked)
-            } else {
-                resources.getString(R.string.addpc_fail)
+            var dialogText = when {
+                activeNetworkIsVpn -> resources.getString(R.string.addpc_fail_vpn)
+                portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0 ->
+                    resources.getString(R.string.nettest_text_blocked)
+                else -> resources.getString(R.string.addpc_fail)
             }
 
             if (isIPv6) {

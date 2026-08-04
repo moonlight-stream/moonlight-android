@@ -102,6 +102,7 @@
     <string name="title_add_pc">手動新增電腦</string>
     <string name="msg_add_pc">正在連線電腦…</string>
     <string name="addpc_fail">無法連線至指定電腦。請確保必要通訊埠未被防火牆封鎖。</string>
+    <string name="addpc_fail_vpn">無法透過 VPN 連線至指定電腦。請檢查 VPN 是否包含該私有網段的路由、是否排除了 Moonlight，以及主機防火牆是否允許 VPN 網段存取。</string>
     <string name="addpc_success">成功新增電腦</string>
     <string name="addpc_unknown_host">無法解析電腦的 IP 位址，請確保 IP 位址輸入無誤。</string>
     <string name="addpc_enter_ip">請輸入一個 IP 位址</string>

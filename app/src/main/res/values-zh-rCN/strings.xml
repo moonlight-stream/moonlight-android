@@ -164,6 +164,7 @@
     <string name="qr_pair_success">配对成功！</string>
     <string name="msg_add_pc"> 正在连接电脑…… </string>
     <string name="addpc_fail">无法连接至指定电脑。请确保所需端口没有被防火墙阻止。</string>
+    <string name="addpc_fail_vpn">无法通过 VPN 连接至指定电脑。请检查 VPN 是否包含该私网网段的路由、是否排除了 Moonlight，以及主机防火墙是否允许 VPN 网段访问。</string>
     <string name="addpc_success"> 成功添加电脑 </string>
     <string name="addpc_unknown_host">无法解析电脑的IP地址，请确保IP地址输入无误。</string>
     <string name="addpc_enter_ip">请输入一个IP地址</string>

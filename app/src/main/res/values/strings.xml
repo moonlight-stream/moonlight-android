@@ -223,6 +223,7 @@
     <string name="qr_pair_success">Paired successfully!</string>
     <string name="msg_add_pc">Connecting to the PC…</string>
     <string name="addpc_fail">Unable to connect to the specified computer. Make sure the required ports are allowed through the firewall.</string>
+    <string name="addpc_fail_vpn">Unable to connect to the specified computer through the VPN. Check that the VPN routes this private subnet, does not exclude Moonlight, and that the host firewall allows the VPN network.</string>
     <string name="addpc_success">Successfully added computer</string>
     <string name="addpc_unknown_host">Unable to resolve PC address. Make sure you didn\'t make a typo in the address.</string>
     <string name="addpc_enter_ip">You must enter an IP address</string>

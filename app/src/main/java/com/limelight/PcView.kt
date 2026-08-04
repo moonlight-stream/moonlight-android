@@ -2107,7 +2107,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             showToast(getString(R.string.error_pc_offline))
             return
         }
-        if (computer.vddCapabilityVersion <= 0) {
+        if (computer.vddCapabilityVersion == 0) {
             showToast(getString(R.string.error_vdd_unsupported))
             return
         }
@@ -2382,7 +2382,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 add(RESUME_ID, R.string.applist_menu_resume)
             }
             add(FULL_APP_LIST_ID, R.string.pcview_menu_app_list)
-            if (details.vddCapabilityVersion > 0) {
+            if (details.vddCapabilityVersion != 0) {
                 add(SECONDARY_SCREEN_ID, R.string.pcview_menu_secondary_screen)
             }
         }

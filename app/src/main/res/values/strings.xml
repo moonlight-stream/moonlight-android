@@ -169,7 +169,6 @@
     <string name="error_desktop_special_app_unsupported">This host does not support Desktop quick start. Open the app list once to load cached apps, or update Foundation Sunshine.</string>
     <string name="error_vdd_unsupported">This host does not support virtual display streaming.</string>
     <string name="error_vdd_unavailable">The host virtual display driver is unavailable. Install or repair ZakoVDD, then try again.</string>
-    <string name="applist_vdd_unavailable">%1$s (unavailable on host)</string>
     <string name="applist_quit_app">Quitting</string>
     <string name="applist_quit_success">Successfully quit</string>
     <string name="applist_quit_fail">Failed to quit</string>

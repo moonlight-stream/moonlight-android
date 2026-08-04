@@ -994,9 +994,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
                 val catalog = withContext(Dispatchers.IO) {
                     getHostHttpClient()?.getDisplays()
                 }
-                val supportsVdd =
-                    (computer?.vddCapabilityVersion ?: 0) > 0 &&
-                        (catalog?.vddCapabilityVersion ?: 0) > 0
+                val supportsVdd = catalog?.supportsVdd(computer?.vddCapabilityVersion) == true
                 if (catalog != null && (catalog.displays.isNotEmpty() || supportsVdd)) {
                     updateDisplaySelectionUI(catalog, supportsVdd)
                 } else {
@@ -1036,20 +1034,10 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         }
 
         if (supportsVdd) {
-            val vddReady = catalog.vddState == NvHTTP.VddState.READY
-            val vddLabel = if (vddReady) {
-                resources.getString(R.string.applist_menu_start_with_vdd)
-            } else {
-                resources.getString(
-                    R.string.applist_vdd_unavailable,
-                    resources.getString(R.string.applist_menu_start_with_vdd).trim()
-                )
-            }
             displayRadioGroup.addView(
                 createDisplayRadioButton(
                     VIRTUAL_DISPLAY_ID,
-                    vddLabel,
-                    enabled = vddReady
+                    resources.getString(R.string.applist_menu_start_with_vdd)
                 )
             )
         }
@@ -1069,8 +1057,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
      */
     private fun createDisplayRadioButton(
         id: Int,
-        text: String,
-        enabled: Boolean = true
+        text: String
     ): RadioButton {
         val radioButton = RadioButton(this)
         radioButton.id = id
@@ -1084,8 +1071,6 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         radioButton.typeface = android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL)
         radioButton.buttonTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
         radioButton.setPadding(0, 0, 20, 0)
-        radioButton.isEnabled = enabled
-        radioButton.alpha = if (enabled) 1f else 0.55f
         return radioButton
     }
 

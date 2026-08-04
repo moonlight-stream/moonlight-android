@@ -63,7 +63,7 @@ class ComputerDetails {
     var useVdd = false
     var sunshineVersion: String? = null
     var supportsDesktopSpecialApp = false
-    var vddCapabilityVersion = 0
+    var vddCapabilityVersion: Int? = null
 
     constructor()
 

@@ -126,9 +126,19 @@ class NvHTTP(
 
     data class DisplayCatalog(
         val displays: List<DisplayInfo>,
-        val vddCapabilityVersion: Int,
+        val vddCapabilityVersion: Int?,
         val vddState: VddState
-    )
+    ) {
+        fun supportsVdd(serverInfoCapabilityVersion: Int?): Boolean {
+            val advertisedVersions = listOfNotNull(
+                serverInfoCapabilityVersion,
+                vddCapabilityVersion
+            )
+            // Legacy hosts do not advertise this field. Only reject VDD when every
+            // capability source that is present explicitly reports no support.
+            return advertisedVersions.isEmpty() || advertisedVersions.any { it > 0 }
+        }
+    }
 
     init {
 
@@ -320,8 +330,9 @@ class NvHTTP(
 
         details.nvidiaServer = getXmlString(serverInfo, "state", true)!!.contains("MJOLNIR")
         details.supportsDesktopSpecialApp = getXmlString(serverInfo, "DesktopSpecialAppSupport", false) == "1"
-        details.vddCapabilityVersion =
-            getXmlString(serverInfo, "VddCapabilityVersion", false)?.toIntOrNull() ?: 0
+        details.vddCapabilityVersion = parseVddCapabilityVersion(
+            getXmlString(serverInfo, "VddCapabilityVersion", false)
+        )
 
         try {
             details.sunshineVersion = getSunshineVersion(serverInfo)
@@ -1057,10 +1068,15 @@ class NvHTTP(
             val vdd = json.optJSONObject("vdd")
             return DisplayCatalog(
                 displays = displays,
-                vddCapabilityVersion = vdd?.optInt("capability_version", 0) ?: 0,
+                vddCapabilityVersion = parseVddCapabilityVersion(
+                    vdd?.opt("capability_version")
+                ),
                 vddState = VddState.fromWireValue(vdd?.optString("state"))
             )
         }
+
+        internal fun parseVddCapabilityVersion(value: Any?): Int? =
+            value?.toString()?.toIntOrNull()?.takeIf { it >= 0 }
 
         private fun getXmlTextIgnoringStatus(str: String, tagname: String): String? {
             val factory = XmlPullParserFactory.newInstance()

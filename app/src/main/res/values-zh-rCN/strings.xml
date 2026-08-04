@@ -114,7 +114,6 @@
     <string name="error_desktop_special_app_unsupported">当前主机不支持桌面快速启动。请先打开应用列表加载一次，或升级 Foundation Sunshine。</string>
     <string name="error_vdd_unsupported">当前主机不支持虚拟显示器串流。</string>
     <string name="error_vdd_unavailable">主机虚拟显示器驱动当前不可用。请安装或修复 ZakoVDD 后重试。</string>
-    <string name="applist_vdd_unavailable">%1$s（主机当前不可用）</string>
     <string name="applist_quit_app"> 退出中 </string>
     <string name="applist_quit_success"> 成功退出串流 </string>
     <string name="applist_quit_fail"> 退出串流失败 </string>

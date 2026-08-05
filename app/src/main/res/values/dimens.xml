@@ -15,6 +15,11 @@
 
     <!-- Drawer width -->
     <dimen name="drawer_width">280dp</dimen>
+    <dimen name="settings_landscape_sidebar_width">224dp</dimen>
+    <dimen name="settings_category_item_outer_horizontal_margin">14dp</dimen>
+    <dimen name="settings_category_item_horizontal_padding">16dp</dimen>
+    <dimen name="settings_category_item_control_gap">12dp</dimen>
+    <dimen name="settings_category_item_title_end_margin">10dp</dimen>
 
     <!-- Crown store -->
     <dimen name="crown_store_top_bar_padding_top">24dp</dimen>

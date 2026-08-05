@@ -1,0 +1,4 @@
+<resources>
+    <!-- Keep the wider persistent settings sidebar on tablets and TVs. -->
+    <dimen name="settings_landscape_sidebar_width">280dp</dimen>
+</resources>

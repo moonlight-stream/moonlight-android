@@ -3,8 +3,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="14dp"
-    android:layout_marginRight="14dp"
+    android:layout_marginLeft="@dimen/settings_category_item_outer_horizontal_margin"
+    android:layout_marginRight="@dimen/settings_category_item_outer_horizontal_margin"
     android:layout_marginTop="3dp"
     android:layout_marginBottom="3dp">
 
@@ -15,8 +15,8 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:baselineAligned="false"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:paddingLeft="@dimen/settings_category_item_horizontal_padding"
+        android:paddingRight="@dimen/settings_category_item_horizontal_padding"
         android:paddingTop="14dp"
         android:paddingBottom="14dp"
         android:background="@drawable/category_item_background"
@@ -30,7 +30,7 @@
             android:id="@+id/category_indicator"
             android:layout_width="5dp"
             android:layout_height="5dp"
-            android:layout_marginRight="12dp"
+            android:layout_marginRight="@dimen/settings_category_item_control_gap"
             android:background="@drawable/category_indicator_shape"
             android:visibility="invisible" />
 
@@ -39,7 +39,7 @@
             android:id="@+id/category_icon"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="@dimen/settings_category_item_control_gap"
             android:scaleType="fitCenter"
             android:contentDescription="@null" />
 
@@ -49,7 +49,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginRight="10dp"
+            android:layout_marginRight="@dimen/settings_category_item_title_end_margin"
             android:textSize="15sp"
             android:textColor="#BBBBBB"
             android:singleLine="true"

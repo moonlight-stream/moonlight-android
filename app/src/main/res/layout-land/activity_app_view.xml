@@ -52,7 +52,7 @@
         android:layout_height="match_parent"
         android:background="#00000000"
         android:clickable="true"
-        android:focusable="true"
+        android:focusable="false"
         android:importantForAccessibility="no"
         android:visibility="gone" />
 
@@ -169,6 +169,8 @@
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-light"
                     android:buttonTint="@color/appview_text_primary"
+                    android:background="@drawable/appview_panel_control_background"
+                    android:focusable="true"
                     android:paddingEnd="@dimen/appview_edge_margin" />
 
                 <RadioButton
@@ -181,6 +183,8 @@
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-light"
                     android:buttonTint="@color/appview_text_primary"
+                    android:background="@drawable/appview_panel_control_background"
+                    android:focusable="true"
                     android:paddingEnd="@dimen/appview_edge_margin" />
 
                 <RadioButton
@@ -193,6 +197,8 @@
                     android:textSize="12sp"
                     android:fontFamily="sans-serif-light"
                     android:buttonTint="@color/appview_text_primary"
+                    android:background="@drawable/appview_panel_control_background"
+                    android:focusable="true"
                     android:paddingEnd="@dimen/appview_edge_margin" />
 
             </RadioGroup>
@@ -237,7 +243,7 @@
                 android:paddingBottom="2dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="@dimen/appview_edge_margin"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@drawable/appview_panel_control_background"
                 android:clickable="true"
                 android:focusable="true" />
 

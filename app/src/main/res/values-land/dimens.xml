@@ -1,0 +1,6 @@
+<resources>
+    <dimen name="settings_category_item_outer_horizontal_margin">8dp</dimen>
+    <dimen name="settings_category_item_horizontal_padding">10dp</dimen>
+    <dimen name="settings_category_item_control_gap">8dp</dimen>
+    <dimen name="settings_category_item_title_end_margin">0dp</dimen>
+</resources>

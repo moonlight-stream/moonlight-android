@@ -8,7 +8,7 @@
     tools:context=".preferences.StreamSettings">
 
     <FrameLayout
-        android:id="@+id/drawer_layout"
+        android:id="@+id/settings_layout_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -36,12 +36,11 @@
             <!-- 左侧菜单（固定显示） -->
             <LinearLayout
                 android:id="@+id/drawer_menu"
-                android:layout_width="@dimen/drawer_width"
+                android:layout_width="@dimen/settings_landscape_sidebar_width"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:background="@color/settings_drawer_background_landscape"
                 android:paddingTop="@dimen/activity_safearea_top"
-                android:fitsSystemWindows="true"
                 android:elevation="4dp">
 
                 <!-- 顶部品牌区域（紧凑） -->

@@ -23,6 +23,7 @@ import android.os.Looper
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.RelativeSizeSpan
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
@@ -175,6 +176,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
     private var isPanelOpen = false
     private lateinit var displaySelectionInfo: LinearLayout
     private lateinit var displayRadioGroup: RadioGroup
+    private lateinit var clearDisplaySelectionButton: TextView
     private lateinit var screenCombinationModeLabel: TextView
     private lateinit var screenCombinationModeOverlay: FrameLayout
     private var selectedScreenCombinationMode = -1
@@ -431,7 +433,8 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         displayRadioGroup = findViewById(R.id.displayRadioGroup)
         screenCombinationModeLabel = findViewById(R.id.screenCombinationModeLabel)
         screenCombinationModeOverlay = findViewById(R.id.screenCombinationModeOverlay)
-        findViewById<TextView>(R.id.clearDisplaySelectionButton).setOnClickListener {
+        clearDisplaySelectionButton = findViewById(R.id.clearDisplaySelectionButton)
+        clearDisplaySelectionButton.setOnClickListener {
             clearDisplaySelection()
         }
         screenCombinationModeLabel.let { label ->
@@ -499,6 +502,16 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         // Setup top panel toggle handle
         val topPanelToggle = findViewById<View>(R.id.topPanelToggle)
         topPanelToggle.setOnClickListener { toggleTopPanel() }
+        topPanelToggle.setOnKeyListener { _, keyCode, event ->
+            if (keyCode != KeyEvent.KEYCODE_DPAD_DOWN || !hasAppsForControllerFocus()) {
+                return@setOnKeyListener false
+            }
+
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                focusSelectedAppFromTopPanel()
+            }
+            true
+        }
 
         // 动态设置手柄 margin 使其精确贴合状态栏底部
         topPanelToggle.setOnApplyWindowInsetsListener { v, insets ->
@@ -869,7 +882,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
      * 关闭顶部面板 (带动画)
      */
     @SuppressLint("CutPasteId", "SetTextI18n")
-    private fun closeTopPanel() {
+    private fun closeTopPanel(restoreToggleFocus: Boolean = true) {
         if (!isPanelOpen) return
         isPanelOpen = false
 
@@ -886,9 +899,11 @@ class AppView : Activity(), AdapterFragmentCallbacks {
                     topDropdownPanel.visibility = View.GONE
                     topDropdownPanel.translationY = 0f
                     topPanelScrim.visibility = View.GONE
-                    // 关闭后将焦点还给触发手柄
-                    val toggleView = findViewById<View>(R.id.topPanelToggle)
-                    toggleView?.requestFocus()
+                    if (restoreToggleFocus) {
+                        // 关闭后将焦点还给触发手柄。打开全屏子页面时由子页面接管焦点。
+                        val toggleView = findViewById<View>(R.id.topPanelToggle)
+                        toggleView?.requestFocus()
+                    }
                 }
                 .start()
     }
@@ -1070,7 +1085,9 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         radioButton.textSize = 12f
         radioButton.typeface = android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL)
         radioButton.buttonTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt())
+        radioButton.setBackgroundResource(R.drawable.appview_panel_control_background)
         radioButton.setPadding(0, 0, 20, 0)
+        radioButton.isFocusable = true
         return radioButton
     }
 
@@ -1209,7 +1226,7 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         }
 
         if (isPanelOpen) {
-            closeTopPanel()
+            closeTopPanel(restoreToggleFocus = false)
         }
 
         val checkedIndex = findScreenCombinationModeIndex()
@@ -1242,7 +1259,9 @@ class AppView : Activity(), AdapterFragmentCallbacks {
     private fun hideScreenCombinationModeView() {
         screenCombinationModeOverlay.visibility = View.GONE
         screenCombinationModeOverlay.removeAllViews()
-        screenCombinationModeLabel.requestFocus()
+        // The top panel is closed while the picker is shown, so its label is no longer a
+        // valid focus target. Return controller focus to the panel toggle on the app page.
+        findViewById<View>(R.id.topPanelToggle).requestFocus()
     }
 
     private fun findScreenCombinationModeIndex(): Int {
@@ -1964,6 +1983,12 @@ class AppView : Activity(), AdapterFragmentCallbacks {
             return false
         }
 
+        if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isAppInTopVisualRow(position)) {
+            selectionAnimator?.hideIndicator()
+            findViewById<View>(R.id.topPanelToggle).requestFocus()
+            return true
+        }
+
         if (keyCode == android.view.KeyEvent.KEYCODE_BUTTON_X ||
                 keyCode == android.view.KeyEvent.KEYCODE_BUTTON_Y) {
             val app = item as AppObject
@@ -1973,6 +1998,32 @@ class AppView : Activity(), AdapterFragmentCallbacks {
         }
 
         return false
+    }
+
+    private fun isAppInTopVisualRow(position: Int): Boolean {
+        val layoutManager = currentRecyclerView?.layoutManager as? GridLayoutManager ?: return position == 0
+        return layoutManager.spanSizeLookup.getSpanIndex(position, layoutManager.spanCount) == 0
+    }
+
+    private fun hasAppsForControllerFocus(): Boolean {
+        return currentRecyclerView != null && (appGridAdapter?.count ?: 0) > 0
+    }
+
+    private fun focusSelectedAppFromTopPanel() {
+        val recyclerView = currentRecyclerView ?: return
+        val itemCount = appGridAdapter?.count ?: return
+        if (itemCount <= 0) return
+
+        val targetPosition = selectedPosition.takeIf { it in 0 until itemCount } ?: 0
+        val holder = recyclerView.findViewHolderForAdapterPosition(targetPosition)
+        if (holder?.itemView?.requestFocus() == true) {
+            return
+        }
+
+        recyclerView.scrollToPosition(targetPosition)
+        recyclerView.post {
+            recyclerView.findViewHolderForAdapterPosition(targetPosition)?.itemView?.requestFocus()
+        }
     }
 
     private fun handleItemLongClick(position: Int, item: Any): Boolean {
@@ -2056,6 +2107,78 @@ class AppView : Activity(), AdapterFragmentCallbacks {
             }
         }
         return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (isPanelOpen && !screenCombinationModeOverlay.isVisible && handleTopPanelKeyEvent(event)) {
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun handleTopPanelKeyEvent(event: KeyEvent): Boolean {
+        val isDirectionKey = event.keyCode == KeyEvent.KEYCODE_DPAD_UP ||
+                event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT
+        val isConfirmKey = event.keyCode == KeyEvent.KEYCODE_BUTTON_A ||
+                event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                event.keyCode == KeyEvent.KEYCODE_ENTER ||
+                event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER ||
+                event.keyCode == KeyEvent.KEYCODE_SPACE
+        if (!isDirectionKey && !isConfirmKey) {
+            return false
+        }
+
+        val focusTargets = getTopPanelFocusTargets()
+        if (focusTargets.isEmpty()) {
+            return false
+        }
+
+        val currentIndex = focusTargets.indexOf(currentFocus)
+        if (isDirectionKey) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                val targetIndex = when (event.keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> (currentIndex - 1).coerceAtLeast(0)
+                    KeyEvent.KEYCODE_DPAD_DOWN -> (currentIndex + 1).coerceAtMost(focusTargets.lastIndex)
+                    else -> currentIndex.coerceAtLeast(0)
+                }
+                focusTargets[targetIndex].requestFocus()
+            }
+            // The panel is a single vertical route. Keep horizontal movement from escaping
+            // to the focusable app grid or the full-screen scrim behind it.
+            return true
+        }
+
+        if (currentIndex < 0) {
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                focusTargets.first().requestFocus()
+            }
+            return true
+        }
+
+        if (event.action == KeyEvent.ACTION_UP) {
+            focusTargets[currentIndex].performClick()
+        }
+        return true
+    }
+
+    private fun getTopPanelFocusTargets(): List<View> {
+        val targets = mutableListOf<View>()
+        targets += findViewById<View>(R.id.settingsEntry)
+        targets += findViewById<View>(R.id.appBackgroundModeArtwork)
+        targets += findViewById<View>(R.id.appBackgroundModeAcrylic)
+        targets += findViewById<View>(R.id.appBackgroundModeSoftColor)
+        targets += screenCombinationModeLabel
+
+        if (displaySelectionInfo.visibility == View.VISIBLE) {
+            targets += clearDisplaySelectionButton
+            for (index in 0 until displayRadioGroup.childCount) {
+                targets += displayRadioGroup.getChildAt(index)
+            }
+        }
+
+        return targets.filter { it.visibility == View.VISIBLE && it.isEnabled && it.isFocusable }
     }
 
     override fun onKeyDown(keyCode: Int, event: android.view.KeyEvent): Boolean {

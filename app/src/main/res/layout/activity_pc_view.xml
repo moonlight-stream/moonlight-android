@@ -28,46 +28,7 @@
         android:focusable="false"
         >
 
-        <RelativeLayout
-            android:id="@+id/no_pc_found_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="32dp"
-            android:paddingBottom="32dp"
-            android:layout_centerInParent="true"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true">
-            <TextView
-                android:id="@+id/searching_pc_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="28dp"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:textSize="16sp"
-                android:textColor="#FFFFFF"
-                android:letterSpacing="0.02"
-                android:lineSpacingExtra="4dp"
-                android:gravity="center"
-                android:shadowColor="#80000000"
-                android:shadowDx="0"
-                android:shadowDy="2"
-                android:shadowRadius="4"
-                android:text="@string/searching_pc"/>
-            <ProgressBar
-                android:id="@+id/pcs_loading"
-                android:layout_width="280dp"
-                android:layout_height="4dp"
-                android:layout_below="@+id/searching_pc_text"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="8dp"
-                android:indeterminate="true"
-                android:indeterminateTint="#FFFFFF"
-                android:progressTint="#FFFFFF"
-                style="?android:attr/progressBarStyleHorizontal"/>
-        </RelativeLayout>
+        <include layout="@layout/view_host_search_state" />
 
     </RelativeLayout>
 

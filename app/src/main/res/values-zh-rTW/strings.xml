@@ -64,6 +64,7 @@
     <string name="searching_pc">正在您的區域網路中搜尋主機電腦…
 \n
 \n 請確保 Sunshine 正在您的主機電腦中執行，或在 GFE SHIELD 設定中啟用 GAMESTREAM。</string>
+    <string name="searching_pc_title">正在搜尋主機…</string>
     <string name="yes"> 確定 </string>
     <string name="no"> 取消 </string>
     <string name="lost_connection">與電腦失去連線</string>

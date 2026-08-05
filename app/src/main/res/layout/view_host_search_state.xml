@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/no_pc_found_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_marginStart="24dp"
+    android:layout_marginEnd="24dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp">
+
+    <com.limelight.ui.HostSearchRadarView
+        android:id="@+id/host_search_radar"
+        android:layout_width="104dp"
+        android:layout_height="104dp"
+        android:contentDescription="@string/searching_pc_title"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/searching_pc_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:letterSpacing="0.06"
+        android:shadowColor="#99000000"
+        android:shadowDx="0"
+        android:shadowDy="2"
+        android:shadowRadius="4"
+        android:text="@string/searching_pc_title"
+        android:textColor="@color/retro_space_text"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

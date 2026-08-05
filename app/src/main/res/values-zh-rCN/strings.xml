@@ -82,6 +82,7 @@
     <string name="searching_pc">在你的本地网络中搜索串流主机PC...
 \n
 \n 确保Sunshine在主机上运行，或在GeForce Experience SHIELD设置中启用GameStream。</string>
+    <string name="searching_pc_title">正在搜索主机…</string>
     <string name="yes"> 确定 </string>
     <string name="no"> 取消 </string>
     <string name="lost_connection"> 与电脑失去连接 </string>

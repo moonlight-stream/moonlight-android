@@ -148,4 +148,11 @@
     <color name="add_pc_formula">#1AFF6B9D</color>
     <color name="add_pc_badge_ring">#FFF8F6FA</color>
     <color name="add_pc_button_disabled">#66FF6B9D</color>
+
+    <!-- Retro-space host discovery -->
+    <color name="retro_space_moon_light">#FFF5E7D0</color>
+    <color name="retro_space_moon_highlight">#FFFFF3E4</color>
+    <color name="retro_space_moon_shadow">#FF735563</color>
+    <color name="retro_space_moon_crater">#FFB77A86</color>
+    <color name="retro_space_text">#FFFFF3E4</color>
 </resources>

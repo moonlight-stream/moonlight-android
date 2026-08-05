@@ -155,7 +155,6 @@
     <string name="screen_mode_primary_streaming_desc">Активира избрания дисплей и го задава като основен.</string>
     <string name="screen_mode_secondary_streaming_desc">Запазва физическия дисплей като основен и използва Foundation дисплея като вторичен.</string>
     <string name="screen_mode_exclusive_streaming_desc">Използва само избрания дисплей и изключва другите дисплеи.</string>
-    <string name="screen_combination_mode_label">Режим: %1$s</string>
     <string name="title_config_sync_backup_password">Парола за шифроване на резервно копие</string>
     <string name="category_help">Помощ</string>
     <string name="title_document_handbook">Документация</string>

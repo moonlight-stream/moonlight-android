@@ -285,7 +285,6 @@
     <string name="screen_mode_primary_streaming_desc">Aktywuje wybrany ekran i ustawia go jako główny.</string>
     <string name="screen_mode_secondary_streaming_desc">Pozostawia fizyczny ekran jako główny i używa ekranu Foundation jako dodatkowego.</string>
     <string name="screen_mode_exclusive_streaming_desc">Używa tylko wybranego ekranu i wyłącza pozostałe ekrany.</string>
-    <string name="screen_combination_mode_label">Tryb: %1$s</string>
     <string name="title_config_sync_backup_password">Hasło szyfrowania kopii zapasowej</string>
     <string name="title_document_handbook">Dokumentacja</string>
     <string name="summary_document_handbook">Wyświetl powiązaną dokumentację</string>

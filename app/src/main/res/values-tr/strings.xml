@@ -188,7 +188,6 @@
     <string name="screen_mode_primary_streaming_desc">Seçili ekranı etkinleştirir ve birincil olarak ayarlar.</string>
     <string name="screen_mode_secondary_streaming_desc">Fiziksel ekranı birincil tutar ve Foundation ekranını ikincil olarak kullanır.</string>
     <string name="screen_mode_exclusive_streaming_desc">Yalnızca seçili ekranı kullanır ve diğer ekranları devre dışı bırakır.</string>
-    <string name="screen_combination_mode_label">Mod: %1$s</string>
     <string name="title_config_sync_backup_password">Yedek şifreleme parolası</string>
     <string name="category_help">Yardım</string>
     <string name="title_document_handbook">Belgeler</string>

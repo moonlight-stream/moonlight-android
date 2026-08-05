@@ -166,7 +166,6 @@
     <string name="screen_mode_primary_streaming_desc">選択したディスプレイを有効化し、プライマリに設定します。</string>
     <string name="screen_mode_secondary_streaming_desc">物理ディスプレイをプライマリのままにし、Foundation ディスプレイをセカンダリとして使用します。</string>
     <string name="screen_mode_exclusive_streaming_desc">選択したディスプレイのみを使用し、他のディスプレイを無効化します。</string>
-    <string name="screen_combination_mode_label">モード: %1$s</string>
     <string name="title_config_sync_backup_password">バックアップ暗号化パスワード</string>
     <string name="category_help">ヘルプ</string>
     <string name="title_document_handbook">ドキュメント</string>

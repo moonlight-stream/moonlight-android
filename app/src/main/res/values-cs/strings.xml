@@ -260,7 +260,6 @@
     <string name="screen_mode_primary_streaming_desc">Aktivuje vybraný displej a nastaví jej jako hlavní.</string>
     <string name="screen_mode_secondary_streaming_desc">Ponechá fyzický displej jako hlavní a použije displej Foundation jako sekundární.</string>
     <string name="screen_mode_exclusive_streaming_desc">Použije pouze vybraný displej a vypne ostatní displeje.</string>
-    <string name="screen_combination_mode_label">Režim: %1$s</string>
     <string name="title_config_sync_backup_password">Heslo pro šifrování zálohy</string>
     <string name="title_document_handbook">Dokumentace</string>
     <string name="summary_document_handbook">Zobrazit související dokumentaci</string>

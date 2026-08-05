@@ -267,7 +267,6 @@
     <string name="screen_mode_primary_streaming_desc">Активирует выбранный дисплей и делает его основным.</string>
     <string name="screen_mode_secondary_streaming_desc">Оставляет физический дисплей основным и использует дисплей Foundation как вторичный.</string>
     <string name="screen_mode_exclusive_streaming_desc">Использует только выбранный дисплей и отключает остальные дисплеи.</string>
-    <string name="screen_combination_mode_label">Режим: %1$s</string>
     <string name="title_config_sync_backup_password">Пароль шифрования резервной копии</string>
     <string name="title_document_handbook">Документация</string>
     <string name="summary_document_handbook">Просмотреть связанную документацию</string>

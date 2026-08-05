@@ -405,7 +405,6 @@
     <string name="screen_mode_primary_streaming_desc">Ativa o ecrã selecionado e define-o como principal.</string>
     <string name="screen_mode_secondary_streaming_desc">Mantém o ecrã físico como principal e usa o ecrã Foundation como secundário.</string>
     <string name="screen_mode_exclusive_streaming_desc">Usa apenas o ecrã selecionado e desativa os outros ecrãs.</string>
-    <string name="screen_combination_mode_label">Modo: %1$s</string>
     
     <!-- Advanced settings -->
     <string name="title_enable_hdr_high_brightness">Ativar HDR com alto brilho</string>
@@ -695,7 +694,6 @@
     
     <!-- Drawer Menu -->
     <string name="menu">Menu</string>
-    <string name="title_settings">Configurações</string>
     <string name="title_config_sync_backup_password">Palavra-passe de encriptação da cópia de segurança</string>
     <string name="title_document_handbook">Documentação</string>
     <string name="summary_document_handbook">Ver documentação relacionada</string>

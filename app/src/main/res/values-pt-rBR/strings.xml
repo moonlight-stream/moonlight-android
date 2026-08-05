@@ -267,7 +267,6 @@
     <string name="screen_mode_primary_streaming_desc">Ativa a tela selecionada e a define como principal.</string>
     <string name="screen_mode_secondary_streaming_desc">Mantém a tela física como principal e usa a tela Foundation como secundária.</string>
     <string name="screen_mode_exclusive_streaming_desc">Usa somente a tela selecionada e desativa as outras telas.</string>
-    <string name="screen_combination_mode_label">Modo: %1$s</string>
     <string name="title_config_sync_backup_password">Senha de criptografia do backup</string>
     <string name="title_document_handbook">Documentação</string>
     <string name="summary_document_handbook">Ver documentação relacionada</string>

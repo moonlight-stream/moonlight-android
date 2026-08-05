@@ -139,6 +139,12 @@ object ServerHelper {
         managerBinder: ComputerManagerService.ComputerManagerBinder,
         onComplete: Runnable?
     ) {
+        Toast.makeText(
+            parent,
+            parent.getString(R.string.pcview_menu_sleep_sending, computer.name),
+            Toast.LENGTH_SHORT
+        ).show()
+
         Thread {
             var message: String
             try {
@@ -160,7 +166,8 @@ object ServerHelper {
             } catch (e: Exception) {
                 when (e) {
                     is IOException, is XmlPullParserException -> {
-                        message = e.message ?: ""
+                        message = e.message?.takeIf { it.isNotBlank() }
+                            ?: parent.getString(R.string.pcview_menu_sleep_fail)
                         e.printStackTrace()
                     }
                     is InterruptedException -> {

@@ -59,8 +59,9 @@
     <!-- 顶部下拉手柄标签 -->
     <TextView
         android:id="@+id/topPanelToggle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="96dp"
+        android:layout_height="36dp"
+        android:gravity="center"
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
         android:layout_marginTop="@dimen/activity_safearea_top"
@@ -69,7 +70,7 @@
         android:paddingTop="6dp"
         android:paddingBottom="6dp"
         android:text="\u2699 \u25BE"
-        android:textColor="#E6FFFFFF"
+        android:textColor="@color/ui_shell_text_primary"
         android:textSize="14sp"
         android:fontFamily="sans-serif-light"
         android:background="@drawable/dropdown_handle_background"
@@ -79,243 +80,18 @@
         android:focusableInTouchMode="false" />
 
     <!-- 顶部下拉面板 -->
-    <ScrollView
+
+    <androidx.compose.ui.platform.ComposeView
         android:id="@+id/topDropdownPanel"
-        android:layout_width="320dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/topPanelToggle"
+        android:layout_marginTop="-32dp"
         android:layout_centerHorizontal="true"
-        android:background="@drawable/dropdown_panel_background"
-        android:padding="@dimen/appview_panel_padding"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:elevation="@dimen/appview_panel_elevation"
-        android:focusable="true"
-        android:focusableInTouchMode="false"
-        android:fillViewport="false"
-        android:scrollbars="vertical"
-        android:clipChildren="true"
-        android:clipToPadding="true"
-        android:overScrollMode="never"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:id="@+id/topDropdownPanelContent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:descendantFocusability="afterDescendants">
-
-        <!-- 设置入口 -->
-        <TextView
-            android:id="@+id/settingsEntry"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="44dp"
-            android:text="@string/title_settings"
-            android:textColor="@color/appview_text_primary"
-            android:textSize="14sp"
-            android:fontFamily="sans-serif-light"
-            android:drawableStart="@drawable/phc_settings"
-            android:drawablePadding="12dp"
-            android:drawableTint="@color/appview_text_primary"
-            android:gravity="center_vertical"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="16dp"
-            android:background="@drawable/appview_panel_item_background"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <!-- 背景模式 -->
-        <LinearLayout
-            android:id="@+id/appBackgroundModeInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="start"
-            android:layout_marginTop="4dp">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#33FFFFFF"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/appview_background_mode_title"
-                android:textColor="@color/appview_text_secondary"
-                android:textSize="11sp"
-                android:fontFamily="sans-serif-light"
-                android:paddingStart="4dp"
-                android:paddingBottom="4dp" />
-
-            <RadioGroup
-                android:id="@+id/appBackgroundModeGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="start"
-                android:layout_gravity="start">
-
-                <RadioButton
-                    android:id="@+id/appBackgroundModeArtwork"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="32dp"
-                    android:text="@string/appview_background_mode_artwork"
-                    android:textColor="@color/appview_text_secondary"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-light"
-                    android:buttonTint="@color/appview_text_primary"
-                    android:background="@drawable/appview_panel_control_background"
-                    android:focusable="true"
-                    android:paddingEnd="@dimen/appview_edge_margin" />
-
-                <RadioButton
-                    android:id="@+id/appBackgroundModeAcrylic"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="32dp"
-                    android:text="@string/appview_background_mode_acrylic"
-                    android:textColor="@color/appview_text_secondary"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-light"
-                    android:buttonTint="@color/appview_text_primary"
-                    android:background="@drawable/appview_panel_control_background"
-                    android:focusable="true"
-                    android:paddingEnd="@dimen/appview_edge_margin" />
-
-                <RadioButton
-                    android:id="@+id/appBackgroundModeSoftColor"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="32dp"
-                    android:text="@string/appview_background_mode_soft_color"
-                    android:textColor="@color/appview_text_secondary"
-                    android:textSize="12sp"
-                    android:fontFamily="sans-serif-light"
-                    android:buttonTint="@color/appview_text_primary"
-                    android:background="@drawable/appview_panel_control_background"
-                    android:focusable="true"
-                    android:paddingEnd="@dimen/appview_edge_margin" />
-
-            </RadioGroup>
-        </LinearLayout>
-
-        <!-- 屏幕组合模式区域 -->
-        <LinearLayout
-            android:id="@+id/screenCombinationModeInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="start"
-            android:layout_marginTop="4dp">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#33FFFFFF"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/title_screen_combination_mode"
-                android:textColor="@color/appview_text_secondary"
-                android:textSize="11sp"
-                android:fontFamily="sans-serif-light"
-                android:paddingStart="4dp"
-                android:paddingEnd="@dimen/appview_edge_margin"
-                android:paddingBottom="4dp" />
-
-            <TextView
-                android:id="@+id/screenCombinationModeLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/appview_text_secondary"
-                android:textSize="12sp"
-                android:fontFamily="sans-serif-light"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:paddingTop="4dp"
-                android:paddingBottom="2dp"
-                android:paddingStart="4dp"
-                android:paddingEnd="@dimen/appview_edge_margin"
-                android:background="@drawable/appview_panel_control_background"
-                android:clickable="true"
-                android:focusable="true" />
-
-        </LinearLayout>
-
-        <!-- 显示器选择区域 -->
-        <LinearLayout
-            android:id="@+id/displaySelectionInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="start"
-            android:layout_marginTop="4dp"
-            android:visibility="gone">
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#33FFFFFF"
-                android:layout_marginBottom="8dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingBottom="4dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/appview_display_selection_title"
-                    android:textColor="@color/appview_text_secondary"
-                    android:textSize="11sp"
-                    android:fontFamily="sans-serif-light"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="12dp" />
-
-                <TextView
-                    android:id="@+id/clearDisplaySelectionButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="56dp"
-                    android:minHeight="32dp"
-                    android:text="@string/appview_display_selection_clear"
-                    android:textColor="@color/appview_text_primary"
-                    android:textSize="11sp"
-                    android:fontFamily="sans-serif-light"
-                    android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:background="@drawable/appview_frosted_action_background"
-                    android:elevation="2dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-            </LinearLayout>
-
-            <RadioGroup
-                android:id="@+id/displayRadioGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="start"
-                android:layout_gravity="start" />
-
-        </LinearLayout>
-
-        </LinearLayout>
-
-    </ScrollView>
+        android:visibility="gone" />
 
     <!-- 标题区域（电脑名 + 应用名 + 恢复箭头） -->
     <TextView

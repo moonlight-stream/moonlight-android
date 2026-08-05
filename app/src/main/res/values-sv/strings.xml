@@ -285,7 +285,6 @@
     <string name="screen_mode_primary_streaming_desc">Aktiverar den valda skärmen och gör den primär.</string>
     <string name="screen_mode_secondary_streaming_desc">Behåller den fysiska skärmen som primär och använder Foundation-skärmen som sekundär.</string>
     <string name="screen_mode_exclusive_streaming_desc">Använder endast den valda skärmen och inaktiverar andra skärmar.</string>
-    <string name="screen_combination_mode_label">Läge: %1$s</string>
     <string name="title_config_sync_backup_password">Lösenord för säkerhetskopieringskryptering</string>
     <string name="title_document_handbook">Dokumentation</string>
     <string name="summary_document_handbook">Visa relaterad dokumentation</string>

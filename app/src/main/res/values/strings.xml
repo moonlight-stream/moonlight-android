@@ -35,6 +35,8 @@
     <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
     <string name="pcview_menu_sleep_success">Host sleep success</string>
     <string name="pcview_menu_sleep_fail">Host sleep failed</string>
+    <string name="pcview_menu_sleep_sending">Sending sleep command to %1$s…</string>
+    <string name="pcview_sleep_confirmation">Put %1$s to sleep? Active streams and unsaved work may be interrupted.</string>
     <string name="pcview_menu_disable_ipv6">Disable IPv6</string>
     <string name="pcview_menu_enable_ipv6">Enable IPv6</string>
     <string name="pcview_menu_open_webui">Open Web Management (Sunshine)</string>
@@ -520,7 +522,6 @@
     <string name="screen_mode_primary_streaming_desc">Activate the selected display and set it as primary.</string>
     <string name="screen_mode_secondary_streaming_desc">Keep the physical display primary and use the Foundation display as secondary.</string>
     <string name="screen_mode_exclusive_streaming_desc">Use only the selected display and disable other displays.</string>
-    <string name="screen_combination_mode_label">Mode: %1$s</string>
     <string name="screen_combination_mode_action_close">Close</string>
     <string name="screen_combination_mode_selected">Selected</string>
 
@@ -1177,7 +1178,6 @@ Tap again to replace it.</string>
     <string name="settings_search_hint">Search settings…</string>
     <string name="settings_search_close">Close search</string>
     <string name="settings_search_no_results">No matching settings</string>
-    <string name="title_settings">Settings</string>
     <string name="game_menu_change_resolution">Resolution</string>
     <string name="game_menu_resolution_current">%1$s (Current)</string>
     <string name="game_menu_resolution_custom">%1$s (Custom)</string>
@@ -1243,11 +1243,22 @@ Tap again to replace it.</string>
 
     <!-- AppView Top Panel -->
     <string name="appview_background_mode_title">Background</string>
+    <string name="appview_quick_settings_title">Quick Settings</string>
+    <string name="appview_full_settings">Full Settings</string>
+    <string name="appview_screen_combination_title">Screen Combination</string>
+    <string name="appview_open_screen_combination_picker">Open screen combination picker</string>
+    <string name="appview_screen_mode_host_short">Follow Host</string>
+    <string name="appview_screen_mode_noop_short">No Action</string>
+    <string name="appview_screen_mode_activate_short">Activate</string>
+    <string name="appview_screen_mode_primary_short">Primary</string>
+    <string name="appview_screen_mode_secondary_short">Secondary</string>
+    <string name="appview_screen_mode_exclusive_short">Exclusive</string>
+    <string name="appview_display_selection_virtual">Virtual</string>
     <string name="appview_background_mode_artwork">App artwork</string>
     <string name="appview_background_mode_acrylic">Acrylic</string>
     <string name="appview_background_mode_soft_color">Soft color</string>
     <string name="appview_display_selection_title">Display Selection</string>
-    <string name="appview_display_selection_clear">Clear</string>
+    <string name="appview_display_selection_default">Default</string>
 
 
     <!-- Layout hardcoded Chinese strings (auto-extracted) -->

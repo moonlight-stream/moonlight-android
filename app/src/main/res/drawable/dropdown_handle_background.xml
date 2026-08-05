@@ -1,30 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true">
-        <shape android:shape="rectangle">
-            <solid android:color="#C42D2D2D" />
-            <corners android:radius="18dp" />
-            <stroke
-                android:width="2dp"
-                android:color="@color/theme_pink_primary" />
-        </shape>
-    </item>
-    <item android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <solid android:color="#D03A3A3A" />
-            <corners android:radius="18dp" />
-            <stroke
-                android:width="1dp"
-                android:color="#66FFFFFF" />
-        </shape>
-    </item>
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#A6212121" />
-            <corners android:radius="18dp" />
-            <stroke
-                android:width="1dp"
-                android:color="#33FFFFFF" />
-        </shape>
-    </item>
-</selector>
+<!-- Theme-aware handle that visually joins the settings panel while expanded. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/settings_drawer_background" />
+    <corners android:radius="18dp" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/ui_shell_outline" />
+</shape>

@@ -384,7 +384,6 @@
     <string name="screen_mode_primary_streaming_desc">自動啟用指定顯示器並設為主顯示器。</string>
     <string name="screen_mode_secondary_streaming_desc">實體螢幕為主螢幕，基地顯示器作為副螢幕延伸。</string>
     <string name="screen_mode_exclusive_streaming_desc">僅保留指定顯示器輸出，關閉其他顯示器。</string>
-    <string name="screen_combination_mode_label">組合模式: %1$s</string>
     <string name="title_config_sync_backup_password">備份密碼</string>
 
     <!-- 贊助 -->

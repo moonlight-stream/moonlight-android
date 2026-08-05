@@ -13,7 +13,10 @@ import java.util.Locale
 import java.util.concurrent.ExecutionException
 
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy
+import com.bumptech.glide.request.FutureTarget
 import com.bumptech.glide.request.RequestOptions
 import com.limelight.binding.PlatformBinding
 import com.limelight.binding.crypto.AndroidCryptoProvider
@@ -208,7 +211,15 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     // Single Job owning the current async background load. Replacing it on every
     // reload cancels any in-flight Glide work from the previous source so a late
     // completion cannot overpaint the newer selection.
+    private data class BackgroundFutureTarget(
+        val cacheKey: String,
+        val futureTarget: FutureTarget<Bitmap>
+    )
+
     private var backgroundLoadJob: Job? = null
+    private val backgroundTargetLock = Any()
+    private var backgroundLoadGeneration = 0
+    private var backgroundFutureTarget: BackgroundFutureTarget? = null
     private var lastBackgroundSource: BackgroundSource? = null
     private var backgroundPrefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
@@ -382,7 +393,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         }
         unregisterBackgroundReceiver()
         unregisterBackgroundPrefsListener()
-        backgroundLoadJob?.cancel()
+        cancelPreviousBackgroundLoad()
 
         analyticsManager?.cleanup()
         if (pendingRefreshRunnable != null) {
@@ -446,6 +457,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     private fun initializeViews() {
+        val loadGeneration = cancelPreviousBackgroundLoad()
         setContentView(R.layout.activity_pc_view)
         UiHelper.notifyNewRootView(this)
 
@@ -483,7 +495,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             ?: "Moonlight V+ Client"
         backgroundImageView = findViewById(R.id.pcBackgroundImage)
 
-        loadBackgroundImage()
+        loadBackgroundImage(loadGeneration)
         setupBackgroundImageLongPress()
         initSceneButtons()
         maybeShowBackgroundSourceDialog()
@@ -733,13 +745,10 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     // source returns, and cancels any in-flight load on reload so a stale
     // request can never overpaint a newer one.
 
-    private fun loadBackgroundImage() {
+    private fun loadBackgroundImage(existingGeneration: Int? = null) {
         if (backgroundImageView == null) return
 
-        // Cancel any previous async load; this both drops stale completions
-        // and tells Glide to stop whatever request was targeting the view.
-        backgroundLoadJob?.cancel()
-        Glide.with(this@PcView).clear(backgroundImageView!!)
+        val loadGeneration = existingGeneration ?: cancelPreviousBackgroundLoad()
 
         val source = BackgroundSource.current(this)
         val orientation = resources.configuration.orientation
@@ -755,15 +764,9 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         backgroundLoadJob = uiScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.IO) {
-                    Glide.with(this@PcView as Context)
-                        .asBitmap()
-                        .load(resolveGlideTarget(target))
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .submit()
-                        .get()
+                    decodeBackgroundBitmap(target, source, loadGeneration)
                 }
-                if (bitmap != null && isActive) {
+                if (isActive) {
                     bitmapLruCache.put(target, bitmap)
                     applyBlurredBackground(bitmap)
                 }
@@ -787,6 +790,84 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         val localFile = File(target)
         return if (localFile.exists()) localFile
         else target // let Glide surface the error
+    }
+
+    /**
+     * Local backgrounds never need more pixels than the display. Decoding a
+     * gallery image at its original dimensions can exceed Android's Canvas
+     * bitmap limit before the ImageView can scale it (issue #447).
+     */
+    private fun backgroundDecodeSize(): Pair<Int, Int> {
+        val metrics = resources.displayMetrics
+        return metrics.widthPixels.coerceAtLeast(1) to metrics.heightPixels.coerceAtLeast(1)
+    }
+
+    private fun decodeBackgroundBitmap(
+        target: String,
+        source: BackgroundSource,
+        loadGeneration: Int
+    ): Bitmap {
+        val request = Glide.with(this@PcView as Context)
+            .asBitmap()
+            .load(resolveGlideTarget(target))
+            .skipMemoryCache(true)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+
+        val futureTarget = if (source !== BackgroundSource.Local) {
+            // Preserve the existing decode and cache behavior for network
+            // backgrounds, including full-resolution long-press saves.
+            request.submit()
+        } else {
+            val (width, height) = backgroundDecodeSize()
+            request
+                .apply(
+                    RequestOptions()
+                        .override(width, height)
+                        .downsample(DownsampleStrategy.CENTER_INSIDE)
+                        .format(DecodeFormat.PREFER_RGB_565)
+                )
+                .submit(width, height)
+        }
+
+        val retained = synchronized(backgroundTargetLock) {
+            if (loadGeneration != backgroundLoadGeneration) {
+                false
+            } else {
+                backgroundFutureTarget = BackgroundFutureTarget(target, futureTarget)
+                true
+            }
+        }
+        if (!retained) {
+            futureTarget.cancel(true)
+            Glide.with(applicationContext).clear(futureTarget)
+            throw CancellationException("Background load was superseded")
+        }
+
+        return futureTarget.get()
+    }
+
+    /**
+     * Stops the previous decode only after its ImageView request and LRU entry
+     * have released the decoded bitmap. Returns a token for the replacement.
+     */
+    private fun cancelPreviousBackgroundLoad(): Int {
+        backgroundLoadJob?.cancel()
+        backgroundImageView?.let { Glide.with(applicationContext).clear(it) }
+
+        val (generation, previousTarget) = synchronized(backgroundTargetLock) {
+            backgroundLoadGeneration += 1
+            backgroundLoadGeneration to backgroundFutureTarget.also {
+                backgroundFutureTarget = null
+            }
+        }
+        previousTarget?.let {
+            if (::bitmapLruCache.isInitialized) {
+                bitmapLruCache.remove(it.cacheKey)
+            }
+            it.futureTarget.cancel(true)
+            Glide.with(applicationContext).clear(it.futureTarget)
+        }
+        return generation
     }
 
     private fun applyBlurredBackground(bitmap: Bitmap) {
@@ -934,8 +1015,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     private fun refreshBackgroundImage(isFromShake: Boolean) {
         if (backgroundImageView == null) return
 
-        backgroundLoadJob?.cancel()
-        Glide.with(this@PcView).clear(backgroundImageView!!)
+        val loadGeneration = cancelPreviousBackgroundLoad()
 
         val source = BackgroundSource.current(this)
         val orientation = resources.configuration.orientation
@@ -951,22 +1031,14 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         backgroundLoadJob = uiScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.IO) {
-                    Glide.with(this@PcView as Context)
-                        .asBitmap()
-                        .load(resolveGlideTarget(target))
-                        .skipMemoryCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-                        .submit()
-                        .get()
+                    decodeBackgroundBitmap(target, source, loadGeneration)
                 }
-                if (bitmap != null && isActive) {
+                if (isActive) {
                     bitmapLruCache.put(target, bitmap)
                     applyBlurredBackground(bitmap)
                     if (isFromShake) {
                         showToast(getString(R.string.background_refreshed_with_remaining, getRemainingRefreshCount()))
                     }
-                } else if (bitmap == null) {
-                    showToast(getString(R.string.refresh_failed_please_retry))
                 }
             } catch (_: CancellationException) {
                 // superseded
@@ -2606,11 +2678,14 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     private fun handleSleep(details: ComputerDetails) {
-        if (managerBinder == null) {
+        val binder = managerBinder
+        if (binder == null) {
             showToast(getString(R.string.error_manager_not_running))
             return
         }
-        ServerHelper.pcSleep(this, details, managerBinder!!, null)
+        UiHelper.displaySleepConfirmationDialog(this, details, {
+            ServerHelper.pcSleep(this, details, binder, null)
+        }, null)
     }
 
     private fun handleIperf3Test(details: ComputerDetails) {

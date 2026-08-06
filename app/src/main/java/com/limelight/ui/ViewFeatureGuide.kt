@@ -15,12 +15,16 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.SystemClock
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -165,8 +169,13 @@ private class FeatureGuideOverlay(
     private val highlightRect = RectF()
     private val highlightEchoRect = RectF()
     private val cardRect = RectF()
+    private val previousFocus = activity.currentFocus
+    private val backCallback = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        OnBackInvokedCallback { dismiss(completed = false) }
+    } else null
     private var currentIndex = 0
     private var dismissScheduled = false
+    private var dismissed = false
 
     private val card = FrameLayout(activity).apply {
         isClickable = true
@@ -217,6 +226,23 @@ private class FeatureGuideOverlay(
     init {
         setWillNotDraw(false)
         setLayerType(LAYER_TYPE_SOFTWARE, null)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            activity.onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_OVERLAY,
+                backCallback!!
+            )
+        }
+
+        skip.id = View.generateViewId()
+        action.id = View.generateViewId()
+        skip.nextFocusLeftId = skip.id
+        skip.nextFocusRightId = action.id
+        skip.nextFocusUpId = skip.id
+        skip.nextFocusDownId = skip.id
+        action.nextFocusLeftId = skip.id
+        action.nextFocusRightId = action.id
+        action.nextFocusUpId = action.id
+        action.nextFocusDownId = action.id
 
         contentColumn.addView(eyebrow)
         contentColumn.addView(title, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
@@ -232,6 +258,7 @@ private class FeatureGuideOverlay(
         card.addView(actions, LayoutParams(LayoutParams.MATCH_PARENT, dpInt(ACTION_HEIGHT_DP), Gravity.BOTTOM))
         addView(card)
         updateContent()
+        action.post { action.requestFocus() }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -315,6 +342,16 @@ private class FeatureGuideOverlay(
         return true
     }
 
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_UP &&
+            (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)
+        ) {
+            dismiss(completed = false)
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     override fun performClick(): Boolean {
         super.performClick()
         return true
@@ -349,6 +386,7 @@ private class FeatureGuideOverlay(
             updateContent()
             requestLayout()
             invalidate()
+            action.post { action.requestFocus() }
         }
     }
 
@@ -444,8 +482,16 @@ private class FeatureGuideOverlay(
     }
 
     private fun dismiss(completed: Boolean) {
+        if (dismissed) return
+        dismissed = true
         if (completed) onCompleted()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && backCallback != null) {
+            activity.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(backCallback)
+        }
         (parent as? ViewGroup)?.removeView(this)
+        previousFocus?.post {
+            if (previousFocus.isShown) previousFocus.requestFocus()
+        }
     }
 
     private fun scheduleDismiss() {
@@ -469,6 +515,7 @@ private class FeatureGuideOverlay(
         setPadding(dpInt(12f), 0, dpInt(12f), 0)
         isClickable = true
         isFocusable = true
+        isFocusableInTouchMode = true
         background = selectableBackground()
         setOnClickListener { onClick() }
     }

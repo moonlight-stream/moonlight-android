@@ -1,5 +1,7 @@
 package com.limelight.gamemenu
 
+import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,12 +16,24 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -48,6 +62,21 @@ internal fun CuteFeatureGuideCard(
     val ink = Color(0xFF4C4346)
     val mutedInk = Color(0xFF6C6063)
     val paper = Color(0xFFFFF8E8)
+    val skipFocusRequester = remember { FocusRequester() }
+    val actionFocusRequester = remember { FocusRequester() }
+    val inputModeManager = LocalInputModeManager.current
+    val isTelevision = LocalConfiguration.current.uiMode and Configuration.UI_MODE_TYPE_MASK ==
+        Configuration.UI_MODE_TYPE_TELEVISION
+    val shouldRequestInitialFocus = isTelevision || inputModeManager.inputMode == InputMode.Keyboard
+    var isActionLaidOut by remember { mutableStateOf(false) }
+
+    BackHandler(onBack = onSkip)
+    LaunchedEffect(isActionLaidOut, shouldRequestInitialFocus) {
+        if (isActionLaidOut && shouldRequestInitialFocus) {
+            if (isTelevision) inputModeManager.requestInputMode(InputMode.Keyboard)
+            actionFocusRequester.requestFocus()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -111,7 +140,17 @@ internal fun CuteFeatureGuideCard(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onSkip) {
+                TextButton(
+                    onClick = onSkip,
+                    modifier = Modifier
+                        .focusRequester(skipFocusRequester)
+                        .focusProperties {
+                            left = skipFocusRequester
+                            right = actionFocusRequester
+                            up = skipFocusRequester
+                            down = skipFocusRequester
+                        }
+                ) {
                     Text(
                         text = stringResource(R.string.feature_guide_skip),
                         color = mutedInk,
@@ -126,7 +165,18 @@ internal fun CuteFeatureGuideCard(
                     color = Color(0xFFD8CABC),
                     fontSize = 15.sp
                 )
-                TextButton(onClick = onAction) {
+                TextButton(
+                    onClick = onAction,
+                    modifier = Modifier
+                        .focusRequester(actionFocusRequester)
+                        .onGloballyPositioned { isActionLaidOut = true }
+                        .focusProperties {
+                            left = skipFocusRequester
+                            right = actionFocusRequester
+                            up = actionFocusRequester
+                            down = actionFocusRequester
+                        }
+                ) {
                     Text(
                         text = actionLabel,
                         color = accent,

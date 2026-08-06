@@ -1,5 +1,6 @@
 package com.limelight.gamemenu
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
@@ -20,16 +22,19 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.limelight.R
 import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -103,5 +108,46 @@ class GameMenuComposeFocusTest {
             pressKey(Key.DirectionDown)
         }
         composeTestRule.onNodeWithTag("settingRow").assertIsFocused()
+    }
+
+    @Test
+    fun featureGuideKeepsRemoteFocusOnItsActions() {
+        val advanced = AtomicBoolean(false)
+
+        composeTestRule.setContent {
+            val tvConfiguration = Configuration(LocalConfiguration.current).apply {
+                uiMode = uiMode and Configuration.UI_MODE_TYPE_MASK.inv() or
+                    Configuration.UI_MODE_TYPE_TELEVISION
+            }
+            CompositionLocalProvider(LocalConfiguration provides tvConfiguration) {
+                CuteFeatureGuideCard(
+                    eyebrow = "Guide",
+                    title = "Remote focus",
+                    body = "The action buttons should own directional focus.",
+                    actionLabel = "Next",
+                    onAction = { advanced.set(true) },
+                    onSkip = {}
+                )
+            }
+        }
+
+        val skipLabel = androidx.test.platform.app.InstrumentationRegistry
+            .getInstrumentation()
+            .targetContext
+            .getString(R.string.feature_guide_skip)
+
+        composeTestRule.onNodeWithText("Next").assertIsFocused()
+        composeTestRule.onNodeWithText("Next").performKeyInput {
+            pressKey(Key.DirectionLeft)
+        }
+        composeTestRule.onNodeWithText(skipLabel).assertIsFocused()
+        composeTestRule.onNodeWithText(skipLabel).performKeyInput {
+            pressKey(Key.DirectionRight)
+        }
+        composeTestRule.onNodeWithText("Next").assertIsFocused()
+        composeTestRule.onNodeWithText("Next").performKeyInput {
+            pressKey(Key.Enter)
+        }
+        assertTrue(advanced.get())
     }
 }

@@ -15,6 +15,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.limelight.HelpActivity
 import com.limelight.R
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -32,7 +33,7 @@ class ViewFeatureGuideFocusTest {
     private val target = AtomicReference<Button>()
 
     @Test
-    fun remoteCanNavigateAdvanceAndDismissGuide() {
+    fun dismissingFirstStepHidesGuideOnNextEntry() {
         activityRule.scenario.onActivity { activity ->
             target.set(Button(activity).apply {
                 text = TARGET_LABEL
@@ -69,17 +70,19 @@ class ViewFeatureGuideFocusTest {
         assertFocusedText(R.string.feature_guide_next)
         press(KeyEvent.KEYCODE_DPAD_LEFT)
         assertFocusedText(R.string.feature_guide_skip)
-        press(KeyEvent.KEYCODE_DPAD_RIGHT)
-        assertFocusedText(R.string.feature_guide_next)
-
         press(KeyEvent.KEYCODE_DPAD_CENTER)
-        waitForIdle()
-        assertFocusedText(R.string.feature_guide_done)
-
-        press(KeyEvent.KEYCODE_BACK)
         waitForIdle()
         activityRule.scenario.onActivity { activity ->
             assertTrue(target.get().hasFocus())
+            val spec = FeatureGuideSpec("tv_focus_test", revision = 1)
+            assertFalse(FeatureGuideStore(activity).shouldShow(spec))
+            assertFalse(
+                ViewFeatureGuide.show(
+                    activity = activity,
+                    spec = spec,
+                    steps = listOf(ViewFeatureGuideStep(target.get(), "First step", "First body"))
+                )
+            )
         }
     }
 

@@ -68,7 +68,7 @@ object ViewFeatureGuide {
         val overlay = FeatureGuideOverlay(
             activity = activity,
             steps = visibleSteps,
-            onCompleted = { store.markCompleted(spec) }
+            onRemembered = { store.markCompleted(spec) }
         ).apply { tag = OVERLAY_TAG }
         content.addView(
             overlay,
@@ -131,7 +131,7 @@ object ViewFeatureGuide {
 private class FeatureGuideOverlay(
     private val activity: Activity,
     private val steps: List<ViewFeatureGuideStep>,
-    private val onCompleted: () -> Unit
+    private val onRemembered: () -> Unit
 ) : FrameLayout(activity) {
     private val density = resources.displayMetrics.density
     private val accent = ContextCompat.getColor(activity, R.color.game_menu_accent)
@@ -171,7 +171,7 @@ private class FeatureGuideOverlay(
     private val cardRect = RectF()
     private val previousFocus = activity.currentFocus
     private val backCallback = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        OnBackInvokedCallback { dismiss(completed = false) }
+        OnBackInvokedCallback { dismiss(rememberChoice = true) }
     } else null
     private var currentIndex = 0
     private var dismissScheduled = false
@@ -207,7 +207,7 @@ private class FeatureGuideOverlay(
             LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         )
     }
-    private val skip = actionLabel(mutedInk) { dismiss(completed = false) }
+    private val skip = actionLabel(mutedInk) { dismiss(rememberChoice = true) }
     private val action = actionLabel(accent) { performPrimaryAction() }
     private val actions = LinearLayout(activity).apply {
         gravity = Gravity.END or Gravity.CENTER_VERTICAL
@@ -346,7 +346,7 @@ private class FeatureGuideOverlay(
         if (event.action == KeyEvent.ACTION_UP &&
             (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)
         ) {
-            dismiss(completed = false)
+            dismiss(rememberChoice = true)
             return true
         }
         return super.dispatchKeyEvent(event)
@@ -379,7 +379,7 @@ private class FeatureGuideOverlay(
 
     private fun performPrimaryAction() {
         if (currentIndex == steps.lastIndex) {
-            dismiss(completed = true)
+            dismiss(rememberChoice = true)
         } else {
             currentIndex++
             scroll.scrollTo(0, 0)
@@ -481,10 +481,10 @@ private class FeatureGuideOverlay(
         canvas.restore()
     }
 
-    private fun dismiss(completed: Boolean) {
+    private fun dismiss(rememberChoice: Boolean) {
         if (dismissed) return
         dismissed = true
-        if (completed) onCompleted()
+        if (rememberChoice) onRemembered()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && backCallback != null) {
             activity.onBackInvokedDispatcher.unregisterOnBackInvokedCallback(backCallback)
         }
@@ -497,7 +497,7 @@ private class FeatureGuideOverlay(
     private fun scheduleDismiss() {
         if (dismissScheduled) return
         dismissScheduled = true
-        post { dismiss(completed = false) }
+        post { dismiss(rememberChoice = false) }
     }
 
     private fun label(sp: Float, color: Int, bold: Boolean) = TextView(activity).apply {

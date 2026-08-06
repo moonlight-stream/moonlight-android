@@ -30,15 +30,6 @@ class FeatureGuideStoreTest {
     }
 
     @Test
-    fun leavingGuideIncompleteKeepsMaybeLaterEligible() {
-        val store = FeatureGuideStore(FakePreferences())
-        val guide = FeatureGuideSpec("settings_discovery", revision = 1)
-
-        // Snoozing intentionally performs no persistent completion write.
-        assertTrue(store.shouldShow(guide))
-    }
-
-    @Test
     fun registryUsesUniqueVersionedKeys() {
         val keys = listOf(
             FeatureGuideRegistry.PcViewDiscovery,

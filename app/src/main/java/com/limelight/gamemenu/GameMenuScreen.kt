@@ -154,12 +154,8 @@ internal fun GameMenuScreen(
 
     GameMenuTheme(palette) {
         SequenceShowcase(state = showcaseState) {
-            val completeGuide = {
+            val finishGuide = {
                 guideStore?.markCompleted(FeatureGuideRegistry.GameMenuDiscovery)
-                guidePending = false
-                showcaseState.dismiss()
-            }
-            val snoozeGuide = {
                 guidePending = false
                 showcaseState.dismiss()
             }
@@ -176,7 +172,7 @@ internal fun GameMenuScreen(
                     body = stringResource(R.string.feature_guide_quick_actions_body),
                     actionLabel = stringResource(R.string.feature_guide_next),
                     onAction = showcaseState::next,
-                    onSkip = snoozeGuide
+                    onSkip = finishGuide
                 )
             }
             val crownGuideModifier = Modifier.sequenceShowcaseTarget(
@@ -191,8 +187,8 @@ internal fun GameMenuScreen(
                     title = stringResource(R.string.feature_guide_crown_title),
                     body = stringResource(R.string.feature_guide_crown_body),
                     actionLabel = stringResource(R.string.feature_guide_done),
-                    onAction = completeGuide,
-                    onSkip = snoozeGuide
+                    onAction = finishGuide,
+                    onSkip = finishGuide
                 )
             }
 

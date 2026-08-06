@@ -409,4 +409,25 @@
     <string name="title_document_handbook">說明文件</string>
     <string name="summary_document_handbook">查看相關說明文件</string>
     <string name="title_about_us">關於我們</string>
+    <!-- 功能探索引導 -->
+    <string name="feature_guide_step">雜魚也能發現的小祕密 · %1$d/%2$d</string>
+    <string name="feature_guide_quick_actions_title">快捷列也要我教嗎？</string>
+    <string name="feature_guide_quick_actions_body">長按快捷按鈕就能新增、移除或拖曳排序。把常用操作排好，下次可別再手忙腳亂啦。</string>
+    <string name="feature_guide_crown_title">給你的設定戴個皇冠吧</string>
+    <string name="feature_guide_crown_body">控制佈局、快捷操作、觸控模式和回饋設定都能存成皇冠設定。一鍵整套切換，這下雜魚也不會弄亂啦。</string>
+    <string name="feature_guide_next">再教我一下</string>
+    <string name="feature_guide_done">這次記住啦</string>
+    <string name="feature_guide_skip">才不要看</string>
+    <string name="pcview_guide_host_title">雜魚別點錯地方啦</string>
+    <string name="pcview_guide_host_body">點主機卡片會進入應用程式列表，點頭像會直接開始串流喔。長按卡片還藏著網路測試、副螢幕串流、Web UI 和更多操作。</string>
+    <string name="pcview_guide_more_title">三個點也沒發現嗎？</string>
+    <string name="pcview_guide_more_body">上次串流、未配對主機和主題切換都藏在這裡。小小一顆，別再漏看啦。</string>
+    <string name="pcview_guide_scene_title">小標籤可沒在發呆</string>
+    <string name="pcview_guide_scene_body">點一下套用串流預設，長按儲存目前解析度、位元率、HDR 和監控圖層。記住了嗎，小雜魚？</string>
+    <string name="appview_guide_panel_title">藏得這麼淺也沒發現？</string>
+    <string name="appview_guide_panel_body">從頂部把手拉下，就能選背景、螢幕組合和目標顯示器，也能進入完整串流設定。</string>
+    <string name="appview_guide_resume_title">標題可不是擺設啦</string>
+    <string name="appview_guide_resume_body">已有工作階段時，點一下電腦名稱和應用程式名稱就能直接回到串流。別再繞遠路啦。</string>
+    <string name="appview_guide_card_title">長按都不會嗎？</string>
+    <string name="appview_guide_card_body">長按應用程式就能用上次設定恢復、建立捷徑、隱藏應用程式或查看詳情，不用真的啟動它喔。</string>
 </resources>

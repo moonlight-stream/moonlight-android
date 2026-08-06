@@ -607,7 +607,7 @@ class CrownStoreActivity : AppCompatActivity() {
             ) {
                 CrownActionButton(
                     text = stringResource(R.string.crown_store_action_import_package),
-                    iconRes = R.drawable.phc_action_plus,
+                    iconRes = R.drawable.ic_add,
                     primary = true,
                     compact = true,
                     modifier = Modifier.weight(1f)
@@ -689,7 +689,7 @@ class CrownStoreActivity : AppCompatActivity() {
                 Spacer(modifier = Modifier.width(8.dp))
                 CrownActionButton(
                     text = stringResource(R.string.crown_store_action_open),
-                    iconRes = R.drawable.phc_action_plus,
+                    iconRes = R.drawable.ic_add,
                     compact = true
                 ) {
                     openLegacyImportDocument()
@@ -730,7 +730,7 @@ class CrownStoreActivity : AppCompatActivity() {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 CrownActionButton(
                     text = stringResource(R.string.crown_store_action_import_profile),
-                    iconRes = R.drawable.phc_action_plus,
+                    iconRes = R.drawable.ic_add,
                     primary = true,
                     compact = true,
                     modifier = Modifier.fillMaxWidth()
@@ -797,7 +797,7 @@ class CrownStoreActivity : AppCompatActivity() {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 CrownActionButton(
                     text = stringResource(R.string.crown_store_action_import_profile),
-                    iconRes = R.drawable.phc_action_plus,
+                    iconRes = R.drawable.ic_add,
                     primary = true,
                     modifier = Modifier.fillMaxWidth()
                 ) {

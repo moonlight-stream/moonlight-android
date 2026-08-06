@@ -84,7 +84,8 @@ internal fun QuickActionRow(
     onToggleEdit: () -> Unit,
     onAdd: () -> Unit,
     onRemove: (String) -> Unit,
-    onMove: (String, String) -> Unit
+    onMove: (String, String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
     val itemBounds = remember { mutableMapOf<String, Rect>() }
@@ -104,7 +105,7 @@ internal fun QuickActionRow(
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(

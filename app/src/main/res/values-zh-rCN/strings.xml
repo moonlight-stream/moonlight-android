@@ -1769,4 +1769,25 @@
     <string name="handbook_error_unavailable">文档手册暂时无法打开，请稍后再试</string>
     <string name="handbook_retry">点击重试</string>
     <string name="title_about_us">关于我们</string>
+    <!-- 功能发现引导 -->
+    <string name="feature_guide_step">杂鱼也能发现的小秘密 · %1$d/%2$d</string>
+    <string name="feature_guide_quick_actions_title">快捷栏也要我教吗？</string>
+    <string name="feature_guide_quick_actions_body">长按快捷按钮就能添加、移除或拖动排序。把常用操作摆好，下次可别再手忙脚乱啦。</string>
+    <string name="feature_guide_crown_title">给你的配置戴个皇冠吧</string>
+    <string name="feature_guide_crown_body">控制布局、快捷操作、触控模式和反馈设置都能存成皇冠配置。一键整套切换，这下杂鱼也不会弄乱啦。</string>
+    <string name="feature_guide_next">再教我一下</string>
+    <string name="feature_guide_done">这次记住啦</string>
+    <string name="feature_guide_skip">才不要看</string>
+    <string name="pcview_guide_host_title">杂鱼别点错地方啦</string>
+    <string name="pcview_guide_host_body">点主机卡片会进入应用列表，点头像会直接开始串流哦。长按卡片还藏着网络测试、副屏串流、Web UI 和更多操作。</string>
+    <string name="pcview_guide_more_title">三个点也没发现吗？</string>
+    <string name="pcview_guide_more_body">上次串流、未配对主机和主题切换都藏在这里。小小一颗，别再漏看啦。</string>
+    <string name="pcview_guide_scene_title">小标签可没在发呆</string>
+    <string name="pcview_guide_scene_body">点一下应用串流预设，长按保存当前分辨率、码率、HDR 和监控图层。记住了吗，小杂鱼？</string>
+    <string name="appview_guide_panel_title">藏得这么浅也没发现？</string>
+    <string name="appview_guide_panel_body">从顶部把手拉下，就能选背景、屏幕组合和目标显示器，也能进入完整串流设置。</string>
+    <string name="appview_guide_resume_title">标题可不是摆设啦</string>
+    <string name="appview_guide_resume_body">已有会话时，点一下电脑名和应用名就能直接回到串流。别再绕远路啦。</string>
+    <string name="appview_guide_card_title">长按都不会吗？</string>
+    <string name="appview_guide_card_body">长按应用就能用上次设置恢复、创建快捷方式、隐藏应用或查看详情，不用真的启动它哦。</string>
 </resources>

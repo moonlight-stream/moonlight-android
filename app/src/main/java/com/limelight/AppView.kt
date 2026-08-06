@@ -6,16 +6,13 @@ import java.io.StringReader
 import java.util.HashSet
 import java.util.concurrent.ConcurrentHashMap
 
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -65,9 +62,13 @@ import com.limelight.ui.AdapterRecyclerBridge
 import com.limelight.ui.AppDisplayOption
 import com.limelight.ui.AppScreenCombinationOption
 import com.limelight.ui.AppSettingsPanel
+import com.limelight.ui.FeatureGuideRegistry
 import com.limelight.ui.ScreenCombinationModePickerView
 import com.limelight.ui.SelectionIndicatorAnimator
+import com.limelight.ui.TopPanelHandleController
 import com.limelight.ui.VIRTUAL_DISPLAY_ID
+import com.limelight.ui.ViewFeatureGuide
+import com.limelight.ui.ViewFeatureGuideStep
 import com.limelight.utils.AppSettingsManager
 import com.limelight.utils.AppActionSheet
 import com.limelight.utils.AppBackgroundMode
@@ -95,7 +96,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.isNotEmpty
 import androidx.preference.PreferenceManager
 import kotlin.math.ceil
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class AppView : ComponentActivity(), AdapterFragmentCallbacks {
@@ -103,6 +103,7 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
     // 主线程作用域，用于收集 ComputerManagerService 的 Flow。
     private val uiScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var pollingCollectJob: Job? = null
+    private var featureGuideScheduled = false
 
     // ==================== 上下文菜单 ID ====================
     companion object {
@@ -184,9 +185,7 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
     // ==================== UI 组件 - 顶部下拉面板 & 显示器选择 ====================
     private lateinit var topPanelScrim: View
     private lateinit var topDropdownPanel: ComposeView
-    private var topPanelToggleAnimator: ValueAnimator? = null
-    private var topPanelToggleProgress = 0f
-    private var topPanelToggleBackground: GradientDrawable? = null
+    private lateinit var topPanelHandleController: TopPanelHandleController
     private var isPanelOpen by mutableStateOf(false)
     private var displayOptions by mutableStateOf<List<AppDisplayOption>>(emptyList())
     private var selectedDisplayId by mutableStateOf<Int?>(null)
@@ -524,10 +523,8 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
 
         // Setup top panel toggle handle
         val topPanelToggle = findViewById<TextView>(R.id.topPanelToggle)
-        updateTopPanelToggleAppearance(topPanelToggle, 0f)
-        topPanelToggle.setOnFocusChangeListener { _, _ ->
-            updateTopPanelToggleAppearance(topPanelToggle, topPanelToggleProgress)
-        }
+        topPanelToggle.contentDescription = getString(R.string.appview_quick_settings_title)
+        topPanelHandleController = TopPanelHandleController(topPanelToggle)
         topPanelToggle.setOnClickListener { toggleTopPanel() }
         topPanelToggle.setOnKeyListener { _, keyCode, event ->
             if (keyCode != KeyEvent.KEYCODE_DPAD_DOWN || !hasAppsForControllerFocus()) {
@@ -857,88 +854,8 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
 
     // ==================== 顶部下拉面板 ====================
 
-    private fun animateTopPanelToggle(expanded: Boolean) {
-        val toggle = findViewById<TextView>(R.id.topPanelToggle) ?: return
-        val target = if (expanded) 1f else 0f
-        topPanelToggleAnimator?.cancel()
-        topPanelToggleAnimator = ValueAnimator.ofFloat(topPanelToggleProgress, target).apply {
-            duration = (240L * abs(target - topPanelToggleProgress)).toLong().coerceAtLeast(1L)
-            interpolator = PathInterpolator(0.2f, 0f, 0f, 1f)
-            addUpdateListener { animator ->
-                updateTopPanelToggleAppearance(toggle, animator.animatedValue as Float)
-            }
-            start()
-        }
-    }
-
-    private fun updateTopPanelToggleAppearance(toggle: TextView, progress: Float) {
-        val fraction = progress.coerceIn(0f, 1f)
-        topPanelToggleProgress = fraction
-        val density = resources.displayMetrics.density
-        val width = ((96f - 20f * fraction) * density).roundToInt()
-        if (toggle.layoutParams.width != width) {
-            toggle.layoutParams = toggle.layoutParams.apply { this.width = width }
-        }
-
-        val topRadius = (18f - 4f * fraction) * density
-        val bottomRadius = (18f - 16f * fraction) * density
-        val background = topPanelToggleBackground ?: GradientDrawable().also {
-            topPanelToggleBackground = it
-            toggle.background = it
-        }
-        val chromeAlpha = ((1f - fraction) / 0.6f).coerceIn(0f, 1f)
-        background.shape = GradientDrawable.RECTANGLE
-        background.setColor(
-            colorWithAlpha(
-                ContextCompat.getColor(this, R.color.settings_drawer_background),
-                chromeAlpha
-            )
-        )
-        background.cornerRadii = floatArrayOf(
-            topRadius, topRadius,
-            topRadius, topRadius,
-            bottomRadius, bottomRadius,
-            bottomRadius, bottomRadius
-        )
-        val showFocusRing = toggle.hasFocus() && fraction < 0.5f
-        background.setStroke(
-            ((if (showFocusRing) 2f else 1f) * density).roundToInt().coerceAtLeast(1),
-            if (showFocusRing) {
-                ContextCompat.getColor(this, R.color.ui_shell_accent)
-            } else {
-                colorWithAlpha(
-                    ContextCompat.getColor(this, R.color.ui_shell_outline),
-                    chromeAlpha
-                )
-            }
-        )
-
-        if (fraction < 0.5f) {
-            toggle.text = "\u2699 \u25BE"
-            toggle.setTextColor(
-                colorWithAlpha(
-                    ContextCompat.getColor(this, R.color.ui_shell_text_primary),
-                    1f - fraction * 2f
-                )
-            )
-        } else {
-            toggle.text = "\u2014"
-            toggle.setTextColor(
-                colorWithAlpha(
-                    ContextCompat.getColor(this, R.color.ui_shell_text_secondary),
-                    (fraction - 0.5f) * 1.4f
-                )
-            )
-        }
-    }
-
-    private fun colorWithAlpha(color: Int, multiplier: Float): Int {
-        return Color.argb(
-            (Color.alpha(color) * multiplier.coerceIn(0f, 1f)).roundToInt(),
-            Color.red(color),
-            Color.green(color),
-            Color.blue(color)
-        )
+    private fun animateTopPanelToggle(expanded: Boolean, onAppearanceSwap: (() -> Unit)? = null) {
+        topPanelHandleController.animate(expanded, onAppearanceSwap)
     }
 
     /**
@@ -962,30 +879,23 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
         topPanelBackCallback.isEnabled = true
 
         val toggle = findViewById<TextView>(R.id.topPanelToggle)
-        animateTopPanelToggle(expanded = true)
-
         topPanelScrim.animate().cancel()
-        topPanelScrim.alpha = 0f
-        topPanelScrim.visibility = View.VISIBLE
+        topPanelScrim.alpha = 1f
         topPanelScrim.bringToFront()
         topDropdownPanel.bringToFront()
         toggle?.bringToFront()
         toggle?.translationZ = topDropdownPanel.elevation + 1f
-        topDropdownPanel.alpha = 0f
-        topDropdownPanel.translationY = -8f * resources.displayMetrics.density
-        topDropdownPanel.visibility = View.VISIBLE
+        topDropdownPanel.alpha = 1f
+        topDropdownPanel.translationY = 0f
         topDropdownPanel.animate().cancel()
-        topDropdownPanel.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setDuration(240)
-                .setInterpolator(PathInterpolator(0.2f, 0f, 0f, 1f))
-                .start()
-        topPanelScrim.animate()
-                .alpha(1f)
-                .setDuration(220)
-                .setInterpolator(PathInterpolator(0.2f, 0f, 0f, 1f))
-                .start()
+        // Let the lightweight handle animation establish motion first. The
+        // already measured Compose panel is revealed at the glyph swap instead
+        // of being alpha-rendered across every animation frame.
+        animateTopPanelToggle(expanded = true) {
+            if (!isPanelOpen) return@animateTopPanelToggle
+            topPanelScrim.visibility = View.VISIBLE
+            topDropdownPanel.visibility = View.VISIBLE
+        }
     }
 
     /**
@@ -1013,7 +923,9 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
                 .setDuration(210)
                 .setInterpolator(PathInterpolator(0.4f, 0f, 1f, 1f))
                 .withEndAction {
-                    topDropdownPanel.visibility = View.GONE
+                    // Keep the ComposeView measured so subsequent openings do
+                    // not pay another layout cost on the animation's first frame.
+                    topDropdownPanel.visibility = View.INVISIBLE
                     topDropdownPanel.translationY = 0f
                     topPanelScrim.visibility = View.GONE
                     toggle?.translationZ = 0f
@@ -1404,6 +1316,9 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
     }
 
     override fun onDestroy() {
+        if (::topPanelHandleController.isInitialized) {
+            topPanelHandleController.release()
+        }
         super.onDestroy()
 
         uiScope.cancel()
@@ -1449,10 +1364,37 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
         managerBinder?.setForegroundComputer(uuidString)
         refreshScreenCombinationModeFromPreferences()
         startComputerUpdates()
+        maybeShowAppViewFeatureGuide()
 
         if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             frameMetricsLogger?.stop(reportIfNeeded = false)
             frameMetricsLogger = FrameMetricsLogger(this, "AppView").also { it.start() }
+        }
+    }
+
+    private fun maybeShowAppViewFeatureGuide() {
+        if (featureGuideScheduled) return
+        featureGuideScheduled = true
+        ViewFeatureGuide.showWhenReady(
+            activity = this,
+            spec = FeatureGuideRegistry.AppViewDiscovery
+        ) {
+            buildList {
+                findViewById<View>(R.id.topPanelToggle)?.let {
+                    add(ViewFeatureGuideStep(
+                        it,
+                        getString(R.string.appview_guide_panel_title),
+                        getString(R.string.appview_guide_panel_body)
+                    ))
+                }
+                findViewById<View>(R.id.appListText)?.let {
+                    add(ViewFeatureGuideStep(
+                        it,
+                        getString(R.string.appview_guide_resume_title),
+                        getString(R.string.appview_guide_resume_body)
+                    ))
+                }
+            }
         }
     }
 

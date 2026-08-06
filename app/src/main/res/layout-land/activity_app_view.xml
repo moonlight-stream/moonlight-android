@@ -57,24 +57,15 @@
         android:visibility="gone" />
 
     <!-- 顶部下拉手柄标签 -->
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/topPanelToggle"
-        android:layout_width="96dp"
+        android:layout_width="84dp"
         android:layout_height="36dp"
-        android:gravity="center"
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
         android:layout_marginTop="@dimen/activity_safearea_top"
-        android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
-        android:text="\u2699 \u25BE"
-        android:textColor="@color/ui_shell_text_primary"
-        android:textSize="14sp"
-        android:fontFamily="sans-serif-light"
-        android:background="@drawable/dropdown_handle_background"
         android:elevation="4dp"
+        android:gravity="center"
         android:clickable="true"
         android:focusable="true"
         android:focusableInTouchMode="false" />
@@ -91,7 +82,7 @@
         android:clipChildren="false"
         android:clipToPadding="false"
         android:elevation="@dimen/appview_panel_elevation"
-        android:visibility="gone" />
+        android:visibility="invisible" />
 
     <!-- 标题区域（电脑名 + 应用名 + 恢复箭头） -->
     <TextView

@@ -1831,4 +1831,25 @@ Tap again to replace it.</string>
     <string name="handbook_error_unavailable">The handbook is temporarily unavailable. Please try again later.</string>
     <string name="handbook_retry">Tap to retry</string>
     <string name="title_about_us">About Us</string>
+    <!-- Feature discovery -->
+    <string name="feature_guide_step">A SECRET EVEN ROOKIES FIND · %1$d/%2$d</string>
+    <string name="feature_guide_quick_actions_title">Need help with shortcuts too?</string>
+    <string name="feature_guide_quick_actions_body">Press and hold a shortcut to add, remove, or rearrange it. Put your favorites in order so you don’t fumble next time.</string>
+    <string name="feature_guide_crown_title">Give your setup a tiny Crown</string>
+    <string name="feature_guide_crown_body">Save controls, shortcuts, touch mode, and feedback as one Crown profile. Switch everything at once—even a little rookie can’t mess it up.</string>
+    <string name="feature_guide_next">Teach me more</string>
+    <string name="feature_guide_done">Got it this time!</string>
+    <string name="feature_guide_skip">Nope, later</string>
+    <string name="pcview_guide_host_title">Careful where you tap, rookie</string>
+    <string name="pcview_guide_host_body">Tap the PC card for its app list, or tap the avatar to stream right away. Long-press the card for network tests, secondary-screen streaming, Web UI, and more hidden tricks.</string>
+    <string name="pcview_guide_more_title">You missed the three dots?</string>
+    <string name="pcview_guide_more_body">Your last session, unpaired PCs, and theme switch are all hiding here. Tiny button, useful secrets—don’t miss it again.</string>
+    <string name="pcview_guide_scene_title">Those tiny tabs aren’t idle</string>
+    <string name="pcview_guide_scene_body">Tap to apply a streaming preset. Long-press to save resolution, bitrate, HDR, and overlay settings. Remember that, little rookie?</string>
+    <string name="appview_guide_panel_title">It wasn’t hiding that well</string>
+    <string name="appview_guide_panel_body">Pull down the top handle for background style, screen combinations, target display, and complete streaming settings.</string>
+    <string name="appview_guide_resume_title">That title isn’t decoration</string>
+    <string name="appview_guide_resume_body">While a session is running, tap the PC and app name to jump straight back in. No more taking the long way around.</string>
+    <string name="appview_guide_card_title">Long-pressing is hard, huh?</string>
+    <string name="appview_guide_card_body">Long-press an app to resume with saved settings, create a shortcut, hide it, or see details without launching it.</string>
 </resources>

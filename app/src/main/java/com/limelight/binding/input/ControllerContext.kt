@@ -21,6 +21,7 @@ import com.limelight.binding.input.driver.AbstractController
 import com.limelight.nvstream.input.ControllerPacket
 import com.limelight.nvstream.jni.MoonBridge
 import com.limelight.preferences.PreferenceConfiguration
+import java.util.concurrent.ConcurrentHashMap
 
 // =================================================================================
 // GenericControllerContext
@@ -455,10 +456,21 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
 
 class UsbDeviceContext(handler: ControllerHandler) : GenericControllerContext(handler) {
     var device: AbstractController? = null
+    internal val menuKeyDownTimes = ConcurrentHashMap<Int, Long>()
+    internal val shortcutState = UsbControllerShortcutStateMachine()
+    internal val shortcutLongPressRunnable = Runnable {
+        handler.onUsbShortcutLongPress(this)
+    }
 
     override fun destroy() {
+        menuKeyDownTimes.clear()
+        handler.releaseUsbShortcutState(this)
         super.destroy()
-        // Nothing for now
+    }
+
+    override fun onGameMenuDismissed() {
+        menuKeyDownTimes.clear()
+        shortcutState.onGameMenuUnavailable()
     }
 
     override fun sendControllerArrival(): Int {

@@ -140,6 +140,8 @@
     <string name="title_checkbox_usb_bind_all">覆寫原生 Xbox 手把支援</string>
     <string name="summary_checkbox_usb_bind_all">強制 Moonlight 的 USB 驅動程式接管所有受支援的原生 Xbox 控制器</string>
     <string name="title_checkbox_mouse_emulation">透過手把仿真滑鼠</string>
+    <string name="summary_checkbox_enable_start_key_menu">長按 Start：系統手把開啟選單；USB 接管手把選擇選單或滑鼠模式。</string>
+    <string name="usb_shortcut_hold_hint">按 B 開啟遊戲選單，或放開 Start 切換滑鼠模擬</string>
     <string name="summary_checkbox_mouse_emulation">長按開始鍵將手把切換為滑鼠模式</string>
     <string name="title_checkbox_mouse_nav_buttons"> 啟用前進後退滑鼠鍵 </string>
     <string name="summary_checkbox_mouse_nav_buttons">在一些支援不佳的裝置上啟用此項可能會使其右鍵失效</string>

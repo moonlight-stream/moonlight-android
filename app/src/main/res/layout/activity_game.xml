@@ -243,7 +243,54 @@
 
     </androidx.cardview.widget.CardView>
 
-    <!-- 麦克风按钮 -->
+    <!-- USB controller shortcut hint -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/controllerShortcutHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="32dp"
+        android:visibility="gone"
+        android:clickable="false"
+        android:focusable="false"
+        android:preferKeepClear="true"
+        tools:ignore="UnusedAttribute"
+        app:cardBackgroundColor="#F0202033"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="12dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="12dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/phc_gamepad"
+                app:tint="@color/crown_accent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:maxWidth="520dp"
+                android:text="@string/usb_shortcut_hold_hint"
+                android:textColor="#FFFFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Microphone button -->
     <ImageButton
         android:id="@+id/micButton"
         android:layout_width="32dp"

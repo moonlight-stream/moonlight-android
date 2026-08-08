@@ -264,7 +264,8 @@
     <string name="title_checkbox_mouse_emulation"> 通过手柄模拟鼠标 </string>
     <string name="summary_checkbox_mouse_emulation"> 长按开始键将手柄切换为鼠标模式。 </string>
     <string name="title_checkbox_enable_start_key_menu"> 长按开始键功能 </string>
-    <string name="summary_checkbox_enable_start_key_menu"> 启用后：长按 Start 键打开游戏菜单（系统手柄）或切换鼠标模拟（接管手柄）。关闭后游戏内长按 Start（如菜单/暂停）不会被劫持。 </string>
+    <string name="summary_checkbox_enable_start_key_menu">长按 Start：系统手柄打开菜单；USB 接管手柄选择菜单或鼠标模式。</string>
+    <string name="usb_shortcut_hold_hint">按 B 打开游戏菜单，或松开 Start 切换鼠标模拟</string>
     <string name="title_checkbox_mouse_nav_buttons"> 启用前进后退鼠标键 </string>
     <string name="summary_checkbox_mouse_nav_buttons"> 在一些支持不佳的设备上启用此项可能会使其右键失效。 </string>
 

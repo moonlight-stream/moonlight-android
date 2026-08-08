@@ -161,6 +161,7 @@ class Game : Activity(), SurfaceHolder.Callback,
     var connecting = false
     var connected = false
     private var activeGameMenu: GameMenu? = null
+    private var controllerShortcutHintView: View? = null
     private var autoEnterPip = false
     private var surfaceCreated = false
     var attemptedConnection = false
@@ -355,6 +356,7 @@ class Game : Activity(), SurfaceHolder.Callback,
             findViewById(R.id.notificationOverlay),
             findViewById(R.id.notificationText)
         ) { prefConfig.bitrate }
+        controllerShortcutHintView = findViewById(R.id.controllerShortcutHint)
 
         micButton = findViewById(R.id.micButton)
 
@@ -2312,10 +2314,33 @@ class Game : Activity(), SurfaceHolder.Callback,
                     if (activeGameMenu === dismissedMenu) {
                         activeGameMenu = null
                     }
+                    device?.onGameMenuDismissed()
                 }
                 activeGameMenu = menu
             }
         }
+    }
+
+    override fun showGameMenuFromUsb(device: GameInputDevice): Boolean {
+        showGameMenu(device)
+        return activeGameMenu?.isShowing() == true
+    }
+
+    override fun dispatchUsbControllerMenuKey(event: KeyEvent): Boolean {
+        val menu = activeGameMenu ?: return false
+        if (!menu.dispatchControllerKeyEvent(event)) return false
+        return activeGameMenu === menu && menu.isShowing()
+    }
+
+    override fun showUsbControllerShortcutHint() {
+        controllerShortcutHintView?.apply {
+            visibility = View.VISIBLE
+            bringToFront()
+        }
+    }
+
+    override fun hideUsbControllerShortcutHint() {
+        controllerShortcutHintView?.visibility = View.GONE
     }
 
     override fun onKey(view: View, keyCode: Int, keyEvent: KeyEvent): Boolean {

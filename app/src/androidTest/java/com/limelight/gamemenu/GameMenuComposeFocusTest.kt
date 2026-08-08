@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
@@ -108,6 +109,39 @@ class GameMenuComposeFocusTest {
             pressKey(Key.DirectionDown)
         }
         composeTestRule.onNodeWithTag("settingRow").assertIsFocused()
+    }
+
+    @Test
+    fun firstMenuOptionCanReceiveInitialFocusAndControllerConfirmation() {
+        val activated = AtomicBoolean(false)
+        lateinit var initialFocusRequester: FocusRequester
+        val firstOption = GameMenu.MenuOption(
+            "First option",
+            false,
+            Runnable { activated.set(true) },
+            null,
+            false
+        )
+
+        composeTestRule.setContent {
+            initialFocusRequester = remember { FocusRequester() }
+            MenuOptionColumn(
+                options = listOf(firstOption),
+                iconForOption = { 0 },
+                onOptionClick = { it.runnable?.run() },
+                onInlineToggle = {},
+                onSegmentClick = {},
+                initialFocusRequester = initialFocusRequester
+            )
+        }
+
+        composeTestRule.runOnIdle { initialFocusRequester.requestFocus() }
+        composeTestRule.onNodeWithText("First option").assertIsFocused()
+        composeTestRule.onNodeWithText("First option").performKeyInput {
+            pressKey(Key.DirectionCenter)
+        }
+
+        assertTrue(activated.get())
     }
 
     @Test

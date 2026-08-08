@@ -47,15 +47,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -128,11 +131,14 @@ private data class GameMenuPalette(
 internal fun GameMenuScreen(
     state: GameMenuComposeUiState,
     callbacks: GameMenuCallbacks,
-    useFabricTexture: Boolean = true
+    useFabricTexture: Boolean = true,
+    requestControllerFocus: Boolean = false
 ) {
     val palette = gameMenuPalette()
     val appContext = LocalContext.current.applicationContext
     val showcaseState = rememberSequenceShowcaseState()
+    val initialFocusRequester = remember { FocusRequester() }
+    val inputModeManager = LocalInputModeManager.current
     var guideStore by remember(appContext) { mutableStateOf<FeatureGuideStore?>(null) }
     var guidePending by remember(appContext) { mutableStateOf(false) }
     LaunchedEffect(appContext) {
@@ -218,6 +224,7 @@ internal fun GameMenuScreen(
                             state = state,
                             callbacks = callbacks,
                             wideLayout = wideLayout && !state.isSubmenu,
+                            initialFocusRequester = initialFocusRequester,
                             quickActionGuideModifier = quickActionGuideModifier,
                             crownGuideModifier = crownGuideModifier
                         )
@@ -233,6 +240,13 @@ internal fun GameMenuScreen(
             // incomplete in the store, so it can appear on a future menu visit.
             guidePending = false
             showcaseState.start()
+        }
+    }
+
+    LaunchedEffect(requestControllerFocus, state.title, state.isSubmenu) {
+        if (requestControllerFocus && state.options.isNotEmpty()) {
+            inputModeManager.requestInputMode(InputMode.Keyboard)
+            initialFocusRequester.requestFocus()
         }
     }
 }
@@ -284,6 +298,7 @@ private fun GameMenuContent(
     state: GameMenuComposeUiState,
     callbacks: GameMenuCallbacks,
     wideLayout: Boolean,
+    initialFocusRequester: FocusRequester,
     quickActionGuideModifier: Modifier = Modifier,
     crownGuideModifier: Modifier = Modifier
 ) {
@@ -333,7 +348,8 @@ private fun GameMenuContent(
                     onOptionClick = callbacks.onOptionClick,
                     onInlineToggle = callbacks.onInlineToggle,
                     onSegmentClick = callbacks.onSegmentClick,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    initialFocusRequester = initialFocusRequester
                 )
                 GameMenuCards(
                     state = state,
@@ -349,7 +365,8 @@ private fun GameMenuContent(
                     callbacks.iconForOption,
                     callbacks.onOptionClick,
                     callbacks.onInlineToggle,
-                    callbacks.onSegmentClick
+                    callbacks.onSegmentClick,
+                    initialFocusRequester = initialFocusRequester
                 )
                 if (!state.isSubmenu) {
                     GameMenuCards(state, callbacks) { sliderGestureActive = it }

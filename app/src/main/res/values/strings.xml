@@ -326,7 +326,8 @@
     <string name="title_checkbox_mouse_emulation">Mouse emulation via gamepad</string>
     <string name="summary_checkbox_mouse_emulation">Long pressing the Start button will switch the gamepad into mouse mode</string>
     <string name="title_checkbox_enable_start_key_menu">Long-press Start key actions</string>
-    <string name="summary_checkbox_enable_start_key_menu">When enabled: long-press Start opens the in-game menu (system gamepad), or toggles mouse emulation (USB-takeover gamepad). Disable to free Start for normal long-press use in games.</string>
+    <string name="summary_checkbox_enable_start_key_menu">Hold Start for the menu on system controllers, or menu/mouse shortcuts with USB takeover.</string>
+    <string name="usb_shortcut_hold_hint">Press B to open the game menu, or release Start to toggle mouse emulation</string>
     <string name="title_checkbox_flip_face_buttons">Flip face buttons</string>
     <string name="summary_checkbox_flip_face_buttons">Switches the face buttons A/B and X/Y for gamepads and the on-screen controls</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Always control mouse with touchpad</string>

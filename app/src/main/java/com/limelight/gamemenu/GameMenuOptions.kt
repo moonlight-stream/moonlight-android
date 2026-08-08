@@ -32,6 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalView
@@ -56,16 +58,18 @@ internal fun MenuOptionColumn(
     onOptionClick: (GameMenu.MenuOption) -> Unit,
     onInlineToggle: (GameMenu.InlineControl.Toggle) -> Unit,
     onSegmentClick: (GameMenu.SegmentOption) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialFocusRequester: FocusRequester? = null
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(GameMenuDimens.tight)) {
-        options.forEach { option ->
+        options.forEachIndexed { index, option ->
             MenuOptionRow(
                 option = option,
                 iconRes = iconForOption(option.iconKey),
                 onClick = { onOptionClick(option) },
                 onInlineToggle = onInlineToggle,
-                onSegmentClick = onSegmentClick
+                onSegmentClick = onSegmentClick,
+                initialFocusRequester = initialFocusRequester.takeIf { index == 0 }
             )
         }
     }
@@ -77,7 +81,8 @@ private fun MenuOptionRow(
     @DrawableRes iconRes: Int,
     onClick: () -> Unit,
     onInlineToggle: (GameMenu.InlineControl.Toggle) -> Unit,
-    onSegmentClick: (GameMenu.SegmentOption) -> Unit
+    onSegmentClick: (GameMenu.SegmentOption) -> Unit,
+    initialFocusRequester: FocusRequester? = null
 ) {
     val view = LocalView.current
     val shape = GameMenuCardShape
@@ -95,15 +100,20 @@ private fun MenuOptionRow(
         view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
         onClick()
     }
+    val initialFocusModifier = initialFocusRequester?.let {
+        Modifier.focusRequester(it)
+    } ?: Modifier
     val rowInteraction = when {
-        inlineControl is GameMenu.InlineControl.Toggle && !hasDedicatedToggleAction -> Modifier
+        inlineControl is GameMenu.InlineControl.Toggle && !hasDedicatedToggleAction ->
+            initialFocusModifier
             .gamepadFocusOutline(shape)
             .toggleable(
                 value = inlineControl.checked,
                 role = Role.Switch,
                 onValueChange = { activate() }
             )
-        inlineControl !is GameMenu.InlineControl.Segmented && option.runnable != null -> Modifier
+        inlineControl !is GameMenu.InlineControl.Segmented && option.runnable != null ->
+            initialFocusModifier
             .gamepadFocusOutline(shape)
             .clickable(onClick = activate)
         else -> Modifier
@@ -135,7 +145,7 @@ private fun MenuOptionRow(
         val labelModifier = if (
             inlineControl is GameMenu.InlineControl.Segmented && option.runnable != null
         ) {
-            Modifier
+            initialFocusModifier
                 .gamepadFocusOutline(GameMenuControlShape)
                 .clickable(onClick = activate)
         } else {

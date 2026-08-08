@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.os.SystemClock
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.SparseArray
@@ -305,6 +306,7 @@ class ControllerHandler(
 
     private var currentControllers: Short = 0
     private var initialControllers: Short = 0
+    private var usbShortcutHintOwner: UsbDeviceContext? = null
 
     private val stickDeadzone: Double
 
@@ -506,6 +508,25 @@ class ControllerHandler(
 
         sceManager.stop()
         backgroundHandlerThread.quitSafely()
+    }
+
+    internal fun onUsbShortcutLongPress(context: UsbDeviceContext) {
+        if (stopped || usbShortcutHintOwner?.let { it !== context } == true) {
+            return
+        }
+        handleUsbShortcutUpdate(
+            context,
+            context.shortcutState.onLongPressTimeout(
+                android.os.SystemClock.uptimeMillis(),
+                prefConfig.enableStartKeyMenu
+            )
+        )
+    }
+
+    internal fun releaseUsbShortcutState(context: UsbDeviceContext) {
+        mainThreadHandler.removeCallbacks(context.shortcutLongPressRunnable)
+        val update = context.shortcutState.reset()
+        handleUsbShortcutUpdate(context, update)
     }
 
     fun disableSensors() {
@@ -2196,6 +2217,117 @@ class ControllerHandler(
 
     // ========== USB Driver Callbacks ==========
 
+    private fun handleUsbShortcutUpdate(
+        context: UsbDeviceContext,
+        update: UsbControllerShortcutStateMachine.Update
+    ) {
+        for (action in update.actions) {
+            when (action) {
+                UsbControllerShortcutStateMachine.Action.SCHEDULE_LONG_PRESS -> {
+                    mainThreadHandler.removeCallbacks(context.shortcutLongPressRunnable)
+                    mainThreadHandler.postDelayed(
+                        context.shortcutLongPressRunnable,
+                        START_DOWN_TIME_MOUSE_MODE_MS.toLong()
+                    )
+                }
+                UsbControllerShortcutStateMachine.Action.CANCEL_LONG_PRESS ->
+                    mainThreadHandler.removeCallbacks(context.shortcutLongPressRunnable)
+                UsbControllerShortcutStateMachine.Action.SHOW_HINT -> {
+                    mainThreadHandler.post {
+                        if (!stopped &&
+                            (usbShortcutHintOwner == null || usbShortcutHintOwner === context)
+                        ) {
+                            usbShortcutHintOwner = context
+                            gestures.showUsbControllerShortcutHint()
+                        }
+                    }
+                }
+                UsbControllerShortcutStateMachine.Action.HIDE_HINT -> {
+                    mainThreadHandler.post {
+                        if (usbShortcutHintOwner === context) {
+                            usbShortcutHintOwner = null
+                            gestures.hideUsbControllerShortcutHint()
+                        }
+                    }
+                }
+                UsbControllerShortcutStateMachine.Action.TOGGLE_MOUSE_EMULATION ->
+                    mainThreadHandler.post {
+                        if (!stopped) context.toggleMouseEmulation()
+                    }
+                UsbControllerShortcutStateMachine.Action.OPEN_GAME_MENU ->
+                    mainThreadHandler.post openMenu@{
+                        val requestId = update.menuOpenRequestId ?: return@openMenu
+                        if (stopped ||
+                            !context.shortcutState.isMenuOpenRequestPending(requestId)
+                        ) {
+                            context.shortcutState.onGameMenuOpenResult(requestId, false)
+                            return@openMenu
+                        }
+                        handleUsbShortcutUpdate(
+                            context,
+                            context.shortcutState.onGameMenuOpenResult(
+                                requestId,
+                                gestures.showGameMenuFromUsb(context)
+                            )
+                        )
+                    }
+                UsbControllerShortcutStateMachine.Action.EXIT_STREAM ->
+                    mainThreadHandler.post {
+                        if (!activityContext.isFinishing) activityContext.finish()
+                    }
+            }
+        }
+
+        for (buttonChange in update.menuButtonChanges) {
+            val keyCode = usbMenuKeyCode(buttonChange.buttonFlag) ?: continue
+            mainThreadHandler.post {
+                if (stopped) return@post
+                val keyAction = if (buttonChange.pressed) KeyEvent.ACTION_DOWN else KeyEvent.ACTION_UP
+                val eventTime = SystemClock.uptimeMillis()
+                val downTime = if (buttonChange.pressed) {
+                    context.menuKeyDownTimes[buttonChange.buttonFlag] = eventTime
+                    eventTime
+                } else {
+                    context.menuKeyDownTimes.remove(buttonChange.buttonFlag) ?: eventTime
+                }
+                val event = KeyEvent(downTime, eventTime, keyAction, keyCode, 0)
+                if (!gestures.dispatchUsbControllerMenuKey(event)) {
+                    context.menuKeyDownTimes.clear()
+                    context.shortcutState.onGameMenuUnavailable()
+                }
+            }
+        }
+    }
+
+    private fun usbMenuKeyCode(buttonFlag: Int): Int? {
+        return when (buttonFlag) {
+            ControllerPacket.UP_FLAG -> KeyEvent.KEYCODE_DPAD_UP
+            ControllerPacket.DOWN_FLAG -> KeyEvent.KEYCODE_DPAD_DOWN
+            ControllerPacket.LEFT_FLAG -> KeyEvent.KEYCODE_DPAD_LEFT
+            ControllerPacket.RIGHT_FLAG -> KeyEvent.KEYCODE_DPAD_RIGHT
+            ControllerPacket.A_FLAG -> KeyEvent.KEYCODE_DPAD_CENTER
+            ControllerPacket.B_FLAG -> KeyEvent.KEYCODE_BACK
+            else -> null
+        }
+    }
+
+    private fun sendNeutralUsbControllerState(context: UsbDeviceContext) {
+        context.inputMap = 0
+        context.leftStickX = 0
+        context.leftStickY = 0
+        context.rightStickX = 0
+        context.rightStickY = 0
+        context.physRightStickX = 0
+        context.physRightStickY = 0
+        context.leftTrigger = 0
+        context.rightTrigger = 0
+        if (context.gyroHoldActive) {
+            context.gyroHoldActive = false
+            gyroManager.onGyroHoldDeactivated(context)
+        }
+        sendControllerInputPacket(context)
+    }
+
     override fun reportControllerState(
         controllerId: Int, buttonFlags: Int,
         leftStickX: Float, leftStickY: Float,
@@ -2207,31 +2339,18 @@ class ControllerHandler(
         @Suppress("NAME_SHADOWING")
         var rightTrigger = rightTrigger
 
-        val context: GenericControllerContext = usbDeviceContexts.get(controllerId) ?: return
-
-        // 检测start键状态变化以支持长按切换鼠标模拟模式
-        val wasStartPressed = (context.inputMap and ControllerPacket.PLAY_FLAG) != 0
-        val isStartPressed = (buttonFlags and ControllerPacket.PLAY_FLAG) != 0
-
-        if (wasStartPressed != isStartPressed) {
-            if (isStartPressed) {
-                // start键刚被按下，记录按下时间
-                context.startDownTime = System.currentTimeMillis()
-            } else {
-                // start键刚被释放，检查是否长按足够时间以切换鼠标模拟模式
-                // 与系统手柄路径(handleKeyUp)统一接受 enableStartKeyMenu 守卫；
-                // USB接管下系统看不到手柄输入，无法导航 GameMenu，所以这里执行的是
-                // 切鼠标动作 — 但用户关闭"长按 Start 功能"时同样应禁用，避免游戏内
-                // 长按 Start (暂停/菜单) 误触发模拟鼠标。 (issue #277)
-                if (context.startDownTime > 0 && prefConfig.enableStartKeyMenu) {
-                    val pressDuration = System.currentTimeMillis() - context.startDownTime
-                    if (pressDuration > START_DOWN_TIME_MOUSE_MODE_MS) {
-                        // 必须在主线程上切换鼠标模拟模式
-                        mainThreadHandler.post { context.toggleMouseEmulation() }
-                    }
-                }
-                context.startDownTime = 0
+        val context = usbDeviceContexts.get(controllerId) ?: return
+        val shortcutUpdate = context.shortcutState.onButtonSnapshot(
+            buttonFlags,
+            android.os.SystemClock.uptimeMillis(),
+            prefConfig.enableStartKeyMenu
+        )
+        handleUsbShortcutUpdate(context, shortcutUpdate)
+        if (shortcutUpdate.consumeAllInput) {
+            if (shortcutUpdate.sendNeutralState) {
+                sendNeutralUsbControllerState(context)
             }
+            return
         }
 
         // Gyro hold activation via analog LT/RT thresholds when mapped to L2/R2
@@ -2316,6 +2435,7 @@ class ControllerHandler(
 
     override fun reportControllerMotion(controllerId: Int, motionType: Byte, x: Float, y: Float, z: Float) {
         val context = usbDeviceContexts.get(controllerId) ?: return
+        if (context.shortcutState.isLocalInputCaptureActive()) return
 
         // 当启用"陀螺仪模拟右摇杆"或"陀螺仪模拟鼠标"时，拦截陀螺仪数据
         if (motionType == MoonBridge.LI_MOTION_TYPE_GYRO) {

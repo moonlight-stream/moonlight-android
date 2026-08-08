@@ -42,7 +42,8 @@ class ControllerHandler(
     internal val activityContext: Activity,
     internal val conn: NvConnection,
     private val gestures: GameGestures,
-    internal val prefConfig: PreferenceConfiguration
+    internal val prefConfig: PreferenceConfiguration,
+    private val onTogglePerformanceOverlay: () -> Unit = {}
 ) : InputManager.InputDeviceListener, UsbDriverListener {
 
     companion object {
@@ -51,6 +52,9 @@ class ControllerHandler(
         const val START_DOWN_TIME_MOUSE_MODE_MS = 750
 
         const val MINIMUM_BUTTON_DOWN_TIME_MS = 25
+
+        const val PERFORMANCE_OVERLAY_COMBO_FLAGS: Int = ControllerPacket.BACK_FLAG or
+            ControllerPacket.LB_FLAG or ControllerPacket.RB_FLAG or ControllerPacket.X_FLAG
 
         private const val EMULATING_SPECIAL = 0x1
         private const val EMULATING_SELECT = 0x2
@@ -1833,6 +1837,7 @@ class ControllerHandler(
     fun handleButtonUp(event: KeyEvent): Boolean {
         val context = getContextForEvent(event) ?: return true
 
+        updatePerformanceShortcut(context, event.keyCode, pressed = false)
         var keyCode = handleRemapping(context, event)
         if (keyCode < 0) {
             return (keyCode == REMAP_CONSUME)
@@ -2009,6 +2014,7 @@ class ControllerHandler(
     fun handleButtonDown(event: KeyEvent): Boolean {
         val context = getContextForEvent(event) ?: return true
 
+        updatePerformanceShortcut(context, event.keyCode, pressed = true)
         var keyCode = handleRemapping(context, event)
         if (keyCode < 0) {
             return (keyCode == REMAP_CONSUME)
@@ -2340,6 +2346,7 @@ class ControllerHandler(
         var rightTrigger = rightTrigger
 
         val context = usbDeviceContexts.get(controllerId) ?: return
+        updatePerformanceShortcut(context, buttonFlags)
         val shortcutUpdate = context.shortcutState.onButtonSnapshot(
             buttonFlags,
             android.os.SystemClock.uptimeMillis(),
@@ -2407,6 +2414,38 @@ class ControllerHandler(
         context.inputMap = buttonFlags
 
         sendControllerInputPacket(context)
+    }
+
+    private fun updatePerformanceShortcut(
+        context: GenericControllerContext,
+        keyCode: Int,
+        pressed: Boolean
+    ) {
+        val flag = when (keyCode) {
+            KeyEvent.KEYCODE_BACK,
+            KeyEvent.KEYCODE_BUTTON_SELECT -> ControllerPacket.BACK_FLAG
+            KeyEvent.KEYCODE_BUTTON_L1 -> ControllerPacket.LB_FLAG
+            KeyEvent.KEYCODE_BUTTON_R1 -> ControllerPacket.RB_FLAG
+            KeyEvent.KEYCODE_BUTTON_X -> ControllerPacket.X_FLAG
+            else -> return
+        }
+        dispatchPerformanceShortcutIfTriggered(
+            context.performanceOverlayShortcutState.updateButton(flag, pressed)
+        )
+    }
+
+    private fun updatePerformanceShortcut(context: GenericControllerContext, buttonFlags: Int) {
+        dispatchPerformanceShortcutIfTriggered(
+            context.performanceOverlayShortcutState.updateSnapshot(buttonFlags)
+        )
+    }
+
+    private fun dispatchPerformanceShortcutIfTriggered(triggered: Boolean) {
+        if (triggered) {
+            mainThreadHandler.post {
+                if (!stopped) onTogglePerformanceOverlay()
+            }
+        }
     }
 
     override fun deviceRemoved(controller: AbstractController) {

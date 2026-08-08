@@ -46,6 +46,9 @@ open class GenericControllerContext(
     var controllerNumber: Short = 0
 
     var inputMap: Int = 0
+    internal val performanceOverlayShortcutState = ControllerButtonChordState(
+        ControllerHandler.PERFORMANCE_OVERLAY_COMBO_FLAGS
+    )
     var leftTrigger: Byte = 0x00
     var rightTrigger: Byte = 0x00
     var rightStickX: Short = 0x0000

@@ -17,9 +17,12 @@ class ComputerDetails {
         init {
             require(port > 0) { "Invalid port" }
 
-            // If this was an escaped IPv6 address, remove the brackets
+            // Only IPv6 literals may use brackets. Preserve other bracketed input for validation.
             if (address.startsWith("[") && address.endsWith("]")) {
-                address = address.substring(1, address.length - 1)
+                val unbracketedAddress = address.substring(1, address.length - 1)
+                if (unbracketedAddress.contains(':')) {
+                    address = unbracketedAddress
+                }
             }
         }
 
@@ -252,6 +255,7 @@ class ComputerDetails {
 
         fun isLanIpv4Address(address: AddressTuple?): Boolean {
             if (address?.address == null) return false
+            if (!NetHelper.isIpLiteral(address.address) || address.address.contains(':')) return false
 
             return try {
                 val inetAddress = InetAddress.getByName(address.address)
@@ -264,11 +268,6 @@ class ComputerDetails {
 
         fun isIpv6Address(address: AddressTuple?): Boolean {
             return address?.address?.contains(":") == true
-        }
-
-        fun isPublicAddress(address: AddressTuple?): Boolean {
-            if (address?.address == null) return false
-            return !isLanIpv4Address(address) && !isIpv6Address(address)
         }
     }
 }

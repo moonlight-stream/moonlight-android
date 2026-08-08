@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import com.limelight.LimeLog
+import okhttp3.HttpUrl
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.net.SocketException
@@ -89,8 +90,13 @@ object NetHelper {
 
     fun isLanAddress(addressStr: String?): Boolean {
         if (addressStr.isNullOrEmpty()) return false
+        if (!isIpLiteral(addressStr)) return false
+        val host = normalizeIpLiteral(addressStr) ?: return false
+
+        // 地址分类必须是纯本地操作。域名由 OkHttp/native 在真正建连时按需解析，
+        // 不能因为每 1.5 秒一次的候选筛选而额外触发 DNS 查询。
         return try {
-            val addr = InetAddress.getByName(addressStr)
+            val addr = InetAddress.getByName(host)
             addr.isSiteLocalAddress || addr.isLoopbackAddress || isPrivateAddress(addr)
         } catch (_: Exception) {
             false
@@ -160,8 +166,8 @@ object NetHelper {
      * Domain names and invalid input return false. Brackets around IPv6 are accepted.
      */
     fun isPrivateAddress(host: String?): Boolean {
-        val h = host?.removePrefix("[")?.removeSuffix("]")?.takeIf { it.isNotEmpty() } ?: return false
-        if (!isIpLiteral(h)) return false  // skip DNS for hostnames
+        if (host == null || !isIpLiteral(host)) return false
+        val h = normalizeIpLiteral(host) ?: return false
         val addr = try { InetAddress.getByName(h) } catch (_: Exception) { return false }
         return addr.isSiteLocalAddress || addr.isLoopbackAddress || addr.isLinkLocalAddress ||
                 (addr is java.net.Inet6Address && isIpv6UniqueLocal(addr))
@@ -173,10 +179,38 @@ object NetHelper {
         return isPrivateAddress(host)
     }
 
-    private fun isIpLiteral(h: String): Boolean {
-        if (h.contains(':')) return true  // IPv6 always uses ':'
-        val parts = h.split('.')
-        return parts.size == 4 && parts.all { (it.toIntOrNull() ?: -1) in 0..255 }
+    fun isIpLiteral(h: String): Boolean {
+        val host = normalizeIpLiteral(h) ?: return false
+        val isBracketed = h.startsWith('[')
+        if (isBracketed && !host.contains(':')) return false
+
+        if (host.contains(':')) {
+            // HttpUrl accepts percent-encoded host text, so validate the raw IPv6 form first.
+            if (!host.all { it == ':' || it == '.' || it in '0'..'9' ||
+                        it in 'a'..'f' || it in 'A'..'F' }) return false
+            return try {
+                HttpUrl.Builder().scheme("http").host(host).build().host.contains(':')
+            } catch (_: IllegalArgumentException) {
+                false
+            }
+        }
+        val parts = host.split('.')
+        return parts.size == 4 && parts.all { octet ->
+            octet.isNotEmpty() && octet.all { it in '0'..'9' } &&
+                    (octet.toIntOrNull() ?: -1) in 0..255
+        }
+    }
+
+    private fun normalizeIpLiteral(host: String): String? {
+        val startsWithBracket = host.startsWith('[')
+        val endsWithBracket = host.endsWith(']')
+        if (startsWithBracket != endsWithBracket) return null
+
+        return if (startsWithBracket) {
+            host.substring(1, host.length - 1).takeIf { it.isNotEmpty() }
+        } else {
+            host.takeIf { it.isNotEmpty() }
+        }
     }
 
     /** IPv6 unique-local fc00::/7 → top byte is 0xFC or 0xFD. */

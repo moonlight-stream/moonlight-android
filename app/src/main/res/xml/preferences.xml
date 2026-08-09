@@ -528,6 +528,10 @@
         android:key="category_gamepad_settings"
         android:layout="@layout/preference_category_material"
         app:initialExpandedChildrenCount="4">
+        <Preference
+            android:key="controller_diagnostic"
+            android:title="@string/title_controller_diagnostic"
+            android:summary="@string/summary_controller_diagnostic" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
             android:defaultValue="7"

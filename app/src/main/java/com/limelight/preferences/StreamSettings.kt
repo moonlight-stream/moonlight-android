@@ -3467,6 +3467,12 @@ class StreamSettings : AppCompatActivity() {
                         true
                     }
 
+            findPreference<Preference>("controller_diagnostic")!!.onPreferenceClickListener =
+                    Preference.OnPreferenceClickListener {
+                        startActivity(Intent(requireActivity(), ControllerDiagnosticActivity::class.java))
+                        true
+                    }
+
             // 对于没有触摸屏的设备，只提供本地鼠标指针选项
             val mouseModePresetPref = findPreference<ListPreference>(PreferenceConfiguration.NATIVE_MOUSE_MODE_PRESET_PREF_STRING)!!
             if (!requireActivity().packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {

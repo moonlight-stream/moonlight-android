@@ -26,6 +26,8 @@ class UsbDriverService : Service(), UsbDriverListener {
     private var usbManager: UsbManager? = null
     private var prefConfig: PreferenceConfiguration? = null
     private var started = false
+    private var receiverRegistered = false
+    private var claimAllAvailableOverride: Boolean? = null
 
     private val receiver = UsbEventReceiver()
     private val binder = UsbDriverBinder()
@@ -64,24 +66,30 @@ class UsbDriverService : Service(), UsbDriverListener {
 
     inner class UsbEventReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
+            runCatching {
+                val action = intent.action
 
-            if (action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
-                @Suppress("DEPRECATION")
-                val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                if (action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
+                    @Suppress("DEPRECATION")
+                    val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
 
-                Handler(Looper.getMainLooper()).postDelayed({
-                    device?.let { handleUsbDeviceState(it) }
-                }, 1000)
-            } else if (action == ACTION_USB_PERMISSION) {
-                @Suppress("DEPRECATION")
-                val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
-
-                stateListener?.onUsbPermissionPromptCompleted()
-
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    device?.let { handleUsbDeviceState(it) }
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        device?.let { handleUsbDeviceStateSafely(it) }
+                    }, 1000)
+                } else if (action == ACTION_USB_PERMISSION) {
+                    try {
+                        @Suppress("DEPRECATION")
+                        val device: UsbDevice? =
+                            intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                            device?.let { handleUsbDeviceStateSafely(it) }
+                        }
+                    } finally {
+                        notifyPermissionPromptCompleted()
+                    }
                 }
+            }.onFailure {
+                LimeLog.warning("Unable to process USB permission result: ${it.message}")
             }
         }
     }
@@ -102,7 +110,22 @@ class UsbDriverService : Service(), UsbDriverListener {
         }
 
         fun start() {
-            this@UsbDriverService.start()
+            this@UsbDriverService.start(claimAllAvailableOverride = null)
+        }
+
+        /**
+         * Temporarily claims every supported USB controller for the shortcut test screen.
+         * Returns true when at least one controller has started and will report readiness through
+         * [UsbDriverListener.deviceAdded].
+         */
+        fun startForDiagnostics(): Boolean {
+            this@UsbDriverService.start(claimAllAvailableOverride = true)
+            return controllers.isNotEmpty()
+        }
+
+        /** Returns whether a claimed controller is still active or initializing. */
+        fun hasActiveControllers(): Boolean {
+            return controllers.isNotEmpty()
         }
 
         fun stop() {
@@ -114,10 +137,10 @@ class UsbDriverService : Service(), UsbDriverListener {
         val mgr = usbManager ?: return
         val config = prefConfig ?: return
 
-        if (shouldClaimDevice(device, config.bindAllUsb)) {
+        if (shouldClaimDevice(device, claimAllAvailableOverride ?: config.bindAllUsb)) {
             if (!mgr.hasPermission(device)) {
                 try {
-                    stateListener?.onUsbPermissionPromptStarting()
+                    notifyPermissionPromptStarting()
 
                     var intentFlags = 0
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -128,37 +151,53 @@ class UsbDriverService : Service(), UsbDriverListener {
                     i.setPackage(packageName)
 
                     mgr.requestPermission(device, PendingIntent.getBroadcast(this, 0, i, intentFlags))
-                } catch (e: SecurityException) {
-                    Toast.makeText(this, this.getText(R.string.error_usb_prohibited), Toast.LENGTH_LONG).show()
-                    stateListener?.onUsbPermissionPromptCompleted()
+                } catch (e: RuntimeException) {
+                    LimeLog.warning("Unable to request USB controller permission: ${e.message}")
+                    Handler(Looper.getMainLooper()).post {
+                        runCatching {
+                            Toast.makeText(
+                                this,
+                                this.getText(R.string.error_usb_prohibited),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                    notifyPermissionPromptCompleted()
                 }
                 return
             }
 
-            val connection = mgr.openDevice(device)
+            val connection = runCatching { mgr.openDevice(device) }
+                .onFailure {
+                    LimeLog.warning("Unable to open USB controller: ${it.message}")
+                }
+                .getOrNull()
             if (connection == null) {
-                LimeLog.warning("Unable to open USB device: " + device.deviceName)
                 return
             }
 
-            val controller: AbstractController = when {
-                XboxOneController.canClaimDevice(device) ->
-                    XboxOneController(device, connection, nextDeviceId++, this)
-                Xbox360Controller.canClaimDevice(device) ->
-                    Xbox360Controller(device, connection, nextDeviceId++, this)
-                Xbox360WirelessDongle.canClaimDevice(device) ->
-                    Xbox360WirelessDongle(device, connection, nextDeviceId++, this)
-                SwitchProController.canClaimDevice(device) ->
-                    SwitchProController(device, connection, nextDeviceId++, this)
-                DualSenseController.canClaimDevice(device) ->
-                    DualSenseController(device, connection, nextDeviceId++, this)
-                Dualshock4Controller.canClaimDevice(device) ->
-                    Dualshock4Controller(device, connection, nextDeviceId++, this)
-                else -> return
-            }
+            val controller = runCatching {
+                when {
+                    XboxOneController.canClaimDevice(device) ->
+                        XboxOneController(device, connection, nextDeviceId++, this)
+                    Xbox360Controller.canClaimDevice(device) ->
+                        Xbox360Controller(device, connection, nextDeviceId++, this)
+                    Xbox360WirelessDongle.canClaimDevice(device) ->
+                        Xbox360WirelessDongle(device, connection, nextDeviceId++, this)
+                    SwitchProController.canClaimDevice(device) ->
+                        SwitchProController(device, connection, nextDeviceId++, this)
+                    DualSenseController.canClaimDevice(device) ->
+                        DualSenseController(device, connection, nextDeviceId++, this)
+                    Dualshock4Controller.canClaimDevice(device) ->
+                        Dualshock4Controller(device, connection, nextDeviceId++, this)
+                    else -> null
+                }
+            }.onFailure {
+                LimeLog.warning("Unable to initialize USB controller: ${it.message}")
+            }.getOrNull()
 
-            if (!controller.start()) {
-                connection.close()
+            if (controller == null || !runCatching { controller.start() }.getOrDefault(false)) {
+                runCatching { connection.close() }
                 return
             }
 
@@ -166,28 +205,65 @@ class UsbDriverService : Service(), UsbDriverListener {
         }
     }
 
+    private fun handleUsbDeviceStateSafely(device: UsbDevice) {
+        if (!started) {
+            return
+        }
+        runCatching { handleUsbDeviceState(device) }.onFailure {
+            LimeLog.warning("Unable to process USB controller: ${it.message}")
+        }
+    }
+
+    private fun notifyPermissionPromptStarting() {
+        runCatching { stateListener?.onUsbPermissionPromptStarting() }.onFailure {
+            LimeLog.warning("Unable to notify USB permission start: ${it.message}")
+        }
+    }
+
+    private fun notifyPermissionPromptCompleted() {
+        runCatching { stateListener?.onUsbPermissionPromptCompleted() }.onFailure {
+            LimeLog.warning("Unable to notify USB permission completion: ${it.message}")
+        }
+    }
+
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private fun start() {
-        if (started || usbManager == null) {
+    private fun start(claimAllAvailableOverride: Boolean?) {
+        if (usbManager == null) {
             return
         }
 
+        if (started) {
+            if (this.claimAllAvailableOverride == claimAllAvailableOverride) {
+                return
+            }
+            stop()
+        }
+
+        this.claimAllAvailableOverride = claimAllAvailableOverride
         started = true
 
         val filter = IntentFilter()
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
         filter.addAction(ACTION_USB_PERMISSION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(receiver, filter)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(receiver, filter)
+            }
+            receiverRegistered = true
+        } catch (e: RuntimeException) {
+            LimeLog.warning("Unable to register USB controller receiver: ${e.message}")
+            started = false
+            this.claimAllAvailableOverride = null
+            return
         }
 
         val mgr = usbManager!!
         val config = prefConfig!!
         for (dev in mgr.deviceList.values) {
-            if (shouldClaimDevice(dev, config.bindAllUsb)) {
-                handleUsbDeviceState(dev)
+            if (shouldClaimDevice(dev, claimAllAvailableOverride ?: config.bindAllUsb)) {
+                handleUsbDeviceStateSafely(dev)
             }
         }
     }
@@ -199,11 +275,19 @@ class UsbDriverService : Service(), UsbDriverListener {
 
         started = false
 
-        unregisterReceiver(receiver)
+        if (receiverRegistered) {
+            runCatching { unregisterReceiver(receiver) }.onFailure {
+                LimeLog.warning("Unable to unregister USB controller receiver: ${it.message}")
+            }
+            receiverRegistered = false
+        }
 
         while (controllers.size > 0) {
-            controllers.removeAt(0).stop()
+            runCatching { controllers.removeAt(0).stop() }.onFailure {
+                LimeLog.warning("Unable to stop USB controller: ${it.message}")
+            }
         }
+        claimAllAvailableOverride = null
     }
 
     override fun onCreate() {

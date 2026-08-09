@@ -40,6 +40,7 @@ import com.limelight.services.KeyboardAccessibilityService
 import com.limelight.ui.AdapterFragment
 import com.limelight.ui.AdapterFragmentCallbacks
 import com.limelight.ui.FeatureGuideRegistry
+import com.limelight.ui.UiDismissKeyHandler
 import com.limelight.ui.ViewFeatureGuide
 import com.limelight.ui.ViewFeatureGuideStep
 import com.limelight.utils.AboutDialogLauncher
@@ -116,6 +117,7 @@ import android.provider.Settings
 import android.util.LruCache
 import android.view.GestureDetector
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -577,13 +579,21 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val popupWidth = dpToPx(if (isLandscape) 256 else 236)
 
-        val menu = LinearLayout(this).apply {
+        lateinit var popup: PopupWindow
+        val menu = object : LinearLayout(this) {
+            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                if (UiDismissKeyHandler.handle(event.action, event.keyCode, popup::dismiss)) {
+                    return true
+                }
+                return super.dispatchKeyEvent(event)
+            }
+        }.apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dpToPx(4), dpToPx(6), dpToPx(4), dpToPx(6))
             background = ContextCompat.getDrawable(this@PcView, R.drawable.pc_toolbar_menu_panel_bg)
         }
 
-        val popup = PopupWindow(menu, popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
+        popup = PopupWindow(menu, popupWidth, ViewGroup.LayoutParams.WRAP_CONTENT, true).apply {
             isOutsideTouchable = true
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -1808,6 +1818,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 .setPositiveButton(R.string.save_current_config_to_scene) { _, _ -> saveCurrentConfiguration(sceneNumber) }
                 .setNegativeButton(R.string.dialog_button_cancel, null)
                 .show()
+                .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun showSaveConfirmationDialog(sceneNumber: Int) {
@@ -1817,6 +1828,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 .setPositiveButton(R.string.dialog_button_save) { _, _ -> saveCurrentConfiguration(sceneNumber) }
                 .setNegativeButton(R.string.dialog_button_cancel, null)
                 .show()
+                .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun saveCurrentConfiguration(sceneNumber: Int) {

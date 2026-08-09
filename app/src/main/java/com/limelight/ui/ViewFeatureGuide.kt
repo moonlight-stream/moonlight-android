@@ -343,10 +343,10 @@ private class FeatureGuideOverlay(
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_UP &&
-            (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE)
+        if (UiDismissKeyHandler.handle(event.action, event.keyCode) {
+                dismiss(rememberChoice = true)
+            }
         ) {
-            dismiss(rememberChoice = true)
             return true
         }
         return super.dispatchKeyEvent(event)

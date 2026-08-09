@@ -111,6 +111,7 @@ class CustomResolutionsPreferenceDialogFragment : PreferenceDialogFragmentCompat
     private fun tintDialogButtons() {
         val alert = dialog as? AlertDialog ?: return
         AppDialogStyler.tintTitle(alert, requireContext())
+        AppDialogStyler.installDismissKeys(alert)
         val accentColor = ContextCompat.getColor(requireContext(), R.color.app_dialog_accent_color)
         listOf(AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL)
             .forEach { buttonId ->

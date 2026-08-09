@@ -32,6 +32,7 @@ class StyledEditTextPreferenceDialogFragment : EditTextPreferenceDialogFragmentC
         }
         val alert = dialog as? AlertDialog ?: return
         AppDialogStyler.tintTitle(alert, requireContext())
+        AppDialogStyler.installDismissKeys(alert)
         tintDialogButtons(alert)
     }
 

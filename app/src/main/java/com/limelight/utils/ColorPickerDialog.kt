@@ -63,6 +63,7 @@ class ColorPickerDialog(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
+        AppDialogStyler.installDismissKeys(this)
 
         Color.colorToHSV(initialColor, currentHsv)
         currentAlpha = Color.alpha(initialColor)

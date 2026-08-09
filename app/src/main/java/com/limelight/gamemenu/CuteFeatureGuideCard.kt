@@ -31,6 +31,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalInputModeManager
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.limelight.R
+import com.limelight.ui.UiDismissKeyHandler
 
 @Composable
 internal fun CuteFeatureGuideCard(
@@ -81,6 +83,13 @@ internal fun CuteFeatureGuideCard(
     Box(
         modifier = Modifier
             .widthIn(min = 252.dp, max = 316.dp)
+            .onPreviewKeyEvent { event ->
+                UiDismissKeyHandler.handle(
+                    event.nativeKeyEvent.action,
+                    event.nativeKeyEvent.keyCode,
+                    onSkip
+                )
+            }
             .drawBehind {
                 val leaderSpace = 34.dp.toPx()
                 val wobble = 2.dp.toPx()

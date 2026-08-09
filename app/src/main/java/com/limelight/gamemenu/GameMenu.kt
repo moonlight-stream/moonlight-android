@@ -40,6 +40,7 @@ import com.limelight.binding.input.advance_setting.element.ElementController
 import com.limelight.nvstream.NvConnection
 import com.limelight.nvstream.http.NvApp
 import com.limelight.preferences.PreferenceConfiguration
+import com.limelight.ui.UiDismissKeyHandler
 import com.limelight.utils.AppActionSheet
 import com.limelight.utils.KeyCodeMapper
 import org.json.JSONArray
@@ -51,6 +52,30 @@ import java.util.ArrayDeque
 
 /** Int → Short 快捷转换 */
 private fun Int.s(): Short = this.toShort()
+
+internal fun mapGameMenuConfirmKeyCode(keyCode: Int): Int {
+    return if (keyCode == KeyEvent.KEYCODE_BUTTON_A) KeyEvent.KEYCODE_DPAD_CENTER else keyCode
+}
+
+private fun mapGameMenuConfirmKeyEvent(event: KeyEvent): KeyEvent {
+    val mappedKeyCode = mapGameMenuConfirmKeyCode(event.keyCode)
+    return if (mappedKeyCode != event.keyCode) {
+        KeyEvent(
+            event.downTime,
+            event.eventTime,
+            event.action,
+            mappedKeyCode,
+            event.repeatCount,
+            event.metaState,
+            event.deviceId,
+            event.scanCode,
+            event.flags,
+            event.source
+        )
+    } else {
+        event
+    }
+}
 
 /**
  * 提供游戏流媒体进行中的选项菜单
@@ -91,10 +116,10 @@ class GameMenu(
     fun dispatchControllerKeyEvent(event: KeyEvent): Boolean {
         val dialog = activeDialog ?: return false
         if (!dialog.isShowing) return false
-        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
-            if (event.action == KeyEvent.ACTION_DOWN && !navigateBack()) {
-                dialog.dismiss()
+        if (UiDismissKeyHandler.handle(event.action, event.keyCode) {
+                if (!navigateBack()) dialog.cancel()
             }
+        ) {
             return true
         }
         dialog.dispatchKeyEvent(event)
@@ -679,11 +704,14 @@ class GameMenu(
 
         // 返回键监听器
         dialog.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
-                if (navigateBack()) {
-                    return@setOnKeyListener true
-                }
-                return@setOnKeyListener false
+            if (UiDismissKeyHandler.handle(event.action, keyCode) {
+                if (!navigateBack()) dialog.cancel()
+            }) {
+                return@setOnKeyListener true
+            }
+            if (keyCode == KeyEvent.KEYCODE_BUTTON_A) {
+                dialog.dispatchKeyEvent(mapGameMenuConfirmKeyEvent(event))
+                return@setOnKeyListener true
             }
             false
         }
@@ -1117,11 +1145,7 @@ class GameMenu(
         }
 
         dialog.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_DOWN) {
-                dialog.dismiss()
-                return@setOnKeyListener true
-            }
-            false
+            UiDismissKeyHandler.handle(event.action, keyCode, dialog::cancel)
         }
 
         closeButton?.setOnClickListener { dialog.dismiss() }

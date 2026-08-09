@@ -24,7 +24,6 @@ class Dialog private constructor(
 ) : Runnable {
 
     private lateinit var alert: AlertDialog
-
     override fun run() {
         if (activity.isFinishing) return
 
@@ -44,12 +43,10 @@ class Dialog private constructor(
         alert.setCanceledOnTouchOutside(false)
 
         alert.setButton(AlertDialog.BUTTON_POSITIVE, activity.resources.getText(android.R.string.ok)) { dialog, _ ->
-            dismissFromRundown()
-            runOnDismiss.run()
+            dismissFromUser()
         }
         alert.setButton(AlertDialog.BUTTON_NEUTRAL, activity.resources.getText(R.string.help)) { dialog, _ ->
-            dismissFromRundown()
-            runOnDismiss.run()
+            dismissFromUser()
             HelpLauncher.launchTroubleshooting(activity)
         }
         alert.setOnShowListener {
@@ -65,6 +62,7 @@ class Dialog private constructor(
         }
 
         AppDialogStyler.apply(alert, activity)
+        AppDialogStyler.installDismissKeys(alert, ::dismissFromUser, dismissOnBack = true)
 
         alert.window?.let { window ->
             val layoutParams = window.attributes
@@ -115,10 +113,6 @@ class Dialog private constructor(
                         titleView.requestFocus()
                         true
                     }
-                    KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
-                        dismissFromRundown()
-                        true
-                    }
                     else -> false
                 }
             } else false
@@ -129,10 +123,6 @@ class Dialog private constructor(
                 when (keyCode) {
                     KeyEvent.KEYCODE_DPAD_UP -> {
                         copyButton.requestFocus()
-                        true
-                    }
-                    KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
-                        dismissFromRundown()
                         true
                     }
                     else -> false
@@ -147,10 +137,6 @@ class Dialog private constructor(
                         copyButton.requestFocus()
                         true
                     }
-                    KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
-                        dismissFromRundown()
-                        true
-                    }
                     else -> false
                 }
             } else false
@@ -158,8 +144,7 @@ class Dialog private constructor(
 
         builder.setView(dialogView)
         builder.setPositiveButton(android.R.string.ok) { _, _ ->
-            dismissFromRundown()
-            runOnDismiss.run()
+            dismissFromUser()
         }
 
         alert = builder.create()
@@ -182,16 +167,17 @@ class Dialog private constructor(
         }
 
         alert.setOnKeyListener { _, keyCode, event ->
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                when (keyCode) {
-                    KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_ESCAPE -> {
-                        dismissFromRundown()
-                        true
-                    }
-                    else -> false
-                }
-            } else false
+            com.limelight.ui.UiDismissKeyHandler.handle(
+                event.action,
+                keyCode,
+                ::dismissFromUser
+            )
         }
+    }
+
+    private fun dismissFromUser() {
+        dismissFromRundown()
+        runOnDismiss.run()
     }
 
     private fun dismissFromRundown() {

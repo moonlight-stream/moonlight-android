@@ -86,6 +86,60 @@ class ViewFeatureGuideFocusTest {
         }
     }
 
+    @Test
+    fun remoteBackDismissesGuideAndRemembersChoice() {
+        showSingleStepGuide("tv_remote_back_test")
+
+        press(KeyEvent.KEYCODE_BACK)
+
+        assertGuideDismissedAndRemembered("tv_remote_back_test")
+    }
+
+    @Test
+    fun gamepadButtonBDismissesGuideAndRemembersChoice() {
+        showSingleStepGuide("gamepad_b_test")
+
+        press(KeyEvent.KEYCODE_BUTTON_B)
+
+        assertGuideDismissedAndRemembered("gamepad_b_test")
+    }
+
+    private fun showSingleStepGuide(id: String) {
+        activityRule.scenario.onActivity { activity ->
+            target.set(Button(activity).apply {
+                text = TARGET_LABEL
+                isFocusable = true
+            })
+            activity.setContentView(FrameLayout(activity).apply {
+                addView(
+                    target.get(),
+                    FrameLayout.LayoutParams(240, 120, Gravity.TOP or Gravity.CENTER_HORIZONTAL)
+                )
+            })
+            activity.getSharedPreferences("feature_guides", Activity.MODE_PRIVATE)
+                .edit()
+                .remove("${id}_v1")
+                .commit()
+            target.get().requestFocus()
+            assertTrue(
+                ViewFeatureGuide.show(
+                    activity = activity,
+                    spec = FeatureGuideSpec(id, revision = 1),
+                    steps = listOf(ViewFeatureGuideStep(target.get(), "Only step", "Only body"))
+                )
+            )
+        }
+        waitForIdle()
+        assertFocusedText(R.string.feature_guide_done)
+    }
+
+    private fun assertGuideDismissedAndRemembered(id: String) {
+        activityRule.scenario.onActivity { activity ->
+            assertTrue(target.get().hasFocus())
+            assertFalse(FeatureGuideStore(activity).shouldShow(FeatureGuideSpec(id, revision = 1)))
+        }
+    }
+
     private fun assertFocusedText(textRes: Int) {
         activityRule.scenario.onActivity { activity ->
             assertEquals(activity.getString(textRes), (activity.currentFocus as TextView).text.toString())

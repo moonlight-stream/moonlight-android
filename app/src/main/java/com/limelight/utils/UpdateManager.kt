@@ -384,6 +384,7 @@ object UpdateManager {
             builder.setCancelable(true)
             val dialog = builder.show()
             AppDialogStyler.tintTitle(dialog, context)
+            AppDialogStyler.installDismissKeys(dialog)
         }
     }
 
@@ -453,6 +454,7 @@ object UpdateManager {
             builder.setCancelable(true)
             val dialog = builder.show()
             AppDialogStyler.tintTitle(dialog, context)
+            AppDialogStyler.installDismissKeys(dialog)
             // “稍后”按钮长按 = 跳过此版本（启动检查不再弹，手动检查仍弹）
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setOnLongClickListener {
                 context.getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
@@ -513,6 +515,14 @@ object UpdateManager {
         builder.setCancelable(false)
         val dialog = builder.show()
         AppDialogStyler.apply(dialog, context)
+        AppDialogStyler.installDismissKeys(
+            dialog,
+            onDismiss = {
+                pendingUpdateInfo = null
+                dialog.cancel()
+            },
+            dismissOnBack = true
+        )
     }
 
     // ------------------------------------------------------------------
@@ -601,6 +611,7 @@ object UpdateManager {
 
         dialog.show()
         AppDialogStyler.tintTitle(dialog, activity)
+        AppDialogStyler.installDismissKeys(dialog, dismissOnBack = true)
         currentProgressDialog = dialog
 
         // 使用 Handler 轮询下载进度

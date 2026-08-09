@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.ComponentDialog
@@ -55,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.limelight.R
+import com.limelight.ui.UiDismissKeyHandler
 
 object AppActionSheet {
     data class Action(
@@ -163,12 +163,7 @@ object AppActionSheet {
         dialog.setContentView(contentView)
         dialog.setCanceledOnTouchOutside(true)
         dialog.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_BUTTON_B) {
-                if (event.action == KeyEvent.ACTION_UP) dialog.dismiss()
-                true
-            } else {
-                false
-            }
+            UiDismissKeyHandler.handle(event.action, keyCode, dialog::cancel)
         }
 
         dialog.window?.let { window ->

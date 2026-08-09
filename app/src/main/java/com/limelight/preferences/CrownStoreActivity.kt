@@ -262,6 +262,7 @@ class CrownStoreActivity : AppCompatActivity() {
             .setPositiveButton(R.string.action_crown_store_continue_import) { _, _ -> onContinue() }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun reportStoreProfile(profile: CrownProfileShareManager.StoreProfile) {
@@ -1199,6 +1200,7 @@ class CrownStoreActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun deleteLocalProfile(configId: Long, profileName: String) {
@@ -1445,6 +1447,7 @@ class CrownStoreActivity : AppCompatActivity() {
             }
         }
         dialog.show()
+        AppDialogStyler.installDismissKeys(dialog)
     }
 
     private fun validateCrownStoreSubmission(
@@ -1615,6 +1618,7 @@ class CrownStoreActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun showCrownStorePublishSuccessDialog(result: GitHubCrownProfileStorePublisher.PublishResult) {
@@ -1632,6 +1636,7 @@ class CrownStoreActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.ok, null)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun startDeveloperUnlockVerification(scope: GitHubStarVerifier.OAuthScope) {
@@ -1690,6 +1695,10 @@ class CrownStoreActivity : AppCompatActivity() {
                 developerUnlockVerificationRunning = false
                 clearDeveloperPendingDeviceCode(applicationContext)
             }
+            .setOnCancelListener {
+                developerUnlockVerificationRunning = false
+                clearDeveloperPendingDeviceCode(applicationContext)
+            }
             .create()
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -1711,6 +1720,7 @@ class CrownStoreActivity : AppCompatActivity() {
         }
         developerDeviceCodeDialog = dialog
         dialog.show()
+        AppDialogStyler.installDismissKeys(dialog)
     }
 
     private fun pollDeveloperPendingDeviceCode(showPendingToast: Boolean) {
@@ -1727,16 +1737,19 @@ class CrownStoreActivity : AppCompatActivity() {
             try {
                 when (val poll = GitHubStarVerifier.pollAccessToken(deviceCode)) {
                     is GitHubStarVerifier.TokenPollResult.Authorized -> {
-                        completeDeveloperUnlockVerification(
-                            appContext,
-                            poll.accessToken,
-                            GitHubStarVerifier.checkStar(poll.accessToken),
-                            deviceCode.scope
-                        )
+                        val starCheck = GitHubStarVerifier.checkStar(poll.accessToken)
+                        runIfDeveloperAttemptActive(deviceCode) {
+                            completeDeveloperUnlockVerification(
+                                appContext,
+                                poll.accessToken,
+                                starCheck,
+                                deviceCode.scope
+                            )
+                        }
                     }
                     GitHubStarVerifier.TokenPollResult.Pending -> {
                         if (showPendingToast) {
-                            mainHandler.post {
+                            runIfDeveloperAttemptActive(deviceCode) {
                                 Toast.makeText(
                                     appContext,
                                     R.string.toast_developer_authorization_pending,
@@ -1746,22 +1759,41 @@ class CrownStoreActivity : AppCompatActivity() {
                         }
                     }
                     is GitHubStarVerifier.TokenPollResult.SlowDown -> {
-                        GitHubDeviceAuthorization.savePendingDeviceCode(
-                            appContext,
-                            deviceCode.copy(intervalSeconds = poll.intervalSeconds)
-                        )
+                        runIfDeveloperAttemptActive(deviceCode) {
+                            GitHubDeviceAuthorization.savePendingDeviceCode(
+                                appContext,
+                                deviceCode.copy(intervalSeconds = poll.intervalSeconds)
+                            )
+                        }
                     }
                     is GitHubStarVerifier.TokenPollResult.Failed -> {
-                        failDeveloperUnlockVerification(appContext, poll.message)
+                        runIfDeveloperAttemptActive(deviceCode) {
+                            failDeveloperUnlockVerification(appContext, poll.message)
+                        }
                     }
                 }
             } catch (e: Exception) {
                 Log.e("DeveloperUnlock", "GitHub star foreground verification failed", e)
-                failDeveloperUnlockVerification(appContext, e.message ?: e.javaClass.simpleName)
-            } finally {
-                if (developerPendingDeviceCode != null) {
-                    developerUnlockVerificationRunning = false
+                runIfDeveloperAttemptActive(deviceCode) {
+                    failDeveloperUnlockVerification(appContext, e.message ?: e.javaClass.simpleName)
                 }
+            } finally {
+                mainHandler.post {
+                    if (developerPendingDeviceCode == deviceCode) {
+                        developerUnlockVerificationRunning = false
+                    }
+                }
+            }
+        }
+    }
+
+    private fun runIfDeveloperAttemptActive(
+        deviceCode: GitHubStarVerifier.DeviceCode,
+        action: () -> Unit
+    ) {
+        mainHandler.post {
+            if (developerPendingDeviceCode == deviceCode) {
+                action()
             }
         }
     }
@@ -1772,11 +1804,14 @@ class CrownStoreActivity : AppCompatActivity() {
         starCheck: GitHubStarVerifier.StarCheck,
         scope: GitHubStarVerifier.OAuthScope
     ) {
+        val dialogToDismiss = developerDeviceCodeDialog
         developerUnlockVerificationRunning = false
         clearDeveloperPendingDeviceCode(ctx)
         GitHubDeviceAuthorization.saveAuthorizedAccount(ctx, accessToken, starCheck, scope)
         mainHandler.post {
-            developerDeviceCodeDialog?.dismiss()
+            if (developerDeviceCodeDialog === dialogToDismiss) {
+                dialogToDismiss?.dismiss()
+            }
             if (scope == GitHubStarVerifier.OAuthScope.CROWN_STORE_PUBLISH) {
                 Toast.makeText(this, R.string.toast_crown_store_github_connected, Toast.LENGTH_LONG).show()
             } else if (starCheck.starred) {
@@ -1790,16 +1825,20 @@ class CrownStoreActivity : AppCompatActivity() {
                     }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
+                    .also { AppDialogStyler.installDismissKeys(it) }
             }
         }
     }
 
     private fun failDeveloperUnlockVerification(ctx: Context, message: String) {
+        val dialogToDismiss = developerDeviceCodeDialog
         developerUnlockVerificationRunning = false
         clearDeveloperPendingDeviceCode(ctx)
         Log.w("DeveloperUnlock", "GitHub star verification failed: $message")
         mainHandler.post {
-            developerDeviceCodeDialog?.dismiss()
+            if (developerDeviceCodeDialog === dialogToDismiss) {
+                dialogToDismiss?.dismiss()
+            }
             Toast.makeText(
                 this,
                 getString(R.string.toast_developer_verification_failed, message),
@@ -1847,6 +1886,7 @@ class CrownStoreActivity : AppCompatActivity() {
             dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
         }
         dialog.show()
+        AppDialogStyler.installDismissKeys(dialog)
     }
 
     private fun importCrownShareFromUrl(
@@ -1915,6 +1955,7 @@ class CrownStoreActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun importPendingCrownShareAsNew() {

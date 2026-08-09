@@ -1,6 +1,7 @@
 package com.limelight.gamemenu
 
 import android.content.res.Configuration
+import android.view.KeyEvent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.limelight.R
 import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertFalse
@@ -112,7 +114,7 @@ class GameMenuComposeFocusTest {
     }
 
     @Test
-    fun firstMenuOptionCanReceiveInitialFocusAndControllerConfirmation() {
+    fun standardGamepadAConfirmsInitiallyFocusedMenuOption() {
         val activated = AtomicBoolean(false)
         lateinit var initialFocusRequester: FocusRequester
         val firstOption = GameMenu.MenuOption(
@@ -137,8 +139,12 @@ class GameMenuComposeFocusTest {
 
         composeTestRule.runOnIdle { initialFocusRequester.requestFocus() }
         composeTestRule.onNodeWithText("First option").assertIsFocused()
+        val mappedConfirmKey = when (mapGameMenuConfirmKeyCode(KeyEvent.KEYCODE_BUTTON_A)) {
+            KeyEvent.KEYCODE_DPAD_CENTER -> Key.DirectionCenter
+            else -> error("Standard gamepad A must map to the focused UI confirmation key")
+        }
         composeTestRule.onNodeWithText("First option").performKeyInput {
-            pressKey(Key.DirectionCenter)
+            pressKey(mappedConfirmKey)
         }
 
         assertTrue(activated.get())
@@ -183,5 +189,27 @@ class GameMenuComposeFocusTest {
             pressKey(Key.Enter)
         }
         assertTrue(advanced.get())
+    }
+
+    @Test
+    fun featureGuideCanBeDismissedWithGamepadButtonB() {
+        val dismissed = AtomicBoolean(false)
+
+        composeTestRule.setContent {
+            CuteFeatureGuideCard(
+                eyebrow = "Guide",
+                title = "Controller dismissal",
+                body = "The standard gamepad back button should close the guide.",
+                actionLabel = "Next",
+                onAction = {},
+                onSkip = { dismissed.set(true) }
+            )
+        }
+
+        composeTestRule.onNodeWithText("Next").requestFocus()
+        InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(KeyEvent.KEYCODE_BUTTON_B)
+        composeTestRule.waitForIdle()
+
+        assertTrue(dismissed.get())
     }
 }

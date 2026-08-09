@@ -40,6 +40,7 @@ import com.limelight.binding.video.PerformanceInfo
 import com.limelight.preferences.PerfOverlayDisplayItemsPreference
 import com.limelight.preferences.PreferenceConfiguration
 import com.limelight.ui.StreamView
+import com.limelight.utils.AppDialogStyler
 import com.limelight.utils.MoonPhaseUtils
 import com.limelight.utils.NetHelper
 import com.limelight.utils.UiHelper
@@ -1037,6 +1038,7 @@ class PerformanceOverlayManager(
             .setPositiveButton("Ok", null)
             .setCancelable(true)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun showResolutionInfo() {
@@ -1122,6 +1124,7 @@ class PerformanceOverlayManager(
             .setPositiveButton(activity.getString(R.string.yes), null)
             .setCancelable(true)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun createFpsInfoContent(): View {
@@ -1247,6 +1250,7 @@ class PerformanceOverlayManager(
             .setPositiveButton(activity.getString(R.string.yes), null)
             .setCancelable(true)
             .show()
+            .also { AppDialogStyler.installDismissKeys(it) }
     }
 
     private fun toggleLayoutOrientation() {

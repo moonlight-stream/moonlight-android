@@ -13,9 +13,22 @@ import android.widget.ListView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.limelight.R
+import com.limelight.ui.UiDismissKeyHandler
 
 object AppDialogStyler {
+    /** Install only on user-dismissible UI. Loading and splash surfaces opt out. */
+    fun installDismissKeys(
+        dialog: Dialog,
+        onDismiss: () -> Unit = dialog::cancel,
+        dismissOnBack: Boolean = false
+    ) {
+        dialog.setOnKeyListener { _, keyCode, event ->
+            UiDismissKeyHandler.handle(event.action, keyCode, onDismiss, dismissOnBack)
+        }
+    }
+
     fun apply(dialog: Dialog, context: Context) {
+        installDismissKeys(dialog)
         dialog.window?.setBackgroundDrawableResource(R.drawable.app_dialog_bg_cute)
         applyChrome(dialog, context)
     }
@@ -26,6 +39,7 @@ object AppDialogStyler {
     }
 
     fun applyCustomContent(dialog: Dialog, context: Context) {
+        installDismissKeys(dialog)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         applyChrome(dialog, context)
     }
@@ -91,6 +105,7 @@ object AppDialogStyler {
     }
 
     fun applyAboutDialog(dialog: Dialog, context: Context) {
+        installDismissKeys(dialog)
         dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_about_window_bg)
         val accentColor = ContextCompat.getColor(context, R.color.app_dialog_accent_color)
         listOf(

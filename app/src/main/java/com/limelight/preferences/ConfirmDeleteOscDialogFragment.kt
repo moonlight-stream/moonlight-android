@@ -6,8 +6,14 @@ import android.widget.Toast
 import androidx.preference.PreferenceDialogFragmentCompat
 import com.limelight.R
 import com.limelight.binding.input.virtual_controller.VirtualControllerConfigurationLoader.OSC_PREFERENCE
+import com.limelight.utils.AppDialogStyler
 
 class ConfirmDeleteOscDialogFragment : PreferenceDialogFragmentCompat() {
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.let(AppDialogStyler::installDismissKeys)
+    }
 
     override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult) {

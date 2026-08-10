@@ -174,7 +174,7 @@ class StreamActionExecutor(
                 KeyboardTranslator.VK_B.toShortKey()
             ))
             "toggle_mic" -> {
-                game.toggleMicrophoneButton()
+                game.handleMicrophoneMenuAction()
                 true
             }
             "send_sleep" -> {

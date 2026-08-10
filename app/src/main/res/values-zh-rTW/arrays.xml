@@ -20,6 +20,7 @@
         <item>無動作</item>
         <item>打開虛擬鍵盤</item>
         <item>打開選單</item>
+        <item>切換懸浮球顯示或隱藏</item>
     </string-array>
     <string-array name="framegen_quality_preset_names">
         <item>@string/framegen_quality_performance</item>

@@ -1383,10 +1383,7 @@ class GameMenu(
             { game.disconnect() }, "game_menu_disconnect", true))
 
         normalOptions.add(MenuOption(getString(R.string.game_menu_disconnect_and_quit), true,
-            {
-                if (game.prefConfig.lockScreenAfterDisconnect) lockAndDisconnectWithDelay()
-                else disconnectAndQuit()
-            }, "game_menu_disconnect_and_quit", true))
+            { disconnectAndQuit() }, "game_menu_disconnect_and_quit", true))
     }
 
     private fun buildPerformanceOverlaySegments(): List<SegmentOption> {
@@ -1419,11 +1416,6 @@ class GameMenu(
         selected = mode == currentMode,
         runnable = Runnable { game.setPerformanceOverlayMode(mode) }
     )
-
-    fun lockAndDisconnectWithDelay() {
-        sendKeys(shortArrayOf(KeyboardTranslator.VK_LWIN.s(), KeyboardTranslator.VK_L.s()))
-        disconnectAndQuit()
-    }
 
     /**
      * 构建超级菜单选项

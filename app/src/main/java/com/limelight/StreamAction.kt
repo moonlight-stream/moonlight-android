@@ -211,7 +211,7 @@ class StreamActionExecutor(
         }
     }
 
-    fun sendKeys(keys: ShortArray): Boolean {
+    fun sendKeys(keys: ShortArray, afterRelease: (() -> Unit)? = null): Boolean {
         val conn = connProvider() ?: return false
         if (keys.isEmpty()) return false
 
@@ -229,12 +229,31 @@ class StreamActionExecutor(
                 mod = (mod.toInt() and KeyModifier.getModifier(key).toInt().inv()).toByte()
                 conn.sendKeyboardInput(key, KeyboardPacket.KEY_UP, mod, 0)
             }
+            afterRelease?.invoke()
         }, KEY_UP_DELAY)
 
         return true
     }
 
     fun disconnectAndQuit() {
+        try {
+            if (game.prefConfig.lockScreenAfterDisconnect) {
+                val lockKeysSent = sendKeys(
+                    shortArrayOf(
+                        KeyboardTranslator.VK_LWIN.toShortKey(),
+                        KeyboardTranslator.VK_L.toShortKey()
+                    ),
+                    ::finishDisconnectAndQuit
+                )
+                if (lockKeysSent) return
+            }
+            finishDisconnectAndQuit()
+        } catch (e: Exception) {
+            Toast.makeText(game, game.getString(R.string.toast_disconnect_error, e.message), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun finishDisconnectAndQuit() {
         try {
             game.disconnect()
             connProvider()?.doStopAndQuit()

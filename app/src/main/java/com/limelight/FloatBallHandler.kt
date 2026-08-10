@@ -92,6 +92,8 @@ class FloatBallHandler(private val game: Game, private val prefConfig: Preferenc
     }
 
     private fun executeAction(actionType: String?) {
+        if (actionType.isNullOrEmpty() || actionType == "none") return
+
         if (!actionExecutor.execute(actionType)) {
             LimeLog.warning("Unknown float ball action: $actionType")
         }

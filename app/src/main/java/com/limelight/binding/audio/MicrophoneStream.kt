@@ -68,10 +68,7 @@ class MicrophoneStream(
         capture?.stop()
         capture = null
 
-        encoder?.release()
-        encoder = null
-
-        packetQueue.clear()
+        cleanup()
     }
 
     private fun startMicrophoneCapture(): Boolean {

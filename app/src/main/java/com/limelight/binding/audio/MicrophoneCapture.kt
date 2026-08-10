@@ -99,6 +99,7 @@ class MicrophoneCapture(
                 } catch (e: Exception) {
                     LimeLog.severe("麦克风捕获出错: ${e.message}")
                 } finally {
+                    running.set(false)
                     if (audioRecord?.state == AudioRecord.STATE_INITIALIZED) {
                         try {
                             audioRecord!!.stop()
@@ -106,6 +107,7 @@ class MicrophoneCapture(
                             LimeLog.warning("停止AudioRecord时出错: ${e.message}")
                         }
                     }
+                    release()
                 }
             }, "MicrophoneCapture")
 
@@ -167,14 +169,33 @@ class MicrophoneCapture(
     fun stop() {
         running.set(false)
 
-        captureThread?.let {
-            try {
-                it.join(300)
-            } catch (_: InterruptedException) { }
-        }
-        captureThread = null
+        // Stop AudioRecord first so a blocking read can return before its native resources
+        // are released. Releasing while the capture thread is still inside read() can crash
+        // on some Android audio implementations.
+        try {
+            audioRecord?.stop()
+        } catch (_: IllegalStateException) { }
 
-        release()
+        var interrupted = false
+        val thread = captureThread
+        if (thread != null && thread !== Thread.currentThread()) {
+            try {
+                thread.join(1000)
+            } catch (_: InterruptedException) {
+                interrupted = true
+            }
+        }
+
+        if (thread?.isAlive != true) {
+            captureThread = null
+            release()
+        } else {
+            LimeLog.warning("麦克风采集线程未及时退出，将在线程结束后释放AudioRecord")
+        }
+
+        if (interrupted) {
+            Thread.currentThread().interrupt()
+        }
     }
 
     private fun initializeAudioEffects() {

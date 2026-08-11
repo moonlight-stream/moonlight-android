@@ -26,7 +26,7 @@ internal data class GameMenuRenderingProfile(val isLowEnd: Boolean) {
         else R.style.GameMenuDialogAnimation
 
     companion object {
-        private const val DEFAULT_WINDOW_ALPHA = 0.85f
+        private const val DEFAULT_WINDOW_ALPHA = 0.9f
         private const val LOW_MEMORY_CLASS_MB = 128
 
         private val lowEndRendererMarkers = listOf(

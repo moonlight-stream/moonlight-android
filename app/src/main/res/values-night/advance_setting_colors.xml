@@ -7,6 +7,7 @@
     <color name="ui_shell_surface_focused">#3DFFFFFF</color>
     <color name="settings_drawer_background">#CC1A1A1A</color>
     <color name="settings_drawer_background_landscape">#CC1A1A1A</color>
+    <color name="appview_quick_menu_background">#E61A1A1A</color>
     <color name="ui_shell_outline">#2EFFFFFF</color>
     <color name="ui_shell_outline_strong">#4DFFFFFF</color>
     <color name="ui_shell_text_primary">#F7F3F7</color>

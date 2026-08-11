@@ -222,10 +222,7 @@ fun AppSettingsPanel(
     var hasRequestedInitialFocus by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val isDarkTheme = isSystemInDarkTheme()
-    val panelSurface = colorResource(
-        if (isLandscape) R.color.settings_drawer_background_landscape
-        else R.color.settings_drawer_background
-    )
+    val panelSurface = colorResource(R.color.appview_quick_menu_background)
     val colorScheme = if (isDarkTheme) {
         darkColorScheme(
             primary = colorResource(R.color.ui_shell_accent),

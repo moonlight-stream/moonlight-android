@@ -62,6 +62,7 @@
     <color name="ui_shell_surface_focused">#1AFF6B9D</color>
     <color name="settings_drawer_background">#E6FFFFFF</color>
     <color name="settings_drawer_background_landscape">#CCFFFFFF</color>
+    <color name="appview_quick_menu_background">#E6FFFFFF</color>
     <color name="ui_shell_outline">#261D1B20</color>
     <color name="ui_shell_outline_strong">#3D1D1B20</color>
     <color name="ui_shell_text_primary">#F21F2026</color>

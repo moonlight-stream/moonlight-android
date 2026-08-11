@@ -341,6 +341,10 @@
             android:key="checkbox_small_icon_mode"
             android:title="@string/title_checkbox_small_icon_mode"
             android:summary="@string/summary_checkbox_small_icon_mode" />
+        <com.limelight.preferences.GameMenuCardsPreference
+            android:key="game_menu_cards"
+            android:title="@string/title_game_menu_cards"
+            android:summary="@string/summary_game_menu_cards" />
         <ListPreference
             android:key="background_source"
             android:title="@string/title_background_source"

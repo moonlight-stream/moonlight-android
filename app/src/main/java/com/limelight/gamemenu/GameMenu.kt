@@ -800,42 +800,14 @@ class GameMenu(
     }
 
     private fun showCardEditorDialog() {
-        val items = arrayOf(
-            getString(R.string.game_menu_tab_bitrate),
-            getString(R.string.game_menu_tab_audio_haptics),
-            getString(R.string.game_menu_tab_gyro),
-            getString(R.string.game_menu_tab_shortcuts)
-        )
-
-        val selected = setOfNotNull(
-            0.takeIf { game.prefConfig.showBitrateCard },
-            1.takeIf { game.prefConfig.showAudioHapticsCard },
-            2.takeIf { game.prefConfig.showGyroCard },
-            3.takeIf { game.prefConfig.showQuickKeyCard }
-        )
-        AppActionSheet.showMultiSelect(
-            context = game,
-            title = getString(R.string.game_menu_card_config_title),
-            actions = items.mapIndexed { index, label ->
-                AppActionSheet.Action(index, label, checked = index in selected)
-            },
-            confirmLabel = getString(R.string.game_menu_ok).trim(),
-            cancelLabel = getString(R.string.game_menu_cancel).trim(),
-            minimumSelectionCount = 1,
-            onConfirm = { selectedIds ->
-                game.prefConfig.showBitrateCard = 0 in selectedIds
-                game.prefConfig.showAudioHapticsCard = 1 in selectedIds
-                game.prefConfig.showGyroCard = 2 in selectedIds
-                game.prefConfig.showQuickKeyCard = 3 in selectedIds
-                game.prefConfig.writePreferences(game)
-                composeUiState?.let { state ->
-                    state.value = state.value.copy(
-                        visibleCards = readVisibleCards(),
-                        customKeys = getSavedCustomKeys()
-                    )
-                }
+        GameMenuCardVisibilityEditor.show(game, game.prefConfig) {
+            composeUiState?.let { state ->
+                state.value = state.value.copy(
+                    visibleCards = readVisibleCards(),
+                    customKeys = getSavedCustomKeys()
+                )
             }
-        )
+        }
     }
 
     // --- 简单的按键数据模型 ---

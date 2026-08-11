@@ -1657,6 +1657,11 @@ Tap again to replace it.</string>
     <string name="game_menu_audio_haptics_route_gamepad_short">Gamepad</string>
     <string name="game_menu_audio_haptics_route_both_short">Both</string>
     <string name="game_menu_card_config_title">Visible Cards</string>
+    <string name="title_game_menu_cards">Game menu cards</string>
+    <string name="summary_game_menu_cards">Choose which cards appear in the in-stream game menu</string>
+    <string name="summary_game_menu_cards_selected">Shown: %1$s</string>
+    <string name="summary_game_menu_cards_none">No cards shown</string>
+    <string name="game_menu_card_list_separator">, </string>
     <string name="toast_enable_mic_redirect">Enable microphone redirection in Settings first</string>
     <string name="game_menu_enable_pan_zoom">Pan and Zoom</string>
     <string name="toast_pan_zoom_disabled">Pan/Zoom disabled</string>

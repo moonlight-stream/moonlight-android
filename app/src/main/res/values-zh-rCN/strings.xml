@@ -416,6 +416,11 @@
     <string name="float_ball_action_open_menu">显示游戏菜单</string>
 
     <string name="category_ui_settings">界面设置</string>
+    <string name="title_game_menu_cards">游戏菜单卡片</string>
+    <string name="summary_game_menu_cards">选择串流中游戏菜单显示的功能卡片</string>
+    <string name="summary_game_menu_cards_selected">已显示：%1$s</string>
+    <string name="summary_game_menu_cards_none">未显示任何卡片</string>
+    <string name="game_menu_card_list_separator">、</string>
     <string name="category_backup_restore">备份</string>
     <string name="category_display_behavior">画面设置</string>
     <string name="title_language_list"> 语言 </string>

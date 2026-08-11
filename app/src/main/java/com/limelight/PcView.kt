@@ -18,6 +18,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy
 import com.bumptech.glide.request.FutureTarget
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.signature.ObjectKey
 import com.limelight.binding.PlatformBinding
 import com.limelight.binding.crypto.AndroidCryptoProvider
 import com.limelight.computers.ComputerManagerService
@@ -114,7 +115,6 @@ import android.animation.AnimatorSet
 import androidx.core.animation.doOnEnd
 import android.view.animation.DecelerateInterpolator
 import android.provider.Settings
-import android.util.LruCache
 import android.view.GestureDetector
 import android.view.Gravity
 import android.view.KeyEvent
@@ -216,21 +216,15 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     // Single Job owning the current async background load. Replacing it on every
     // reload cancels any in-flight Glide work from the previous source so a late
     // completion cannot overpaint the newer selection.
-    private data class BackgroundFutureTarget(
-        val cacheKey: String,
-        val futureTarget: FutureTarget<Bitmap>
-    )
-
     private var backgroundLoadJob: Job? = null
     private val backgroundTargetLock = Any()
     private var backgroundLoadGeneration = 0
-    private var backgroundFutureTarget: BackgroundFutureTarget? = null
+    private var backgroundFutureTarget: FutureTarget<Bitmap>? = null
     private var lastBackgroundSource: BackgroundSource? = null
     private var backgroundPrefsListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     // Managers
     private var managerBinder: ComputerManagerService.ComputerManagerBinder? = null
-    private lateinit var bitmapLruCache: LruCache<String, Bitmap>
 
     // Handlers
     private val refreshHandler = Handler(Looper.getMainLooper())
@@ -342,7 +336,6 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
 
         easyTierController = EasyTierController(this, this)
         inForeground = true
-        initBitmapCache()
 
         val glPrefs = GlPreferences.readPreferences(this)
         if (glPrefs.savedFingerprint != Build.FINGERPRINT || glPrefs.glRenderer.isEmpty()) {
@@ -408,16 +401,6 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     // Initialization Methods
-
-    private fun initBitmapCache() {
-        val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
-        val cacheSize = maxMemory / 8
-        bitmapLruCache = object : LruCache<String, Bitmap>(cacheSize) {
-            override fun sizeOf(key: String, value: Bitmap): Int {
-                return value.byteCount / 1024
-            }
-        }
-    }
 
     private fun initGlRenderer(glPrefs: GlPreferences) {
         val surfaceView = GLSurfaceView(this)
@@ -807,9 +790,10 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
 
         val loadGeneration = existingGeneration ?: cancelPreviousBackgroundLoad()
 
-        val source = BackgroundSource.current(this)
         val orientation = resources.configuration.orientation
-        val target = source.resolveTarget(this, orientation)
+        val resolved = BackgroundSource.resolveCurrentTarget(this, orientation)
+        val source = resolved.source
+        val target = resolved.target
         lastBackgroundSource = source
 
         if (target == null) {
@@ -821,10 +805,9 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         backgroundLoadJob = uiScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.IO) {
-                    decodeBackgroundBitmap(target, source, loadGeneration)
+                    decodeBackgroundBitmap(resolved, loadGeneration)
                 }
                 if (isActive) {
-                    bitmapLruCache.put(target, bitmap)
                     applyBlurredBackground(bitmap)
                 }
             } catch (_: CancellationException) {
@@ -836,10 +819,6 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             }
         }
     }
-
-    /** Currently resolved target (URL or file path) for the active background source, or null. */
-    private fun currentBackgroundTarget(): String? =
-        BackgroundSource.current(this).resolveTarget(this, resources.configuration.orientation)
 
     /** Glide target normalization: HTTP URLs go straight, filesystem paths become Files. */
     private fun resolveGlideTarget(target: String): Any {
@@ -860,17 +839,20 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     private fun decodeBackgroundBitmap(
-        target: String,
-        source: BackgroundSource,
+        resolved: BackgroundSource.ResolvedTarget,
         loadGeneration: Int
     ): Bitmap {
+        val target = requireNotNull(resolved.target)
         val request = Glide.with(this@PcView as Context)
             .asBitmap()
             .load(resolveGlideTarget(target))
             .skipMemoryCache(true)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .signature(ObjectKey(resolved.cacheKey))
+            // Keep the exact response bytes so settings can reuse the image
+            // selected by random-image APIs instead of issuing a second draw.
+            .diskCacheStrategy(DiskCacheStrategy.DATA)
 
-        val futureTarget = if (source !== BackgroundSource.Local) {
+        val futureTarget = if (resolved.source !== BackgroundSource.Local) {
             // Preserve the existing decode and cache behavior for network
             // backgrounds, including full-resolution long-press saves.
             request.submit()
@@ -890,7 +872,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             if (loadGeneration != backgroundLoadGeneration) {
                 false
             } else {
-                backgroundFutureTarget = BackgroundFutureTarget(target, futureTarget)
+                backgroundFutureTarget = futureTarget
                 true
             }
         }
@@ -904,8 +886,8 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     /**
-     * Stops the previous decode only after its ImageView request and LRU entry
-     * have released the decoded bitmap. Returns a token for the replacement.
+     * Stops the previous decode after releasing both Glide targets. Returns a
+     * token that prevents an older request from replacing a newer wallpaper.
      */
     private fun cancelPreviousBackgroundLoad(): Int {
         backgroundLoadJob?.cancel()
@@ -918,11 +900,8 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             }
         }
         previousTarget?.let {
-            if (::bitmapLruCache.isInitialized) {
-                bitmapLruCache.remove(it.cacheKey)
-            }
-            it.futureTarget.cancel(true)
-            Glide.with(applicationContext).clear(it.futureTarget)
+            it.cancel(true)
+            Glide.with(applicationContext).clear(it)
         }
         return generation
     }
@@ -1073,25 +1052,24 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         if (backgroundImageView == null) return
 
         val loadGeneration = cancelPreviousBackgroundLoad()
+        BackgroundSource.invalidateResolvedTarget()
 
-        val source = BackgroundSource.current(this)
         val orientation = resources.configuration.orientation
-        val target = source.resolveTarget(this, orientation)
+        val resolved = BackgroundSource.resolveCurrentTarget(this, orientation)
+        val source = resolved.source
+        val target = resolved.target
         lastBackgroundSource = source
 
         if (target == null) {
             backgroundImageView?.setImageDrawable(null)
             return
         }
-        bitmapLruCache.remove(target)
-
         backgroundLoadJob = uiScope.launch {
             try {
                 val bitmap = withContext(Dispatchers.IO) {
-                    decodeBackgroundBitmap(target, source, loadGeneration)
+                    decodeBackgroundBitmap(resolved, loadGeneration)
                 }
                 if (isActive) {
-                    bitmapLruCache.put(target, bitmap)
                     applyBlurredBackground(bitmap)
                     if (isFromShake) {
                         showToast(getString(R.string.background_refreshed_with_remaining, getRemainingRefreshCount()))
@@ -1143,75 +1121,76 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     private fun saveImage() {
-        val target = currentBackgroundTarget()
-        val bitmap = if (target != null) bitmapLruCache.get(target) else null
-
-        if (bitmap == null) {
-            if (backgroundImageView != null && backgroundImageView?.drawable != null) {
-                showToast(getString(R.string.downloading_image_please_wait))
-                downloadAndSaveImage()
-            } else {
-                showToast(getString(R.string.image_not_loaded_please_retry))
-            }
+        val resolved = BackgroundSource.resolveCurrentTarget(
+            this,
+            resources.configuration.orientation
+        )
+        if (resolved.target == null || backgroundImageView?.drawable == null) {
+            showToast(getString(R.string.image_not_loaded_please_retry))
             return
         }
-        saveBitmapToFile(bitmap)
+
+        showToast(getString(R.string.downloading_image_please_wait))
+        saveResolvedBackground(resolved)
     }
 
-    private fun downloadAndSaveImage() {
+    /**
+     * Save only the bytes belonging to the wallpaper currently on screen.
+     * A cache miss must never fall back to a fresh network request because
+     * random-image endpoints can return a different wallpaper for the same URL.
+     */
+    private fun saveResolvedBackground(resolved: BackgroundSource.ResolvedTarget) {
         uiScope.launch {
             try {
-                val target = currentBackgroundTarget()
-                if (target == null) {
-                    showToast(getString(R.string.image_download_failed_retry))
-                    return@launch
+                val file = withContext(Dispatchers.IO) {
+                    saveResolvedBackgroundFromCache(resolved)
                 }
-                val bitmap = withContext(Dispatchers.IO) {
-                    Glide.with(this@PcView as Context)
-                            .asBitmap()
-                            .load(resolveGlideTarget(target))
-                            .submit()
-                            .get()
-                }
-                if (bitmap != null) {
-                    bitmapLruCache.put(target, bitmap)
-                    saveBitmapToFile(bitmap)
-                } else {
-                    showToast(getString(R.string.image_download_failed_retry))
-                }
+                refreshSystemPic(file)
+                showToast(getString(R.string.image_saved_successfully))
             } catch (e: Exception) {
                 e.printStackTrace()
-                showToast(getString(R.string.image_download_failed_with_error, e.message))
+                showToast(getString(R.string.image_save_failed_with_error, e.message))
             }
         }
     }
 
-    private fun saveBitmapToFile(bitmap: Bitmap?) {
-        if (bitmap == null) {
-            showToast(getString(R.string.image_invalid))
-            return
-        }
+    private fun saveResolvedBackgroundFromCache(
+        resolved: BackgroundSource.ResolvedTarget
+    ): File {
+        val target = requireNotNull(resolved.target)
+        val futureTarget = Glide.with(applicationContext)
+            .asBitmap()
+            .load(resolveGlideTarget(target))
+            .apply(
+                RequestOptions()
+                    .signature(ObjectKey(resolved.cacheKey))
+                    .diskCacheStrategy(DiskCacheStrategy.DATA)
+                    .onlyRetrieveFromCache(true)
+            )
+            .submit()
 
+        try {
+            return writeBitmapToFile(futureTarget.get())
+        } finally {
+            Glide.with(applicationContext).clear(futureTarget)
+        }
+    }
+
+    private fun writeBitmapToFile(bitmap: Bitmap): File {
         val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "setu")
         if (!dir.exists() && !dir.mkdirs()) {
-            showToast(getString(R.string.image_save_failed_with_error, "Failed to create directory"))
-            return
+            throw IOException("Failed to create directory")
         }
 
         val fileName = "pipw-${System.currentTimeMillis()}.png"
         val file = File(dir, fileName)
-
-        try {
-            FileOutputStream(file).use { outputStream ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                outputStream.flush()
+        FileOutputStream(file).use { outputStream ->
+            if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)) {
+                throw IOException("Failed to encode bitmap")
             }
-            refreshSystemPic(file)
-            showToast(getString(R.string.image_saved_successfully))
-        } catch (e: IOException) {
-            e.printStackTrace()
-            showToast(getString(R.string.image_save_failed_with_error, e.message))
+            outputStream.flush()
         }
+        return file
     }
 
     private fun refreshSystemPic(file: File) {

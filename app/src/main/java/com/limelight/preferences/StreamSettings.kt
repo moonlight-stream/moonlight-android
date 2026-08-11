@@ -68,6 +68,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.bumptech.glide.signature.ObjectKey
 import com.limelight.LimeLog
 import com.limelight.PcView
 import com.limelight.R
@@ -143,8 +144,6 @@ class StreamSettings : AppCompatActivity() {
 
         // HACK for Android 9
         var displayCutoutP: DisplayCutout? = null
-
-        private const val SETTINGS_BG_URL = "https://raw.githubusercontent.com/qiin2333/qiin.github.io/assets/img/moonlight-bg2.webp"
 
         /**
          * 获取分类对应的 Phosphor 矢量图标资源 ID（与鸿蒙项目一致）。
@@ -2977,36 +2976,23 @@ class StreamSettings : AppCompatActivity() {
             val localImagePicker = findPreference<LocalImagePickerPreference>("local_image_picker")
             localImagePicker?.setFragment(this)
 
-            // 为背景图片API URL设置监听器，保存时设置类型为"api"
+            // Route API URL changes through BackgroundSource so source state,
+            // cache invalidation, and the live refresh stay atomic.
             val backgroundImageUrlPref = findPreference<EditTextPreference>("background_image_url")
             backgroundImageUrlPref?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
-                val url = newValue as String
-                val prefs = PreferenceManager.getDefaultSharedPreferences(requireActivity())
+                val context = requireActivity()
+                val url = (newValue as? String).orEmpty().trim()
 
-                if (url.trim().isNotEmpty()) {
-                    // 设置为API类型，并清除本地文件配置
-                    prefs.edit {
-                        putString("background_image_type", "api")
-                            .putString("background_image_url", url.trim())
-                            .remove("background_image_local_path")
+                if (url.isNotEmpty()) {
+                    PreferenceManager.getDefaultSharedPreferences(context).edit {
+                        putString(BackgroundSource.KEY_API_URL, url)
                     }
-
-                    // 发送广播通知 PcView 更新背景图片
-                    val broadcastIntent = Intent("com.limelight.REFRESH_BACKGROUND_IMAGE")
-                    requireActivity().sendBroadcast(broadcastIntent)
+                    BackgroundSource.setActivePreservingExtras(context, BackgroundSource.Api)
                 } else {
-                    // 恢复默认
-                    prefs.edit {
-                        putString("background_image_type", "default")
-                            .remove("background_image_url")
-                    }
-
-                    // 发送广播通知 PcView 更新背景图片
-                    val broadcastIntent = Intent("com.limelight.REFRESH_BACKGROUND_IMAGE")
-                    requireActivity().sendBroadcast(broadcastIntent)
+                    BackgroundSource.setActive(context, BackgroundSource.Auto)
                 }
 
-                true // 允许保存
+                true
             }
 
             // hide on-screen controls category on non touch screen devices
@@ -4360,6 +4346,17 @@ class StreamSettings : AppCompatActivity() {
 
     private fun loadBackgroundImage() {
         val imageView = findViewById<ImageView>(R.id.settingsBackgroundImage)
+        val resolved = BackgroundSource.resolveCurrentTarget(
+                this,
+                resources.configuration.orientation
+        )
+        val target = resolved.target
+
+        if (target == null) {
+            Glide.with(this).clear(imageView)
+            imageView.setImageDrawable(null)
+            return
+        }
 
         // 解码尺寸根据当前可用堆按比例约束（详见 computeBackgroundDecodeSize）：
         // - 4K 电视 + 大堆设备保持原分辨率
@@ -4384,14 +4381,31 @@ class StreamSettings : AppCompatActivity() {
                 .override(width, height)
                 .format(DecodeFormat.PREFER_RGB_565)
                 .transform(transformations)
+                .signature(ObjectKey(resolved.cacheKey))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
 
         // 候选 URL（含原始与所有代理变体）。Glide 缓存键以 URL 为基础，
         // 因此可能上次走代理 A 命中、原始 URL 在缓存中并不存在；这里逐个尝试，
         // 任一变体在缓存中就立即贴图，体验等同本地资源。
+        if (!target.startsWith("http")) {
+            val localFile = File(target)
+            if (!localFile.exists()) {
+                imageView.setImageDrawable(null)
+                return
+            }
+            Glide.with(this)
+                    .load(localFile)
+                    .apply(options)
+                    .transition(DrawableTransitionOptions.withCrossFade(400))
+                    .into(imageView)
+            return
+        }
+
+        // Reuse the active home-screen source. Proxy variants remain fallbacks
+        // for remote sources so this page keeps its existing network resilience.
         val candidates = mutableListOf<String>().apply {
-            add(SETTINGS_BG_URL)
-            try { addAll(UpdateManager.buildProxiedUrls(SETTINGS_BG_URL)) } catch (_: Exception) {}
+            add(target)
+            try { addAll(UpdateManager.buildProxiedUrls(target)) } catch (_: Exception) {}
         }.distinct()
 
         tryCachedThenNetwork(imageView, options, candidates, 0)
@@ -4435,8 +4449,7 @@ class StreamSettings : AppCompatActivity() {
         Thread {
             // 代理列表可能在调用前还未就绪，需要刷新一次
             UpdateManager.ensureProxyListUpdated(this)
-            val candidates = preBuiltCandidates?.takeIf { it.isNotEmpty() }
-                    ?: UpdateManager.buildProxiedUrls(SETTINGS_BG_URL)
+            val candidates = preBuiltCandidates.orEmpty()
             for (url in candidates) {
                 try {
                     if (isDestroyed || isFinishing) return@Thread

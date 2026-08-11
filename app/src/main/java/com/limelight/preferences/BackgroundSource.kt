@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import androidx.preference.PreferenceManager
 import java.io.File
+import java.util.UUID
 
 /**
  * Background image source model (issue #263).
@@ -20,6 +21,17 @@ import java.io.File
  * changed the source had to remember to keep the keys consistent.
  */
 sealed class BackgroundSource(val prefValue: String) {
+
+    /**
+     * Immutable identity of the wallpaper currently selected for display.
+     * [cacheKey] distinguishes successive images from random APIs even when
+     * their request URL is unchanged.
+     */
+    data class ResolvedTarget(
+        val source: BackgroundSource,
+        val target: String?,
+        val cacheKey: String
+    )
 
     /**
      * Resolve the target that Glide should load for this source.
@@ -103,6 +115,8 @@ sealed class BackgroundSource(val prefValue: String) {
         private const val LEGACY_KEY_TYPE = "background_image_type"
 
         private val ALL = listOf(Auto, Pipw, Picsum, Api, Local, None)
+        private var cachedResolvedTarget: ResolvedTarget? = null
+        private var resolvedTargetOrientation: Int? = null
 
         fun fromPrefValue(value: String?): BackgroundSource =
             ALL.firstOrNull { it.prefValue == value } ?: Auto
@@ -112,6 +126,33 @@ sealed class BackgroundSource(val prefValue: String) {
             migrateLegacyIfNeeded(ctx)
             val prefs = PreferenceManager.getDefaultSharedPreferences(ctx)
             return fromPrefValue(prefs.getString(KEY_SOURCE, null))
+        }
+
+        @Synchronized
+        fun resolveCurrentTarget(ctx: Context, orientation: Int): ResolvedTarget {
+            val source = current(ctx)
+            cachedResolvedTarget?.let { cached ->
+                if (cached.source.prefValue == source.prefValue &&
+                    resolvedTargetOrientation == orientation
+                ) {
+                    return cached
+                }
+            }
+
+            val resolved = ResolvedTarget(
+                source = source,
+                target = source.resolveTarget(ctx, orientation),
+                cacheKey = UUID.randomUUID().toString()
+            )
+            cachedResolvedTarget = resolved
+            resolvedTargetOrientation = orientation
+            return resolved
+        }
+
+        @Synchronized
+        fun invalidateResolvedTarget() {
+            cachedResolvedTarget = null
+            resolvedTargetOrientation = null
         }
 
         /**
@@ -130,6 +171,7 @@ sealed class BackgroundSource(val prefValue: String) {
             if (source !is Api) editor.remove(KEY_API_URL)
             if (source !is Local) editor.remove(KEY_LOCAL_PATH)
             editor.apply()
+            invalidateResolvedTarget()
             ctx.sendBroadcast(Intent(ACTION_REFRESH).setPackage(ctx.packageName))
         }
 
@@ -141,6 +183,7 @@ sealed class BackgroundSource(val prefValue: String) {
                 .putBoolean(KEY_DIALOG_SHOWN, true)
                 .remove(LEGACY_KEY_TYPE)
                 .apply()
+            invalidateResolvedTarget()
             ctx.sendBroadcast(Intent(ACTION_REFRESH).setPackage(ctx.packageName))
         }
 

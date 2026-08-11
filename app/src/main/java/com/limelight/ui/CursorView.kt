@@ -24,7 +24,8 @@ class CursorView : View {
     // 状态
     private var cursorX = -100f
     private var cursorY = -100f
-    private var isVisible = false
+    private var inputWantsCursor = false
+    private var hostCursorVisible = false
     private val paint = Paint()
 
     constructor(context: Context) : super(context) {
@@ -79,18 +80,28 @@ class CursorView : View {
     }
 
     fun show() {
-        isVisible = true
-        visibility = VISIBLE
+        inputWantsCursor = true
+        updateVisibility()
     }
 
     fun hide() {
-        isVisible = false
-        visibility = GONE
+        inputWantsCursor = false
+        updateVisibility()
+    }
+
+    fun setHostCursorVisible(visible: Boolean) {
+        hostCursorVisible = visible
+        updateVisibility()
+        invalidate()
+    }
+
+    private fun updateVisibility() {
+        visibility = if (inputWantsCursor && hostCursorVisible) VISIBLE else GONE
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (!isVisible) return
+        if (!inputWantsCursor || !hostCursorVisible) return
 
         val bmpToDraw: Bitmap?
         val pX: Float

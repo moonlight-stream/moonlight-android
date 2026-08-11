@@ -685,7 +685,7 @@ class PreferenceConfiguration {
         private const val DEFAULT_MOUSE_EMULATION = true
         private const val DEFAULT_ANALOG_STICK_FOR_SCROLLING = "right"
         private const val DEFAULT_MOUSE_NAV_BUTTONS = false
-        private const val DEFAULT_NATIVE_MOUSE_MODE_PRESET = "classic"
+        private const val DEFAULT_NATIVE_MOUSE_MODE_PRESET = "trackpad"
         private const val DEFAULT_UNLOCK_FPS = false
         private const val DEFAULT_VIBRATE_OSC = true
         private const val DEFAULT_VIBRATE_FALLBACK = false

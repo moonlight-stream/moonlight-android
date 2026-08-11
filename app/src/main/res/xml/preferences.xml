@@ -615,7 +615,7 @@
             android:key="checkbox_touchscreen_trackpad"
             android:title="@string/title_checkbox_touchscreen_trackpad"
             android:summary="@string/summary_checkbox_touchscreen_trackpad"
-            android:defaultValue="false" />
+            android:defaultValue="true" />
         <CheckBoxPreference
             android:key="pref_enable_double_click_drag"
             android:title="@string/title_enable_double_click_drag"
@@ -634,11 +634,6 @@
             android:summary="@string/summary_seekbar_double_tap_time_threshold"
             android:text="ms"
             android:title="@string/title_seekbar_double_tap_time_threshold" />
-        <CheckBoxPreference
-            android:key="pref_enable_local_cursor_rendering"
-            android:title="@string/title_local_cursor_rendering"
-            android:summary="@string/summary_local_cursor_rendering"
-            android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_special_key_map"
             android:title="@string/title_special_key_map"
@@ -688,7 +683,7 @@
             android:summary="@string/summary_list_native_mouse_mode_preset"
             android:entries="@array/native_mouse_mode_preset_names"
             android:entryValues="@array/native_mouse_mode_preset_values"
-            android:defaultValue="classic" />
+            android:defaultValue="trackpad" />
         <CheckBoxPreference
             android:key="checkbox_absolute_mouse_mode"
             android:title="@string/title_checkbox_absolute_mouse_mode"

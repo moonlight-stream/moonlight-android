@@ -118,8 +118,12 @@ class RelativeTouchContext(
      * 初始化本地光标渲染器
      */
     fun initializeLocalCursorRenderer(cursorOverlay: CursorView, width: Int, height: Int) {
-        localCursorRenderer?.destroy()
-        localCursorRenderer = LocalCursorRenderer(cursorOverlay, width, height)
+        val renderer = localCursorRenderer
+        if (renderer == null) {
+            localCursorRenderer = LocalCursorRenderer(cursorOverlay, width, height)
+        } else {
+            renderer.setViewDimensions(width, height)
+        }
     }
 
     /**

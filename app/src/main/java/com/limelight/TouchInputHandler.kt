@@ -1023,11 +1023,11 @@ class TouchInputHandler(private val game: Game) {
                 game.prefConfig.touchscreenTrackpad = true
                 game.prefConfig.enableNativeMousePointer = false
                 touchContextMap = relativeTouchContextMap
-                game.cursorServiceManager.refreshLocalCursorState(game.prefConfig.enableLocalCursorRendering)
+                game.cursorServiceManager.refreshCursorMode()
             } else {
                 game.prefConfig.touchscreenTrackpad = false
                 touchContextMap = absoluteTouchContextMap
-                game.cursorServiceManager.refreshLocalCursorState(false)
+                game.cursorServiceManager.refreshCursorMode()
             }
         }
     }

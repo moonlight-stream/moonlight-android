@@ -93,6 +93,18 @@ public class MoonBridge {
     public static final int LI_ERR_UNSUPPORTED = -5501;
 
     public static final int LI_FF_TOUCHPAD_FRAME_EVENTS = 0x20;
+    public static final int LI_FF_CURSOR_SHAPE = 0x40;
+
+    public static final int LI_CURSOR_UPDATE_FLAG_SHAPE = 0x01;
+    public static final int LI_CURSOR_UPDATE_FLAG_VISIBLE = 0x02;
+
+    public static final int LI_CURSOR_MODE_VIDEO = 0;
+    public static final int LI_CURSOR_MODE_LOCAL = 1;
+    public static final int LI_CURSOR_MODE_OK = 0;
+    public static final int LI_CURSOR_MODE_ERR_INVALID = -1;
+    public static final int LI_CURSOR_MODE_ERR_UNSUPPORTED = -2;
+    public static final int LI_CURSOR_MODE_ERR_NOT_CONNECTED = -3;
+    public static final int LI_CURSOR_MODE_ERR_SEND_FAILED = -4;
 
     public static final byte LI_TOUCH_EVENT_HOVER       = 0x00;
     public static final byte LI_TOUCH_EVENT_DOWN        = 0x01;
@@ -416,6 +428,14 @@ public class MoonBridge {
         l.onClipboardData(kind, token, payload);
     }
 
+    public static void bridgeClCursorUpdate(int flags, int shapeId, int width, int height,
+                                            int hotspotX, int hotspotY, byte[] bgraPixels) {
+        if (connectionListener != null) {
+            connectionListener.onCursorUpdate(flags, shapeId, width, height,
+                    hotspotX, hotspotY, bgraPixels);
+        }
+    }
+
     /**
      * Encode a v1 clipboard frame and send it to the host. Returns 0 on success;
      * negative on failure (-1 invalid args, -2 unsupported by host, -3 transport).
@@ -553,6 +573,9 @@ public class MoonBridge {
 
     // This function returns any extended feature flags supported by the host.
     public static native int getHostFeatureFlags();
+
+    /** Selects host-composited or locally-rendered cursor mode for this session. */
+    public static native int setCursorMode(int cursorMode);
 
     /** @return Negotiated audio codec for the active connection (AUDIO_CODEC_OPUS/AC3/EAC3). */
     public static native int getNegotiatedAudioCodec();

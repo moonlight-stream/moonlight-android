@@ -45,6 +45,7 @@ static jmethodID BridgeClSetMotionEventStateMethod;
 static jmethodID BridgeClSetControllerLEDMethod;
 static jmethodID BridgeClResolutionChangedMethod;
 static jmethodID BridgeClClipboardDataMethod;
+static jmethodID BridgeClCursorUpdateMethod;
 static jbyteArray DecodedFrameBuffer;
 static jshortArray DecodedAudioBuffer;
 // Pre-allocated byte buffer for AC3/E-AC3 raw frame passthrough.
@@ -119,6 +120,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_init(JNIEnv *env, jclass clazz) {
     BridgeClSetControllerLEDMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClSetControllerLED", "(SBBB)V");
     BridgeClResolutionChangedMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClResolutionChanged", "(II)V");
     BridgeClClipboardDataMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClClipboardData", "([B)V");
+    BridgeClCursorUpdateMethod = (*env)->GetStaticMethodID(env, clazz, "bridgeClCursorUpdate", "(IIIIII[B)V");
 }
 
 int BridgeDrSetup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
@@ -519,6 +521,41 @@ void BridgeClClipboardData(const char* data, int length) {
     }
 }
 
+void BridgeClCursorUpdate(const LI_CURSOR_UPDATE* update) {
+    JNIEnv* env = GetThreadEnv();
+    jbyteArray pixels = NULL;
+
+    if (update == NULL) {
+        return;
+    }
+
+    if ((update->flags & LI_CURSOR_UPDATE_FLAG_SHAPE) != 0 &&
+            update->pixels != NULL && update->pixelDataLength > 0) {
+        pixels = (*env)->NewByteArray(env, (jsize)update->pixelDataLength);
+        if (pixels == NULL) {
+            (*env)->ExceptionClear(env);
+            return;
+        }
+        (*env)->SetByteArrayRegion(env, pixels, 0, (jsize)update->pixelDataLength,
+                                   (const jbyte*)update->pixels);
+    }
+
+    (*env)->CallStaticVoidMethod(env, GlobalBridgeClass, BridgeClCursorUpdateMethod,
+                                 (jint)update->flags,
+                                 (jint)update->shapeId,
+                                 (jint)update->width,
+                                 (jint)update->height,
+                                 (jint)update->hotspotX,
+                                 (jint)update->hotspotY,
+                                 pixels);
+    if (pixels != NULL) {
+        (*env)->DeleteLocalRef(env, pixels);
+    }
+    if ((*env)->ExceptionCheck(env)) {
+        (*JVM)->DetachCurrentThread(JVM);
+    }
+}
+
 void BridgeClLogMessage(const char* format, ...) {
     va_list va;
     va_start(va, format);
@@ -558,6 +595,7 @@ static CONNECTION_LISTENER_CALLBACKS BridgeConnListenerCallbacks = {
         .setControllerLED = BridgeClSetControllerLED,
         .resolutionChanged = BridgeClResolutionChanged,
         .clipboardData = BridgeClClipboardData,
+        .cursorUpdate = BridgeClCursorUpdate,
 };
 
 static bool

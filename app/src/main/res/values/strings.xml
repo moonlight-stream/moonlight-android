@@ -997,24 +997,39 @@
     <string name="tip_cards_show">💡 Tip: You can edit the displayed function cards in the game menu. Unnecessary cards can be hidden~</string>
 
     <!-- 触控模式切换菜单 -->
-    <string name="game_menu_switch_touch_mode">Touch Mode</string>
-    <string name="game_menu_touch_mode_enhanced">Enhanced Multi-Touch</string>
-    <string name="game_menu_touch_mode_classic">Classic Mouse Mode</string>
-    <string name="game_menu_touch_mode_trackpad">Touchpad Mode</string>
+    <string name="game_menu_switch_touch_mode">Control method</string>
+    <string name="game_menu_control">Control</string>
+    <string name="game_menu_touch_mode_enhanced">Direct touch</string>
+    <string name="game_menu_touch_mode_classic">Single-finger mouse</string>
+    <string name="game_menu_touch_mode_trackpad">Touchpad</string>
+    <string name="game_menu_touch_mode_enhanced_short">Touch</string>
+    <string name="game_menu_touch_mode_classic_short">Mouse</string>
+    <string name="game_menu_touch_mode_trackpad_short">Pad</string>
+    <string name="game_menu_touch_mode_native_mouse_short">External</string>
     <string name="game_menu_local_cursor_rendering">Local Cursor</string>
-    <string name="game_menu_touch_mode_native_mouse">Native Mouse Pointer</string>
+    <string name="game_menu_touch_mode_native_mouse">External mouse</string>
+    <string name="game_menu_touch_mode_enhanced_summary">Touch the host screen directly; supports multi-touch</string>
+    <string name="game_menu_touch_mode_classic_summary">The touched position directly controls the mouse</string>
+    <string name="game_menu_touch_mode_trackpad_summary">Swipe like a laptop touchpad; low-latency cursor is automatic</string>
+    <string name="game_menu_touch_mode_native_mouse_summary">For Bluetooth, USB mice, and keyboard touchpads</string>
+    <string name="game_menu_current_selection">Current: %1$s</string>
+    <string name="game_menu_trackpad_double_click_drag">Double-tap and hold to drag</string>
+    <string name="game_menu_trackpad_tap_behavior">Single-finger tap</string>
+    <string name="game_menu_option_enabled">Enabled</string>
+    <string name="game_menu_option_disabled">Disabled</string>
+    <string name="game_menu_toggle_remote_mouse_summary">Show or hide the host-side remote mouse</string>
     <string name="toast_touch_mode_enhanced_on">Enhanced multi touch enabled</string>
     <string name="toast_touch_mode_classic_on">Classic mouse mode enabled</string>
     <string name="toast_touch_mode_trackpad_on">Trackpad mode enabled</string>
     <string name="toast_touch_mode_native_mouse_on">Native mouse pointer enabled</string>
 
     <!-- 本地鼠标模式预设 -->
-    <string name="title_list_native_mouse_mode_preset">Mouse Mode Preset</string>
-    <string name="summary_list_native_mouse_mode_preset">Select a preset mouse/touch mode configuration</string>
-    <string name="native_mouse_mode_preset_enhanced">Enhanced Multi Touch</string>
-    <string name="native_mouse_mode_preset_classic">Classic Mouse Mode</string>
-    <string name="native_mouse_mode_preset_trackpad">Touchpad Mode</string>
-    <string name="native_mouse_mode_preset_native">Native Mouse Pointer</string>
+    <string name="title_list_native_mouse_mode_preset">Control method preset</string>
+    <string name="summary_list_native_mouse_mode_preset">Choose how you want to control the host</string>
+    <string name="native_mouse_mode_preset_enhanced">Direct touch</string>
+    <string name="native_mouse_mode_preset_classic">Single-finger mouse</string>
+    <string name="native_mouse_mode_preset_trackpad">Touchpad</string>
+    <string name="native_mouse_mode_preset_native">External mouse</string>
     <string name="toast_preset_applied">Preset applied: %s</string>
 
     <!-- 自定义特殊按键 -->
@@ -1300,6 +1315,7 @@ Tap again to replace it.</string>
     <!-- Local cursor rendering -->
     <string name="title_local_cursor_rendering">Show local cursor</string>
     <string name="summary_local_cursor_rendering">Display a local cursor that can be controlled via touchpad mode</string>
+    <string name="toast_local_cursor_fallback">Using compatible cursor mode for this host</string>
 
     <!-- Special key mapping -->
     <string name="title_special_key_map">Special key mapping</string>

@@ -384,6 +384,11 @@ Java_com_limelight_nvstream_jni_MoonBridge_getHostFeatureFlags(JNIEnv *env, jcla
 }
 
 JNIEXPORT jint JNICALL
+Java_com_limelight_nvstream_jni_MoonBridge_setCursorMode(JNIEnv *env, jclass clazz, jint cursorMode) {
+    return LiSetCursorMode(cursorMode);
+}
+
+JNIEXPORT jint JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_getNegotiatedAudioCodec(JNIEnv *env, jclass clazz) {
     return LiGetNegotiatedAudioCodec();
 }

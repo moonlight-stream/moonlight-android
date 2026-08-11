@@ -463,6 +463,13 @@ class Game : Activity(), SurfaceHolder.Callback,
                 override fun isActivityAlive(): Boolean {
                     return !isFinishing && !isDestroyed
                 }
+                override fun onLocalCursorFallback() {
+                    Toast.makeText(
+                        this@Game,
+                        R.string.toast_local_cursor_fallback,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         )
 
@@ -1214,6 +1221,9 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     override fun onDestroy() {
         cancelKeepAliveNotification()
+        if (::cursorServiceManager.isInitialized) {
+            cursorServiceManager.destroy()
+        }
         if (::orientationManager.isInitialized) {
             orientationManager.cleanup()
         }
@@ -1550,7 +1560,6 @@ class Game : Activity(), SurfaceHolder.Callback,
             cursorVisible = true
             inputCaptureProvider.showCursor()
             setMetaKeyCaptureState(true)
-            cursorServiceManager.refreshLocalCursorState(true)
             val cursorOverlay = findViewById<CursorView>(R.id.cursorOverlay)
             cursorOverlay?.hide()
         } else {
@@ -1558,6 +1567,7 @@ class Game : Activity(), SurfaceHolder.Callback,
             inputCaptureProvider.hideCursor()
             setInputGrabState(true)
         }
+        cursorServiceManager.refreshCursorMode()
     }
 
     override fun onGenericMotionEvent(event: MotionEvent): Boolean {
@@ -1807,6 +1817,8 @@ class Game : Activity(), SurfaceHolder.Callback,
             baseHeight = alignedHeight
         }
 
+        cursorServiceManager.onStreamResolutionChanged(baseWidth, baseHeight)
+
         orientationManager.syncOrientationOnFirstFrame(baseWidth, baseHeight)
 
         if (prefConfig.width == baseWidth && prefConfig.height == baseHeight) {
@@ -1828,6 +1840,26 @@ class Game : Activity(), SurfaceHolder.Callback,
             orientationManager.onServerResolutionChanged(isLandscape)
             updateStreamViewSize(baseWidth, baseHeight)
         }
+    }
+
+    override fun onCursorUpdate(
+        flags: Int,
+        shapeId: Int,
+        width: Int,
+        height: Int,
+        hotspotX: Int,
+        hotspotY: Int,
+        bgraPixels: ByteArray?
+    ) {
+        cursorServiceManager.onCursorUpdate(
+            flags,
+            shapeId,
+            width,
+            height,
+            hotspotX,
+            hotspotY,
+            bgraPixels
+        )
     }
 
     private fun updateStreamViewSize(width: Int, height: Int, forceFixedSize: Boolean) {
@@ -2124,10 +2156,6 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     fun cancelKeepAliveNotification() {
         StreamNotificationService.stop(this)
-    }
-
-    fun refreshLocalCursorState(enabled: Boolean) {
-        cursorServiceManager.refreshLocalCursorState(enabled)
     }
 
     override fun mouseMove(deltaX: Int, deltaY: Int) {

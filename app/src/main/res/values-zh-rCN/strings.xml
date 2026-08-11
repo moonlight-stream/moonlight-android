@@ -804,24 +804,39 @@
     <string name="tip_cards_show">💡 串流小课堂：游戏菜单最下方可以编辑展示的功能卡片，不需要的卡片可以收起来哦～</string>
 
     <!-- 触控模式切换菜单 -->
-    <string name="game_menu_switch_touch_mode">触控模式</string>
-    <string name="game_menu_touch_mode_enhanced">增强式多点触控</string>
-    <string name="game_menu_touch_mode_classic">经典鼠标模式</string>
-    <string name="game_menu_touch_mode_trackpad">触控板模式</string>
+    <string name="game_menu_switch_touch_mode">操作方式</string>
+    <string name="game_menu_control">操作方式</string>
+    <string name="game_menu_touch_mode_enhanced">直接触控</string>
+    <string name="game_menu_touch_mode_classic">单指鼠标</string>
+    <string name="game_menu_touch_mode_trackpad">触控板</string>
+    <string name="game_menu_touch_mode_enhanced_short">触控</string>
+    <string name="game_menu_touch_mode_classic_short">鼠标</string>
+    <string name="game_menu_touch_mode_trackpad_short">触控板</string>
+    <string name="game_menu_touch_mode_native_mouse_short">外设</string>
     <string name="game_menu_local_cursor_rendering">本地光标渲染</string>
-    <string name="game_menu_touch_mode_native_mouse">本地鼠标指针</string>
+    <string name="game_menu_touch_mode_native_mouse">外接鼠标</string>
+    <string name="game_menu_touch_mode_enhanced_summary">直接触摸主机画面，支持多点触控</string>
+    <string name="game_menu_touch_mode_classic_summary">触摸位置直接控制鼠标</string>
+    <string name="game_menu_touch_mode_trackpad_summary">像笔记本触控板一样滑动，自动使用低延迟指针</string>
+    <string name="game_menu_touch_mode_native_mouse_summary">适合蓝牙、USB 鼠标和键盘触摸板</string>
+    <string name="game_menu_current_selection">当前：%1$s</string>
+    <string name="game_menu_trackpad_double_click_drag">双击并按住拖动</string>
+    <string name="game_menu_trackpad_tap_behavior">单指点击</string>
+    <string name="game_menu_option_enabled">已开启</string>
+    <string name="game_menu_option_disabled">已关闭</string>
+    <string name="game_menu_toggle_remote_mouse_summary">显示或隐藏主机侧远程鼠标</string>
     <string name="toast_touch_mode_enhanced_on">增强式多点触控已开启</string>
     <string name="toast_touch_mode_classic_on">经典鼠标模式已开启</string>
     <string name="toast_touch_mode_trackpad_on">触控板模式已开启</string>
     <string name="toast_touch_mode_native_mouse_on">本地鼠标指针已开启</string>
 
     <!-- 本地鼠标模式预设 -->
-    <string name="title_list_native_mouse_mode_preset">鼠标模式预设</string>
-    <string name="summary_list_native_mouse_mode_preset">选择鼠标/触控模式的配置。</string>
-    <string name="native_mouse_mode_preset_enhanced">增强式多点触控</string>
-    <string name="native_mouse_mode_preset_classic">经典鼠标模式</string>
-    <string name="native_mouse_mode_preset_trackpad">触控板模式</string>
-    <string name="native_mouse_mode_preset_native">本地鼠标指针</string>
+    <string name="title_list_native_mouse_mode_preset">操作方式预设</string>
+    <string name="summary_list_native_mouse_mode_preset">选择你希望如何操作主机。</string>
+    <string name="native_mouse_mode_preset_enhanced">直接触控</string>
+    <string name="native_mouse_mode_preset_classic">单指鼠标</string>
+    <string name="native_mouse_mode_preset_trackpad">触控板</string>
+    <string name="native_mouse_mode_preset_native">外接鼠标</string>
     <string name="toast_preset_applied">预设已应用: %s</string>
 
     <!-- 自定义特殊按键 -->
@@ -1027,6 +1042,7 @@
     <!-- 本地光标 -->
     <string name="title_local_cursor_rendering">显示一个本地光标</string>
     <string name="summary_local_cursor_rendering">显示一个本地光标，可通过触摸板模式控制光标。</string>
+    <string name="toast_local_cursor_fallback">已自动使用兼容指针模式</string>
 
     <!-- 特殊按键映射 -->
     <string name="title_special_key_map">特殊按键映射</string>

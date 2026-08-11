@@ -24,24 +24,13 @@ class StreamNotificationService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        initWakeLock()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent == null || ACTION_STOP == intent.action) {
-            @Suppress("DEPRECATION")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-            } else {
-                stopForeground(true)
-            }
-            releaseWakeLock()
-            stopSelf()
-            return START_NOT_STICKY
-        }
-
-        val pcName = intent.getStringExtra(EXTRA_PC_NAME) ?: "Unknown"
-        val appName = intent.getStringExtra(EXTRA_APP_NAME) ?: "Desktop"
+        // START_STICKY restarts are delivered with a null intent. They must still
+        // satisfy the startForegroundService() contract before doing other work.
+        val pcName = intent?.getStringExtra(EXTRA_PC_NAME) ?: "Unknown"
+        val appName = intent?.getStringExtra(EXTRA_APP_NAME) ?: "Desktop"
         val notification = buildNotification(pcName, appName)
 
         try {
@@ -56,6 +45,7 @@ class StreamNotificationService : Service() {
             return START_NOT_STICKY
         }
 
+        initWakeLock()
         return START_STICKY
     }
 
@@ -119,6 +109,10 @@ class StreamNotificationService : Service() {
     }
 
     private fun initWakeLock() {
+        if (wakeLock?.isHeld == true) {
+            return
+        }
+
         try {
             val pm = getSystemService(POWER_SERVICE) as? PowerManager
             if (pm != null) {
@@ -150,7 +144,6 @@ class StreamNotificationService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val EXTRA_PC_NAME = "extra_pc_name"
         private const val EXTRA_APP_NAME = "extra_app_name"
-        private const val ACTION_STOP = "ACTION_STOP"
 
         fun start(context: Context, pcName: String?, appName: String?) {
             val intent = Intent(context, StreamNotificationService::class.java).apply {
@@ -165,11 +158,10 @@ class StreamNotificationService : Service() {
         }
 
         fun stop(context: Context) {
-            val intent = Intent(context, StreamNotificationService::class.java).apply {
-                action = ACTION_STOP
-            }
             try {
-                context.startService(intent)
+                // This is safe when the service isn't running and cannot enqueue a
+                // stop command behind an unpromoted foreground-service start.
+                context.stopService(Intent(context, StreamNotificationService::class.java))
             } catch (_: Exception) {
                 // 如果服务本来就没跑，正好不需要停
             }

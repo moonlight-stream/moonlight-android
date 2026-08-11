@@ -22,4 +22,14 @@ interface NvConnectionListener {
     fun setControllerLED(controllerNumber: Short, r: Byte, g: Byte, b: Byte)
 
     fun onResolutionChanged(width: Int, height: Int)
+
+    fun onCursorUpdate(
+        flags: Int,
+        shapeId: Int,
+        width: Int,
+        height: Int,
+        hotspotX: Int,
+        hotspotY: Int,
+        bgraPixels: ByteArray?
+    )
 }

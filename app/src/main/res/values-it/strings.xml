@@ -296,4 +296,18 @@
     <string name="title_document_handbook">Documentazione</string>
     <string name="summary_document_handbook">Visualizza la documentazione correlata</string>
     <string name="title_about_us">Chi siamo</string>
+    <string name="title_checkbox_mic_volume_processing">Elaborazione del volume del microfono</string>
+    <string name="summary_checkbox_mic_volume_processing">Regola il volume del microfono prima che venga inviato all’host. Il guadagno fisso e il bilanciamento del volume si escludono a vicenda.</string>
+    <string name="title_checkbox_mic_gain">Guadagno volume</string>
+    <string name="summary_checkbox_mic_gain">Regola il volume del microfono di una quantità fissa. I valori positivi lo amplificano, quelli negativi lo attenuano.</string>
+    <string name="title_seekbar_mic_gain">Guadagno</string>
+    <string name="summary_seekbar_mic_gain">Imposta il guadagno fisso. 0 dB mantiene il volume originale e si trova al centro del cursore.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Bilanciamento volume</string>
+    <string name="summary_checkbox_mic_balance">Comprime gli ingressi elevati per ridurre le variazioni di volume e il rischio di clipping.</string>
+    <string name="title_seekbar_mic_balance">Compensazione uscita</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Imposta il guadagno di compensazione dopo il bilanciamento del volume. Il 50% corrisponde a +4 dB ed è il valore consigliato.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Ottimizzazione voce</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Riduce il rumore a bassa frequenza e migliora la chiarezza della voce. Disponibile con guadagno fisso e bilanciamento del volume.</string>
 </resources>

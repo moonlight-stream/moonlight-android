@@ -215,4 +215,18 @@
     <string name="title_document_handbook">Τεκμηρίωση</string>
     <string name="summary_document_handbook">Προβολή σχετικής τεκμηρίωσης</string>
     <string name="title_about_us">Σχετικά με εμάς</string>
+    <string name="title_checkbox_mic_volume_processing">Επεξεργασία έντασης μικροφώνου</string>
+    <string name="summary_checkbox_mic_volume_processing">Ρυθμίστε την ένταση του μικροφώνου πριν σταλεί στον κεντρικό υπολογιστή. Η σταθερή ενίσχυση και η εξισορρόπηση έντασης δεν μπορούν να χρησιμοποιούνται ταυτόχρονα.</string>
+    <string name="title_checkbox_mic_gain">Ενίσχυση έντασης</string>
+    <string name="summary_checkbox_mic_gain">Ρυθμίστε την ένταση του μικροφώνου κατά μια σταθερή τιμή. Οι θετικές τιμές την ενισχύουν και οι αρνητικές την εξασθενούν.</string>
+    <string name="title_seekbar_mic_gain">Ενίσχυση</string>
+    <string name="summary_seekbar_mic_gain">Ορίστε τη σταθερή ενίσχυση. Τα 0 dB διατηρούν την αρχική ένταση και βρίσκονται στο κέντρο του ρυθμιστικού.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Εξισορρόπηση έντασης</string>
+    <string name="summary_checkbox_mic_balance">Συμπιέζει τις δυνατές εισόδους για να μειώσει τις διακυμάνσεις έντασης και τον κίνδυνο αποκοπής.</string>
+    <string name="title_seekbar_mic_balance">Αντιστάθμιση εξόδου</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Ορίστε την ενίσχυση αντιστάθμισης μετά την εξισορρόπηση έντασης. Το 50% αντιστοιχεί σε +4 dB και είναι η προτεινόμενη τιμή.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Βελτίωση φωνής</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Μειώνει τον θόρυβο χαμηλών συχνοτήτων και βελτιώνει την καθαρότητα της ομιλίας. Διατίθεται με σταθερή ενίσχυση και εξισορρόπηση έντασης.</string>
 </resources>

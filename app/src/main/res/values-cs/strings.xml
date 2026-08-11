@@ -264,4 +264,18 @@
     <string name="title_document_handbook">Dokumentace</string>
     <string name="summary_document_handbook">Zobrazit související dokumentaci</string>
     <string name="title_about_us">O nás</string>
+    <string name="title_checkbox_mic_volume_processing">Zpracování hlasitosti mikrofonu</string>
+    <string name="summary_checkbox_mic_volume_processing">Před odesláním do hostitelského počítače upravte hlasitost mikrofonu. Pevné zesílení a vyvážení hlasitosti se vzájemně vylučují.</string>
+    <string name="title_checkbox_mic_gain">Zesílení hlasitosti</string>
+    <string name="summary_checkbox_mic_gain">Upravte hlasitost mikrofonu o pevnou hodnotu. Kladné hodnoty ji zesílí, záporné ji zeslabí.</string>
+    <string name="title_seekbar_mic_gain">Zesílení</string>
+    <string name="summary_seekbar_mic_gain">Nastavte pevné zesílení. 0 dB zachová původní hlasitost a nachází se uprostřed posuvníku.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Vyvážení hlasitosti</string>
+    <string name="summary_checkbox_mic_balance">Komprimuje hlasitý vstup, aby omezilo kolísání hlasitosti a riziko ořezu signálu.</string>
+    <string name="title_seekbar_mic_balance">Výstupní kompenzace</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Nastavte kompenzační zesílení po vyvážení hlasitosti. 50% odpovídá +4 dB a je doporučenou hodnotou.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Vylepšení hlasu</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Omezuje nízkofrekvenční šum a zlepšuje srozumitelnost řeči. Je dostupné v režimu pevného zesílení i vyvážení hlasitosti.</string>
 </resources>

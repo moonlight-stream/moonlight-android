@@ -271,4 +271,18 @@
     <string name="title_document_handbook">Документация</string>
     <string name="summary_document_handbook">Просмотреть связанную документацию</string>
     <string name="title_about_us">О нас</string>
+    <string name="title_checkbox_mic_volume_processing">Обработка громкости микрофона</string>
+    <string name="summary_checkbox_mic_volume_processing">Настройте громкость микрофона перед отправкой на хост. Фиксированное усиление и выравнивание громкости взаимоисключающие.</string>
+    <string name="title_checkbox_mic_gain">Усиление громкости</string>
+    <string name="summary_checkbox_mic_gain">Изменяйте громкость микрофона на фиксированную величину. Положительные значения усиливают звук, отрицательные ослабляют его.</string>
+    <string name="title_seekbar_mic_gain">Усиление</string>
+    <string name="summary_seekbar_mic_gain">Задайте фиксированное усиление. 0 dB сохраняет исходную громкость и находится в центре ползунка.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Выравнивание громкости</string>
+    <string name="summary_checkbox_mic_balance">Сжимает громкий входной сигнал, чтобы уменьшить перепады громкости и риск перегрузки.</string>
+    <string name="title_seekbar_mic_balance">Компенсация на выходе</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Задайте компенсирующее усиление после выравнивания громкости. 50% соответствует +4 dB и является рекомендуемым значением.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Улучшение голоса</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Уменьшает низкочастотный шум и повышает разборчивость речи. Доступно при фиксированном усилении и выравнивании громкости.</string>
 </resources>

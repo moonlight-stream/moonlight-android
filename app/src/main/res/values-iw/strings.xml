@@ -157,4 +157,18 @@
     <string name="title_document_handbook">תיעוד</string>
     <string name="summary_document_handbook">הצגת תיעוד קשור</string>
     <string name="title_about_us">אודותינו</string>
+    <string name="title_checkbox_mic_volume_processing">עיבוד עוצמת המיקרופון</string>
+    <string name="summary_checkbox_mic_volume_processing">כוונון עוצמת המיקרופון לפני שליחתה למחשב המארח. הגבר קבוע ואיזון עוצמה אינם יכולים לפעול בו-זמנית.</string>
+    <string name="title_checkbox_mic_gain">הגברת עוצמה</string>
+    <string name="summary_checkbox_mic_gain">כוונון עוצמת המיקרופון בערך קבוע. ערכים חיוביים מגבירים אותה וערכים שליליים מחלישים אותה.</string>
+    <string name="title_seekbar_mic_gain">הגבר</string>
+    <string name="summary_seekbar_mic_gain">הגדרת ההגבר הקבוע. 0 dB שומר על העוצמה המקורית ונמצא במרכז המחוון.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">איזון עוצמה</string>
+    <string name="summary_checkbox_mic_balance">דחיסת קלט חזק כדי לצמצם תנודות בעוצמה ולהפחית את הסיכון לקיטום.</string>
+    <string name="title_seekbar_mic_balance">פיצוי פלט</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">הגדרת הגבר הפיצוי לאחר איזון העוצמה. 50% הם +4 dB והערך המומלץ.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">שיפור קול</string>
+    <string name="summary_checkbox_mic_voice_enhancement">הפחתת רעש בתדר נמוך ושיפור בהירות הדיבור. זמין במצבי הגבר קבוע ואיזון עוצמה.</string>
 </resources>

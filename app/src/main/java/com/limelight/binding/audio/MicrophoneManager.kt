@@ -58,6 +58,7 @@ class MicrophoneManager(
 
         try {
             MicrophoneConfig.updateBitrateFromConfig(context)
+            MicrophoneConfig.updateVolumeProcessingFromConfig(context)
             microphoneStream = MicrophoneStream(connection!!)
 
             if (!microphoneStream!!.start()) {
@@ -132,6 +133,7 @@ class MicrophoneManager(
         LimeLog.warning("麦克风恢复失败，尝试重新初始化")
         microphoneStream!!.stop()
         MicrophoneConfig.updateBitrateFromConfig(context)
+        MicrophoneConfig.updateVolumeProcessingFromConfig(context)
 
         microphoneStream = MicrophoneStream(connection!!)
         if (microphoneStream!!.start()) {
@@ -296,6 +298,7 @@ class MicrophoneManager(
 
         if (enable) {
             MicrophoneConfig.updateBitrateFromConfig(context)
+            MicrophoneConfig.updateVolumeProcessingFromConfig(context)
         }
 
         if (micButton != null) {

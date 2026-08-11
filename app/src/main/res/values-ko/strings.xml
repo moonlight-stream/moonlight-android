@@ -306,4 +306,18 @@
     <string name="title_document_handbook">문서</string>
     <string name="summary_document_handbook">관련 문서 보기</string>
     <string name="title_about_us">앱 정보</string>
+    <string name="title_checkbox_mic_volume_processing">마이크 볼륨 처리</string>
+    <string name="summary_checkbox_mic_volume_processing">호스트로 보내기 전에 마이크 볼륨을 조절합니다. 고정 게인과 볼륨 밸런스는 동시에 사용할 수 없습니다.</string>
+    <string name="title_checkbox_mic_gain">볼륨 게인</string>
+    <string name="summary_checkbox_mic_gain">마이크 볼륨을 일정한 값으로 조절합니다. 양수는 볼륨을 키우고 음수는 줄입니다.</string>
+    <string name="title_seekbar_mic_gain">게인</string>
+    <string name="summary_seekbar_mic_gain">고정 게인을 설정합니다. 0 dB는 원래 볼륨을 유지하며 슬라이더 중앙에 있습니다.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">볼륨 밸런스</string>
+    <string name="summary_checkbox_mic_balance">큰 입력을 압축하여 볼륨 변동과 클리핑 위험을 줄입니다.</string>
+    <string name="title_seekbar_mic_balance">출력 보정</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">볼륨 밸런스 처리 후 보정 게인을 설정합니다. 50%는 +4 dB에 해당하며 권장값입니다.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">음성 향상</string>
+    <string name="summary_checkbox_mic_voice_enhancement">저주파 소음을 줄이고 음성 선명도를 높입니다. 고정 게인과 볼륨 밸런스 모드에서 모두 사용할 수 있습니다.</string>
 </resources>

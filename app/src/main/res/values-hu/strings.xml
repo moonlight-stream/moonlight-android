@@ -261,4 +261,18 @@
     <string name="title_document_handbook">Dokumentáció</string>
     <string name="summary_document_handbook">Kapcsolódó dokumentáció megtekintése</string>
     <string name="title_about_us">Rólunk</string>
+    <string name="title_checkbox_mic_volume_processing">Mikrofonhangerő-feldolgozás</string>
+    <string name="summary_checkbox_mic_volume_processing">Állítsa be a mikrofon hangerejét, mielőtt elküldi a gazdagépnek. A rögzített erősítés és a hangerő-kiegyenlítés nem használható egyszerre.</string>
+    <string name="title_checkbox_mic_gain">Hangerő-erősítés</string>
+    <string name="summary_checkbox_mic_gain">Rögzített értékkel módosítja a mikrofon hangerejét. A pozitív értékek erősítik, a negatív értékek csökkentik.</string>
+    <string name="title_seekbar_mic_gain">Erősítés</string>
+    <string name="summary_seekbar_mic_gain">Állítsa be a rögzített erősítést. A 0 dB megőrzi az eredeti hangerőt, és a csúszka közepén található.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Hangerő-kiegyenlítés</string>
+    <string name="summary_checkbox_mic_balance">Tömöríti a hangos bemenetet, hogy csökkentse a hangerő-ingadozást és a túlvezérlés kockázatát.</string>
+    <string name="title_seekbar_mic_balance">Kimeneti kompenzáció</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Állítsa be a kiegyenlítés utáni kompenzációs erősítést. Az 50% +4 dB-nek felel meg, és ez az ajánlott érték.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Beszédkiemelés</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Csökkenti az alacsony frekvenciájú zajt és javítja a beszéd érthetőségét. Rögzített erősítés és hangerő-kiegyenlítés mellett is elérhető.</string>
 </resources>

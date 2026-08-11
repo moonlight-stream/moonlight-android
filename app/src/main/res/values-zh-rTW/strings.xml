@@ -519,4 +519,18 @@
     <string name="appview_guide_resume_body">已有工作階段時，點一下電腦名稱和應用程式名稱就能直接回到串流。別再繞遠路啦。</string>
     <string name="appview_guide_card_title">長按都不會嗎？</string>
     <string name="appview_guide_card_body">長按應用程式就能用上次設定恢復、建立捷徑、隱藏應用程式或查看詳情，不用真的啟動它喔。</string>
+    <string name="title_checkbox_mic_volume_processing">麥克風音量處理</string>
+    <string name="summary_checkbox_mic_volume_processing">在傳送到主機前調整麥克風音量。固定增益與音量平衡只能擇一使用。</string>
+    <string name="title_checkbox_mic_gain">音量增益</string>
+    <string name="summary_checkbox_mic_gain">以固定增益調整麥克風音量：正值放大，負值衰減。</string>
+    <string name="title_seekbar_mic_gain">增益</string>
+    <string name="summary_seekbar_mic_gain">設定固定增益。0 dB 保持原始音量，滑桿中點為 0 dB。</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">音量平衡</string>
+    <string name="summary_checkbox_mic_balance">壓縮過大的聲音，減少音量波動並降低削波風險。</string>
+    <string name="title_seekbar_mic_balance">輸出補償</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">設定音量平衡處理後的增益補償。50% 對應 +4 dB，為建議值。</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">人聲增強</string>
+    <string name="summary_checkbox_mic_voice_enhancement">減少低頻雜訊並提升語音清晰度，可用於固定增益和音量平衡模式。</string>
 </resources>

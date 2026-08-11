@@ -302,4 +302,18 @@
     <string name="title_document_handbook">Documentation</string>
     <string name="summary_document_handbook">Consulter la documentation associée</string>
     <string name="title_about_us">À propos de nous</string>
+    <string name="title_checkbox_mic_volume_processing">Traitement du volume du microphone</string>
+    <string name="summary_checkbox_mic_volume_processing">Réglez le volume du microphone avant son envoi à l’hôte. Le gain fixe et l’équilibrage du volume sont mutuellement exclusifs.</string>
+    <string name="title_checkbox_mic_gain">Gain du volume</string>
+    <string name="summary_checkbox_mic_gain">Réglez le volume du microphone selon une valeur fixe. Les valeurs positives l’amplifient et les valeurs négatives l’atténuent.</string>
+    <string name="title_seekbar_mic_gain">Gain</string>
+    <string name="summary_seekbar_mic_gain">Définissez le gain fixe. 0 dB conserve le volume d’origine et se trouve au centre du curseur.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Équilibrage du volume</string>
+    <string name="summary_checkbox_mic_balance">Compresse les signaux d’entrée trop forts afin de réduire les variations de volume et le risque d’écrêtage.</string>
+    <string name="title_seekbar_mic_balance">Compensation de sortie</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Définissez le gain de compensation après l’équilibrage du volume. 50% correspond à +4 dB et constitue la valeur recommandée.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Amélioration de la voix</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Réduit le bruit de basse fréquence et améliore la clarté de la voix. Disponible avec le gain fixe et l’équilibrage du volume.</string>
 </resources>

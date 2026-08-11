@@ -210,4 +210,18 @@
     <string name="title_document_handbook">Dokumentasjon</string>
     <string name="summary_document_handbook">Vis relatert dokumentasjon</string>
     <string name="title_about_us">Om oss</string>
+    <string name="title_checkbox_mic_volume_processing">Behandling av mikrofonvolum</string>
+    <string name="summary_checkbox_mic_volume_processing">Juster mikrofonvolumet før det sendes til verten. Fast forsterkning og volumbalansering kan ikke brukes samtidig.</string>
+    <string name="title_checkbox_mic_gain">Volumforsterkning</string>
+    <string name="summary_checkbox_mic_gain">Juster mikrofonvolumet med en fast verdi. Positive verdier forsterker det, mens negative verdier demper det.</string>
+    <string name="title_seekbar_mic_gain">Forsterkning</string>
+    <string name="summary_seekbar_mic_gain">Angi fast forsterkning. 0 dB beholder det opprinnelige volumet og ligger midt på glidebryteren.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Volumbalansering</string>
+    <string name="summary_checkbox_mic_balance">Komprimerer høye inngangsnivåer for å redusere volumvariasjoner og risikoen for klipping.</string>
+    <string name="title_seekbar_mic_balance">Utgangskompensasjon</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Angi kompensasjonsforsterkningen etter volumbalansering. 50% tilsvarer +4 dB og er anbefalt verdi.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Stemmeforbedring</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Reduserer lavfrekvent støy og forbedrer taletydeligheten. Tilgjengelig med fast forsterkning og volumbalansering.</string>
 </resources>

@@ -224,6 +224,12 @@ class AppSettingsManager(private val context: Context) {
             put("enableHdrHighBrightness", settings.enableHdrHighBrightness)
             put("enableMic", settings.enableMic)
             put("micBitrate", settings.micBitrate)
+            put("micVolumeProcessingEnabled", settings.micVolumeProcessingEnabled)
+            put("micGainEnabled", settings.micGainEnabled)
+            put("micGainDb", settings.micGainDb)
+            put("micBalanceEnabled", settings.micBalanceEnabled)
+            put("micBalanceTargetPercent", settings.micBalanceTargetPercent)
+            put("micVoiceEnhancementEnabled", settings.micVoiceEnhancementEnabled)
             put("enableNativeMousePointer", settings.enableNativeMousePointer)
             put("gyroSensitivityMultiplier", settings.gyroSensitivityMultiplier.toDouble())
             put("gyroInvertXAxis", settings.gyroInvertXAxis)
@@ -274,6 +280,13 @@ class AppSettingsManager(private val context: Context) {
         settings.enableHdrHighBrightness = settingsJson.optBoolean("enableHdrHighBrightness", false)
         settings.enableMic = settingsJson.optBoolean("enableMic", false)
         settings.micBitrate = settingsJson.optInt("micBitrate", 96)
+        settings.micVolumeProcessingEnabled = settingsJson.optBoolean("micVolumeProcessingEnabled", false)
+        settings.micGainEnabled = settingsJson.optBoolean("micGainEnabled", false)
+        settings.micGainDb = settingsJson.optInt("micGainDb", 0).coerceIn(-20, 20)
+        settings.micBalanceEnabled = settingsJson.optBoolean("micBalanceEnabled", false) &&
+                !settings.micGainEnabled
+        settings.micBalanceTargetPercent = settingsJson.optInt("micBalanceTargetPercent", 50).coerceIn(1, 100)
+        settings.micVoiceEnhancementEnabled = settingsJson.optBoolean("micVoiceEnhancementEnabled", true)
         settings.enableNativeMousePointer = settingsJson.optBoolean("enableNativeMousePointer", false)
         settings.gyroSensitivityMultiplier = settingsJson.optDouble("gyroSensitivityMultiplier", 1.0).toFloat()
         settings.gyroInvertXAxis = settingsJson.optBoolean("gyroInvertXAxis", false)
@@ -343,6 +356,13 @@ class AppSettingsManager(private val context: Context) {
             prefConfig.enableHdrHighBrightness = intent.getBooleanExtra(INTENT_LAST_SETTINGS_ENABLE_HDR_HIGH_BRIGHTNESS, prefConfig.enableHdrHighBrightness)
             prefConfig.enableMic = intent.getBooleanExtra(INTENT_LAST_SETTINGS_ENABLE_MIC, prefConfig.enableMic)
             prefConfig.micBitrate = intent.getIntExtra(INTENT_LAST_SETTINGS_MIC_BITRATE, prefConfig.micBitrate)
+            prefConfig.micVolumeProcessingEnabled = intent.getBooleanExtra(INTENT_LAST_SETTINGS_MIC_VOLUME_PROCESSING, prefConfig.micVolumeProcessingEnabled)
+            prefConfig.micGainEnabled = intent.getBooleanExtra(INTENT_LAST_SETTINGS_MIC_GAIN_ENABLED, prefConfig.micGainEnabled)
+            prefConfig.micGainDb = intent.getIntExtra(INTENT_LAST_SETTINGS_MIC_GAIN_DB, prefConfig.micGainDb).coerceIn(-20, 20)
+            prefConfig.micBalanceEnabled = intent.getBooleanExtra(INTENT_LAST_SETTINGS_MIC_BALANCE_ENABLED, prefConfig.micBalanceEnabled) &&
+                    !prefConfig.micGainEnabled
+            prefConfig.micBalanceTargetPercent = intent.getIntExtra(INTENT_LAST_SETTINGS_MIC_BALANCE_TARGET, prefConfig.micBalanceTargetPercent).coerceIn(1, 100)
+            prefConfig.micVoiceEnhancementEnabled = intent.getBooleanExtra(INTENT_LAST_SETTINGS_MIC_VOICE_ENHANCEMENT, prefConfig.micVoiceEnhancementEnabled)
             prefConfig.enableNativeMousePointer = intent.getBooleanExtra(INTENT_LAST_SETTINGS_ENABLE_NATIVE_MOUSE, prefConfig.enableNativeMousePointer)
             prefConfig.gyroSensitivityMultiplier = intent.getFloatExtra(INTENT_LAST_SETTINGS_GYRO_SENSITIVITY, prefConfig.gyroSensitivityMultiplier)
             prefConfig.gyroInvertXAxis = intent.getBooleanExtra(INTENT_LAST_SETTINGS_GYRO_INVERT_X, prefConfig.gyroInvertXAxis)
@@ -390,6 +410,12 @@ class AppSettingsManager(private val context: Context) {
         private const val INTENT_LAST_SETTINGS_ENABLE_HDR_HIGH_BRIGHTNESS = "LastSettingsEnableHdrHighBrightness"
         private const val INTENT_LAST_SETTINGS_ENABLE_MIC = "LastSettingsEnableMic"
         private const val INTENT_LAST_SETTINGS_MIC_BITRATE = "LastSettingsMicBitrate"
+        private const val INTENT_LAST_SETTINGS_MIC_VOLUME_PROCESSING = "LastSettingsMicVolumeProcessing"
+        private const val INTENT_LAST_SETTINGS_MIC_GAIN_ENABLED = "LastSettingsMicGainEnabled"
+        private const val INTENT_LAST_SETTINGS_MIC_GAIN_DB = "LastSettingsMicGainDb"
+        private const val INTENT_LAST_SETTINGS_MIC_BALANCE_ENABLED = "LastSettingsMicBalanceEnabled"
+        private const val INTENT_LAST_SETTINGS_MIC_BALANCE_TARGET = "LastSettingsMicBalanceTarget"
+        private const val INTENT_LAST_SETTINGS_MIC_VOICE_ENHANCEMENT = "LastSettingsMicVoiceEnhancement"
         private const val INTENT_LAST_SETTINGS_ENABLE_NATIVE_MOUSE = "LastSettingsEnableNativeMouse"
         private const val INTENT_LAST_SETTINGS_GYRO_SENSITIVITY = "LastSettingsGyroSensitivity"
         private const val INTENT_LAST_SETTINGS_GYRO_INVERT_X = "LastSettingsGyroInvertX"
@@ -417,6 +443,12 @@ class AppSettingsManager(private val context: Context) {
             intent.putExtra(INTENT_LAST_SETTINGS_ENABLE_HDR_HIGH_BRIGHTNESS, lastSettings.enableHdrHighBrightness)
             intent.putExtra(INTENT_LAST_SETTINGS_ENABLE_MIC, lastSettings.enableMic)
             intent.putExtra(INTENT_LAST_SETTINGS_MIC_BITRATE, lastSettings.micBitrate)
+            intent.putExtra(INTENT_LAST_SETTINGS_MIC_VOLUME_PROCESSING, lastSettings.micVolumeProcessingEnabled)
+            intent.putExtra(INTENT_LAST_SETTINGS_MIC_GAIN_ENABLED, lastSettings.micGainEnabled)
+            intent.putExtra(INTENT_LAST_SETTINGS_MIC_GAIN_DB, lastSettings.micGainDb)
+            intent.putExtra(INTENT_LAST_SETTINGS_MIC_BALANCE_ENABLED, lastSettings.micBalanceEnabled)
+            intent.putExtra(INTENT_LAST_SETTINGS_MIC_BALANCE_TARGET, lastSettings.micBalanceTargetPercent)
+            intent.putExtra(INTENT_LAST_SETTINGS_MIC_VOICE_ENHANCEMENT, lastSettings.micVoiceEnhancementEnabled)
             intent.putExtra(INTENT_LAST_SETTINGS_ENABLE_NATIVE_MOUSE, lastSettings.enableNativeMousePointer)
             intent.putExtra(INTENT_LAST_SETTINGS_GYRO_SENSITIVITY, lastSettings.gyroSensitivityMultiplier)
             intent.putExtra(INTENT_LAST_SETTINGS_GYRO_INVERT_X, lastSettings.gyroInvertXAxis)

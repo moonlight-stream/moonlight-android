@@ -236,4 +236,18 @@
     <string name="title_document_handbook">Tài liệu</string>
     <string name="summary_document_handbook">Xem tài liệu liên quan</string>
     <string name="title_about_us">Về chúng tôi</string>
+    <string name="title_checkbox_mic_volume_processing">Xử lý âm lượng micrô</string>
+    <string name="summary_checkbox_mic_volume_processing">Điều chỉnh âm lượng micrô trước khi gửi đến máy chủ. Khuếch đại cố định và cân bằng âm lượng không thể dùng cùng lúc.</string>
+    <string name="title_checkbox_mic_gain">Khuếch đại âm lượng</string>
+    <string name="summary_checkbox_mic_gain">Điều chỉnh âm lượng micrô theo một mức cố định. Giá trị dương khuếch đại âm thanh, còn giá trị âm làm giảm âm thanh.</string>
+    <string name="title_seekbar_mic_gain">Mức khuếch đại</string>
+    <string name="summary_seekbar_mic_gain">Đặt mức khuếch đại cố định. 0 dB giữ nguyên âm lượng ban đầu và nằm ở giữa thanh trượt.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Cân bằng âm lượng</string>
+    <string name="summary_checkbox_mic_balance">Nén tín hiệu đầu vào lớn để giảm dao động âm lượng và nguy cơ cắt đỉnh.</string>
+    <string name="title_seekbar_mic_balance">Bù đầu ra</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Đặt mức khuếch đại bù sau khi cân bằng âm lượng. 50% tương ứng với +4 dB và là giá trị đề xuất.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Tăng cường giọng nói</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Giảm nhiễu tần số thấp và cải thiện độ rõ của giọng nói. Dùng được với khuếch đại cố định và cân bằng âm lượng.</string>
 </resources>

@@ -193,4 +193,18 @@
     <string name="title_document_handbook">Belgeler</string>
     <string name="summary_document_handbook">İlgili belgeleri görüntüle</string>
     <string name="title_about_us">Hakkımızda</string>
+    <string name="title_checkbox_mic_volume_processing">Mikrofon ses düzeyi işleme</string>
+    <string name="summary_checkbox_mic_volume_processing">Mikrofon ses düzeyini ana bilgisayara göndermeden önce ayarlayın. Sabit kazanç ve ses düzeyi dengeleme aynı anda kullanılamaz.</string>
+    <string name="title_checkbox_mic_gain">Ses düzeyi kazancı</string>
+    <string name="summary_checkbox_mic_gain">Mikrofon ses düzeyini sabit bir miktarda ayarlayın. Pozitif değerler sesi yükseltir, negatif değerler azaltır.</string>
+    <string name="title_seekbar_mic_gain">Kazanç</string>
+    <string name="summary_seekbar_mic_gain">Sabit kazancı ayarlayın. 0 dB özgün ses düzeyini korur ve kaydırıcının ortasındadır.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Ses düzeyi dengeleme</string>
+    <string name="summary_checkbox_mic_balance">Yüksek girişleri sıkıştırarak ses düzeyi dalgalanmalarını ve kırpılma riskini azaltır.</string>
+    <string name="title_seekbar_mic_balance">Çıkış telafisi</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Ses düzeyi dengelemeden sonraki telafi kazancını ayarlayın. 50%, +4 dB değerine karşılık gelir ve önerilen değerdir.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Ses iyileştirme</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Düşük frekanslı gürültüyü azaltır ve konuşma netliğini artırır. Sabit kazanç ve ses düzeyi dengeleme modlarında kullanılabilir.</string>
 </resources>

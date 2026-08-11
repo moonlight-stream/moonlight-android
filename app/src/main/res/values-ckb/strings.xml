@@ -5,4 +5,18 @@
     <string name="title_document_handbook">بەڵگەنامەکان</string>
     <string name="summary_document_handbook">بەڵگەنامە پەیوەندیدارەکان ببینە</string>
     <string name="title_about_us">دەربارەی ئێمە</string>
+    <string name="title_checkbox_mic_volume_processing">پرۆسەکردنی دەنگی مایکرۆفۆن</string>
+    <string name="summary_checkbox_mic_volume_processing">پێش ناردنی دەنگ بۆ میواندار، ئاستی دەنگی مایکرۆفۆن ڕێک بخە. زیادکردنی جێگیر و هاوسەنگکردنی دەنگ ناتوانرێت لە یەک کاتدا چالاک بن.</string>
+    <string name="title_checkbox_mic_gain">زیادکردنی دەنگ</string>
+    <string name="summary_checkbox_mic_gain">ئاستی دەنگی مایکرۆفۆن بە ڕێژەیەکی جێگیر ڕێک بخە. نرخە ئەرێنییەکان دەنگ بەرز دەکەنەوە و نرخە نەرێنییەکان کەمی دەکەنەوە.</string>
+    <string name="title_seekbar_mic_gain">ڕێژەی زیادکردن</string>
+    <string name="summary_seekbar_mic_gain">ڕێژەی زیادکردنی جێگیر دیاری بکە. 0 dB ئاستی سەرەکی دەپارێزێت و لە ناوەڕاستی خلیسکێنەرەکەیە.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">هاوسەنگکردنی دەنگ</string>
+    <string name="summary_checkbox_mic_balance">دەنگی زۆر بەرز کۆمپرێس دەکات بۆ کەمکردنەوەی گۆڕانی ئاستی دەنگ و مەترسی بڕین.</string>
+    <string name="title_seekbar_mic_balance">قەرەبووی دەرچوون</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">ڕێژەی قەرەبووکردنەوە دوای هاوسەنگکردنی دەنگ دیاری بکە. 50% یەکسانە بە +4 dB و نرخی پێشنیارکراوە.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">باشترکردنی دەنگ</string>
+    <string name="summary_checkbox_mic_voice_enhancement">ژاوەژاوی نزم-فریکوێنسی کەم دەکاتەوە و ڕوونی قسەکردن باشتر دەکات. لە دۆخی زیادکردنی جێگیر و هاوسەنگکردنی دەنگ بەردەستە.</string>
 </resources>

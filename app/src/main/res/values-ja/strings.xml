@@ -171,4 +171,18 @@
     <string name="title_document_handbook">ドキュメント</string>
     <string name="summary_document_handbook">関連ドキュメントを表示</string>
     <string name="title_about_us">このアプリについて</string>
+    <string name="title_checkbox_mic_volume_processing">マイク音量処理</string>
+    <string name="summary_checkbox_mic_volume_processing">ホストに送信する前にマイク音量を調整します。固定ゲインと音量バランスは同時に使用できません。</string>
+    <string name="title_checkbox_mic_gain">音量ゲイン</string>
+    <string name="summary_checkbox_mic_gain">マイク音量を一定量調整します。正の値で増幅し、負の値で減衰します。</string>
+    <string name="title_seekbar_mic_gain">ゲイン</string>
+    <string name="summary_seekbar_mic_gain">固定ゲインを設定します。0 dB では元の音量を維持し、スライダーの中央に位置します。</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">音量バランス</string>
+    <string name="summary_checkbox_mic_balance">大きな入力を圧縮して、音量の変動とクリッピングのリスクを抑えます。</string>
+    <string name="title_seekbar_mic_balance">出力補正</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">音量バランス処理後の補正ゲインを設定します。50% は +4 dB に相当し、推奨値です。</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">音声強調</string>
+    <string name="summary_checkbox_mic_voice_enhancement">低周波ノイズを抑え、音声の明瞭度を高めます。固定ゲインと音量バランスの両方で使用できます。</string>
 </resources>

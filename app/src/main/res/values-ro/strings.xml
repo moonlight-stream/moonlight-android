@@ -181,4 +181,18 @@
     <string name="title_document_handbook">Documentație</string>
     <string name="summary_document_handbook">Vezi documentația asociată</string>
     <string name="title_about_us">Despre noi</string>
+    <string name="title_checkbox_mic_volume_processing">Procesarea volumului microfonului</string>
+    <string name="summary_checkbox_mic_volume_processing">Reglează volumul microfonului înainte de trimiterea la gazdă. Amplificarea fixă și echilibrarea volumului se exclud reciproc.</string>
+    <string name="title_checkbox_mic_gain">Amplificare volum</string>
+    <string name="summary_checkbox_mic_gain">Reglează volumul microfonului cu o valoare fixă. Valorile pozitive îl amplifică, iar cele negative îl atenuează.</string>
+    <string name="title_seekbar_mic_gain">Amplificare</string>
+    <string name="summary_seekbar_mic_gain">Setează amplificarea fixă. 0 dB păstrează volumul original și se află în centrul glisorului.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Echilibrare volum</string>
+    <string name="summary_checkbox_mic_balance">Comprimă intrările puternice pentru a reduce variațiile de volum și riscul de distorsiune.</string>
+    <string name="title_seekbar_mic_balance">Compensare ieșire</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Setează amplificarea de compensare după echilibrarea volumului. 50% corespunde la +4 dB și este valoarea recomandată.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Îmbunătățire voce</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Reduce zgomotul de joasă frecvență și îmbunătățește claritatea vocii. Disponibilă cu amplificare fixă și echilibrare a volumului.</string>
 </resources>

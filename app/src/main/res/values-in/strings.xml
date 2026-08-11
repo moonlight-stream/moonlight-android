@@ -216,4 +216,18 @@
     <string name="title_document_handbook">Dokumentasi</string>
     <string name="summary_document_handbook">Lihat dokumentasi terkait</string>
     <string name="title_about_us">Tentang Kami</string>
+    <string name="title_checkbox_mic_volume_processing">Pemrosesan volume mikrofon</string>
+    <string name="summary_checkbox_mic_volume_processing">Sesuaikan volume mikrofon sebelum dikirim ke host. Penguatan tetap dan penyeimbangan volume tidak dapat digunakan bersamaan.</string>
+    <string name="title_checkbox_mic_gain">Penguatan volume</string>
+    <string name="summary_checkbox_mic_gain">Sesuaikan volume mikrofon dengan nilai tetap. Nilai positif memperkuatnya, sedangkan nilai negatif melemahkannya.</string>
+    <string name="title_seekbar_mic_gain">Penguatan</string>
+    <string name="summary_seekbar_mic_gain">Atur penguatan tetap. 0 dB mempertahankan volume asli dan berada di tengah penggeser.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Penyeimbangan volume</string>
+    <string name="summary_checkbox_mic_balance">Mengompresi masukan keras untuk mengurangi perubahan volume dan risiko kliping.</string>
+    <string name="title_seekbar_mic_balance">Kompensasi keluaran</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Atur penguatan kompensasi setelah penyeimbangan volume. 50% setara dengan +4 dB dan merupakan nilai yang disarankan.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Peningkatan suara</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Mengurangi derau frekuensi rendah dan meningkatkan kejernihan ucapan. Tersedia dalam mode penguatan tetap dan penyeimbangan volume.</string>
 </resources>

@@ -45,6 +45,14 @@ object MicrophoneConfig {
     private var enableNS = true // 启用噪声抑制
     private var useVoiceComm = false // 使用VOICE_COMMUNICATION音频源（自动启用AEC+AGC+NS）
 
+    // 音量增益及其平衡参数
+    private var volumeProcessingEnabled = false // 音量增益及其平衡总开关
+    private var volumeGainEnabled = false // 音量增益（固定增益模式）
+    private var volumeGainDb = 0 // 固定增益 dB (-20 ~ +20, 0dB为原始音量)
+    private var volumeBalanceEnabled = false // 音量平衡（自动增益模式）
+    private var volumeBalanceTargetPercent = 50 // 平衡目标音量百分比 (1-100)
+    private var voiceEnhancementEnabled = true // 人声增强独立开关（默认开启）
+
     /**
      * 获取当前配置的Opus比特率
      * @return 比特率（bps）
@@ -72,6 +80,22 @@ object MicrophoneConfig {
         }
     }
 
+    /**
+     * 从配置中更新音量增益及其平衡设置
+     * @param context 上下文
+     */
+    fun updateVolumeProcessingFromConfig(context: Context?) {
+        if (context != null) {
+            val config = PreferenceConfiguration.readPreferences(context)
+            volumeProcessingEnabled = config.micVolumeProcessingEnabled
+            volumeGainEnabled = config.micGainEnabled
+            volumeGainDb = config.micGainDb
+            volumeBalanceEnabled = config.micBalanceEnabled
+            volumeBalanceTargetPercent = config.micBalanceTargetPercent
+            voiceEnhancementEnabled = config.micVoiceEnhancementEnabled
+        }
+    }
+
     // ========== 回声消除和音频处理配置方法 ==========
 
     /**
@@ -90,9 +114,10 @@ object MicrophoneConfig {
 
     /**
      * 是否启用自动增益控制(AGC)
+     * 使用软件音量处理（音量增益及其平衡）时禁用硬件AGC，避免两者互相干扰
      */
     fun enableAutomaticGainControl(): Boolean {
-        return enableAGC
+        return enableAGC && !softwareVolumeProcessingActive()
     }
 
     /**
@@ -121,7 +146,7 @@ object MicrophoneConfig {
      * VOICE_COMMUNICATION会自动启用系统级的AEC、AGC、NS
      */
     fun useVoiceCommunication(): Boolean {
-        return useVoiceComm
+        return useVoiceComm && !softwareVolumeProcessingActive()
     }
 
     /**
@@ -131,16 +156,54 @@ object MicrophoneConfig {
         useVoiceComm = use
     }
 
+    // ========== 音量增益及其平衡配置方法 ==========
+
     /**
-     * 获取音频处理配置的摘要信息
+     * 是否启用音量增益及其平衡（总开关）
      */
-    fun getAudioProcessingConfigSummary(): String {
-        return buildString {
-            append("音频处理配置:\n")
-            append("音频源: ").append(if (useVoiceComm) "VOICE_COMMUNICATION" else "MIC").append("\n")
-            append("回声消除(AEC): ").append(if (enableAEC) "启用" else "禁用").append("\n")
-            append("自动增益(AGC): ").append(if (enableAGC) "启用" else "禁用").append("\n")
-            append("噪声抑制(NS): ").append(if (enableNS) "启用" else "禁用")
-        }
+    fun isVolumeProcessingEnabled(): Boolean {
+        return volumeProcessingEnabled
+    }
+
+    /**
+     * 是否启用音量增益（固定增益模式）
+     */
+    fun isVolumeGainEnabled(): Boolean {
+        return volumeGainEnabled && volumeProcessingEnabled
+    }
+
+    /**
+     * 获取固定增益 dB (-20 ~ +20, 0dB为原始音量)
+     */
+    fun getVolumeGainDb(): Int {
+        return volumeGainDb
+    }
+
+    /**
+     * 是否启用音量平衡（自动增益模式）
+     */
+    fun isVolumeBalanceEnabled(): Boolean {
+        return volumeBalanceEnabled && volumeProcessingEnabled
+    }
+
+    /**
+     * 获取平衡模式目标音量百分比 (1-100)
+     */
+    fun getVolumeBalanceTargetPercent(): Int {
+        return volumeBalanceTargetPercent
+    }
+
+    /**
+     * 是否启用独立的人声增强（音量增益/音量平衡模式下均可生效）
+     */
+    fun isVoiceEnhancementEnabled(): Boolean {
+        return voiceEnhancementEnabled
+    }
+
+    /**
+     * 软件音量处理是否实际生效（任一子功能开启时）
+     */
+    private fun softwareVolumeProcessingActive(): Boolean {
+        return volumeProcessingEnabled && (volumeGainEnabled || volumeBalanceEnabled)
     }
 }

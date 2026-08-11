@@ -70,23 +70,34 @@ class SeekBarPreferenceDialogFragment : PreferenceDialogFragmentCompat() {
         }
 
         // SeekBar
+        // 当最小值为负数（如 -20dB）时使用偏移映射：progress 范围 0..(max-min)，
+        // 显示值 = min + progress，保证 0 值位于滑块正中且负值可调。
+        val usesOffsetRange = !pref.isLogarithmic && pref.minValue < 0
         seekBar = layout.findViewById(R.id.pref_seekbar)
         seekBar!!.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, value: Int, fromUser: Boolean) {
-                if (value < pref.minValue) {
-                    seekBar.progress = pref.minValue
+                // 将 progress 换算为显示值
+                val displayValue = if (usesOffsetRange) value + pref.minValue else value
+
+                if (displayValue < pref.minValue) {
+                    seekBar.progress = if (usesOffsetRange) 0 else pref.minValue
+                    return
+                }
+                if (displayValue > pref.maxValue) {
+                    seekBar.progress = if (usesOffsetRange) pref.maxValue - pref.minValue else pref.maxValue
                     return
                 }
 
                 if (!pref.isLogarithmic) {
-                    val roundedValue = maxOf(pref.minValue, (value.toFloat() / pref.stepSize).roundToInt() * pref.stepSize)
-                    if (roundedValue != value) {
-                        seekBar.progress = roundedValue
+                    val roundedValue = maxOf(pref.minValue, (displayValue.toFloat() / pref.stepSize).roundToInt() * pref.stepSize)
+                    val snappedProgress = if (usesOffsetRange) roundedValue - pref.minValue else roundedValue
+                    if (snappedProgress != value) {
+                        seekBar.progress = snappedProgress
                         return
                     }
                 }
 
-                updateValueText(if (pref.isLogarithmic) pref.linearToLog(value) else value)
+                updateValueText(if (pref.isLogarithmic) pref.linearToLog(displayValue) else displayValue)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -106,12 +117,19 @@ class SeekBarPreferenceDialogFragment : PreferenceDialogFragmentCompat() {
         maxLabel.text = pref.formatDisplayValue(pref.maxValue)
 
         // Initialize seekbar
-        seekBar!!.max = pref.maxValue
+        // 负值域时 seekbar 最大进度为 (max-min)，进度 = 当前值 - min
+        seekBar!!.max = if (!usesOffsetRange) {
+            pref.maxValue
+        } else {
+            pref.maxValue - pref.minValue
+        }
         if (pref.keyStepSize != 0) {
             seekBar!!.keyProgressIncrement = pref.keyStepSize
         }
         seekBar!!.progress = if (pref.isLogarithmic && pref.currentValue > 0) {
             pref.logToLinear(pref.currentValue)
+        } else if (usesOffsetRange) {
+            (pref.currentValue - pref.minValue).coerceIn(0, pref.maxValue - pref.minValue)
         } else {
             pref.currentValue
         }
@@ -200,7 +218,11 @@ class SeekBarPreferenceDialogFragment : PreferenceDialogFragmentCompat() {
     override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult && seekBar != null) {
             val pref = pref
-            val valueToSave = if (pref.isLogarithmic) pref.linearToLog(seekBar!!.progress) else seekBar!!.progress
+            val valueToSave = when {
+                pref.isLogarithmic -> pref.linearToLog(seekBar!!.progress)
+                !pref.isLogarithmic && pref.minValue < 0 -> seekBar!!.progress + pref.minValue
+                else -> seekBar!!.progress
+            }
             if (pref.callChangeListener(valueToSave)) {
                 pref.setProgress(valueToSave)
             }

@@ -26,6 +26,9 @@ class MicrophoneCapture(
     private var gainControl: AutomaticGainControl? = null
     private var noiseSuppressor: NoiseSuppressor? = null
 
+    // 音量增益及其平衡处理器（软件音量处理）
+    private val volumeProcessor = MicrophoneVolumeProcessor()
+
     private val frameBuffer = ByteArray(MicrophoneConfig.BYTES_PER_FRAME)
     private var frameBufferPos = 0
 
@@ -64,6 +67,16 @@ class MicrophoneCapture(
                 release()
                 return false
             }
+
+            // 从配置加载音量增益及其平衡参数
+            volumeProcessor.configure(
+                enabled = MicrophoneConfig.isVolumeProcessingEnabled(),
+                gainEnabled = MicrophoneConfig.isVolumeGainEnabled(),
+                gainDb = MicrophoneConfig.getVolumeGainDb(),
+                balanceEnabled = MicrophoneConfig.isVolumeBalanceEnabled(),
+                balanceTargetPercent = MicrophoneConfig.getVolumeBalanceTargetPercent(),
+                voiceEnhancementEnabled = MicrophoneConfig.isVoiceEnhancementEnabled()
+            )
 
             initializeAudioEffects()
 
@@ -152,6 +165,8 @@ class MicrophoneCapture(
                     continue
                 }
 
+                // 先应用音量处理，再交给编码器。
+                volumeProcessor.processFrame(frameBuffer, 0, MicrophoneConfig.BYTES_PER_FRAME)
                 dataCallback.onMicrophoneData(frameBuffer, 0, MicrophoneConfig.BYTES_PER_FRAME)
                 frameBufferPos = 0
                 lastFrameTime = currentTime

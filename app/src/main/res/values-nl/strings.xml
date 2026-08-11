@@ -226,4 +226,18 @@
     <string name="title_document_handbook">Documentatie</string>
     <string name="summary_document_handbook">Gerelateerde documentatie bekijken</string>
     <string name="title_about_us">Over ons</string>
+    <string name="title_checkbox_mic_volume_processing">Microfoonvolumeverwerking</string>
+    <string name="summary_checkbox_mic_volume_processing">Pas het microfoonvolume aan voordat het naar de host wordt gestuurd. Vaste versterking en volumebalans sluiten elkaar uit.</string>
+    <string name="title_checkbox_mic_gain">Volumeversterking</string>
+    <string name="summary_checkbox_mic_gain">Pas het microfoonvolume met een vaste waarde aan. Positieve waarden versterken het en negatieve waarden dempen het.</string>
+    <string name="title_seekbar_mic_gain">Versterking</string>
+    <string name="summary_seekbar_mic_gain">Stel de vaste versterking in. 0 dB behoudt het oorspronkelijke volume en staat in het midden van de schuifregelaar.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Volumebalans</string>
+    <string name="summary_checkbox_mic_balance">Comprimeert luide invoer om volumeschommelingen en het risico op oversturing te verminderen.</string>
+    <string name="title_seekbar_mic_balance">Uitgangscompensatie</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Stel de compensatieversterking na volumebalans in. 50% komt overeen met +4 dB en is de aanbevolen waarde.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Spraakverbetering</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Vermindert laagfrequente ruis en verbetert de spraakhelderheid. Beschikbaar met vaste versterking en volumebalans.</string>
 </resources>

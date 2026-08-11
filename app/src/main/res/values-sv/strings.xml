@@ -289,4 +289,18 @@
     <string name="title_document_handbook">Dokumentation</string>
     <string name="summary_document_handbook">Visa relaterad dokumentation</string>
     <string name="title_about_us">Om oss</string>
+    <string name="title_checkbox_mic_volume_processing">Bearbetning av mikrofonvolym</string>
+    <string name="summary_checkbox_mic_volume_processing">Justera mikrofonvolymen innan den skickas till värden. Fast förstärkning och volymbalansering kan inte användas samtidigt.</string>
+    <string name="title_checkbox_mic_gain">Volymförstärkning</string>
+    <string name="summary_checkbox_mic_gain">Justera mikrofonvolymen med ett fast värde. Positiva värden förstärker den och negativa värden dämpar den.</string>
+    <string name="title_seekbar_mic_gain">Förstärkning</string>
+    <string name="summary_seekbar_mic_gain">Ange fast förstärkning. 0 dB behåller den ursprungliga volymen och ligger mitt på skjutreglaget.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Volymbalansering</string>
+    <string name="summary_checkbox_mic_balance">Komprimerar starka insignaler för att minska volymvariationer och risken för klippning.</string>
+    <string name="title_seekbar_mic_balance">Utgångskompensation</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Ange kompensationsförstärkningen efter volymbalansering. 50% motsvarar +4 dB och är det rekommenderade värdet.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Röstförbättring</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Minskar lågfrekvent brus och förbättrar talets tydlighet. Tillgängligt med fast förstärkning och volymbalansering.</string>
 </resources>

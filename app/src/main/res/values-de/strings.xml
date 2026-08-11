@@ -292,4 +292,18 @@
     <string name="title_document_handbook">Dokumentation</string>
     <string name="summary_document_handbook">Zugehörige Dokumentation anzeigen</string>
     <string name="title_about_us">Über uns</string>
+    <string name="title_checkbox_mic_volume_processing">Mikrofon-Lautstärkeverarbeitung</string>
+    <string name="summary_checkbox_mic_volume_processing">Passe die Mikrofonlautstärke an, bevor sie an den Host gesendet wird. Feste Verstärkung und Lautstärkeausgleich schließen sich gegenseitig aus.</string>
+    <string name="title_checkbox_mic_gain">Lautstärkeverstärkung</string>
+    <string name="summary_checkbox_mic_gain">Passe die Mikrofonlautstärke um einen festen Wert an. Positive Werte verstärken sie, negative schwächen sie ab.</string>
+    <string name="title_seekbar_mic_gain">Verstärkung</string>
+    <string name="summary_seekbar_mic_gain">Lege die feste Verstärkung fest. 0 dB behält die ursprüngliche Lautstärke bei und liegt in der Mitte des Schiebereglers.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Lautstärkeausgleich</string>
+    <string name="summary_checkbox_mic_balance">Komprimiert laute Eingangssignale, um Lautstärkeschwankungen und das Risiko von Übersteuerung zu verringern.</string>
+    <string name="title_seekbar_mic_balance">Ausgangskompensation</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Lege die Nachverstärkung nach dem Lautstärkeausgleich fest. 50% entsprechen +4 dB und sind der empfohlene Wert.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Sprachoptimierung</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Reduziert tieffrequentes Rauschen und verbessert die Sprachverständlichkeit. Verfügbar bei fester Verstärkung und Lautstärkeausgleich.</string>
 </resources>

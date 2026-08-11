@@ -289,4 +289,18 @@
     <string name="title_document_handbook">Dokumentacja</string>
     <string name="summary_document_handbook">Wyświetl powiązaną dokumentację</string>
     <string name="title_about_us">O nas</string>
+    <string name="title_checkbox_mic_volume_processing">Przetwarzanie głośności mikrofonu</string>
+    <string name="summary_checkbox_mic_volume_processing">Dostosuj głośność mikrofonu przed wysłaniem jej do hosta. Stałe wzmocnienie i balansowanie głośności wzajemnie się wykluczają.</string>
+    <string name="title_checkbox_mic_gain">Wzmocnienie głośności</string>
+    <string name="summary_checkbox_mic_gain">Dostosuj głośność mikrofonu o stałą wartość. Wartości dodatnie ją wzmacniają, a ujemne osłabiają.</string>
+    <string name="title_seekbar_mic_gain">Wzmocnienie</string>
+    <string name="summary_seekbar_mic_gain">Ustaw stałe wzmocnienie. 0 dB zachowuje pierwotną głośność i znajduje się na środku suwaka.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Balansowanie głośności</string>
+    <string name="summary_checkbox_mic_balance">Kompresuje głośny sygnał wejściowy, aby ograniczyć wahania głośności i ryzyko przesterowania.</string>
+    <string name="title_seekbar_mic_balance">Kompensacja wyjścia</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Ustaw wzmocnienie kompensacyjne po zbalansowaniu głośności. 50% odpowiada +4 dB i jest wartością zalecaną.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Uwydatnianie głosu</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Zmniejsza szum o niskiej częstotliwości i poprawia wyrazistość mowy. Dostępne przy stałym wzmocnieniu i balansowaniu głośności.</string>
 </resources>

@@ -5,4 +5,18 @@
     <string name="title_document_handbook">مستندات</string>
     <string name="summary_document_handbook">مشاهده مستندات مرتبط</string>
     <string name="title_about_us">درباره ما</string>
+    <string name="title_checkbox_mic_volume_processing">پردازش بلندی صدای میکروفون</string>
+    <string name="summary_checkbox_mic_volume_processing">بلندی صدای میکروفون را پیش از ارسال به میزبان تنظیم کنید. افزایش ثابت و متعادل‌سازی صدا را نمی‌توان هم‌زمان فعال کرد.</string>
+    <string name="title_checkbox_mic_gain">افزایش صدا</string>
+    <string name="summary_checkbox_mic_gain">بلندی صدای میکروفون را با مقداری ثابت تنظیم کنید. مقادیر مثبت صدا را تقویت و مقادیر منفی آن را تضعیف می‌کنند.</string>
+    <string name="title_seekbar_mic_gain">بهره</string>
+    <string name="summary_seekbar_mic_gain">بهره ثابت را تنظیم کنید. 0 dB بلندی اصلی را حفظ می‌کند و در مرکز لغزنده قرار دارد.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">متعادل‌سازی صدا</string>
+    <string name="summary_checkbox_mic_balance">ورودی‌های بلند را فشرده می‌کند تا نوسان بلندی صدا و خطر برش کاهش یابد.</string>
+    <string name="title_seekbar_mic_balance">جبران خروجی</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">بهره جبرانی پس از متعادل‌سازی صدا را تنظیم کنید. 50٪ برابر با +4 dB و مقدار پیشنهادی است.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">بهبود گفتار</string>
+    <string name="summary_checkbox_mic_voice_enhancement">نویز فرکانس پایین را کاهش می‌دهد و وضوح گفتار را بهبود می‌بخشد. در حالت افزایش ثابت و متعادل‌سازی صدا در دسترس است.</string>
 </resources>

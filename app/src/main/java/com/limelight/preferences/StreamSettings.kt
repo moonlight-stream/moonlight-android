@@ -2966,6 +2966,7 @@ class StreamSettings : AppCompatActivity() {
 
             setupFramegenPreferences()
             setupConfigSyncPreferences()
+            setupMicVolumeProcessingPreferences()
 
             // 让所有 ListPreference 在 summary 顶部显示当前选中值，
             // 避免用户必须点开才知道现值。原 summary 作为说明保留在第二行。
@@ -3872,6 +3873,35 @@ class StreamSettings : AppCompatActivity() {
                 PreferenceManager.getDefaultSharedPreferences(requireContext())
                     .getString(FramegenSettings.PREF_QUALITY_PRESET, null)
             )
+        }
+
+        /**
+         * 麦克风"音量增益及其平衡"：
+         * "音量增益"与"音量平衡"两个子功能互斥，开启一个时自动关闭另一个
+         */
+        private fun setupMicVolumeProcessingPreferences() {
+            val gainPref = findPreference<CheckBoxPreference>("checkbox_mic_gain")
+            val balancePref = findPreference<CheckBoxPreference>("checkbox_mic_balance")
+
+            // Imported or individually synced settings can briefly contain both flags.
+            // Gain has the same precedence as the runtime processor.
+            if (gainPref?.isChecked == true && balancePref?.isChecked == true) {
+                balancePref.isChecked = false
+            }
+
+            gainPref?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+                if (newValue == true) {
+                    balancePref?.setChecked(false)
+                }
+                true
+            }
+
+            balancePref?.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+                if (newValue == true) {
+                    gainPref?.setChecked(false)
+                }
+                true
+            }
         }
 
         private fun refreshDeveloperFeatureGateState() {

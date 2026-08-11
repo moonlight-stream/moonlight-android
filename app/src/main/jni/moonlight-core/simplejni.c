@@ -416,20 +416,20 @@ Java_com_limelight_nvstream_jni_MoonBridge_sendMicrophoneOpusData(JNIEnv *env, j
     }
     
     jsize length = (*env)->GetArrayLength(env, opusData);
-    if (length <= 0) {
+    if (length <= 0 || length > MAX_MIC_PACKET_SIZE) {
         return -1;
     }
-    
-    jbyte* data = (*env)->GetByteArrayElements(env, opusData, NULL);
-    if (data == NULL) {
+
+    // The common-c encryption helper appends block padding in place. JNI arrays
+    // only expose their logical length, so copy into client-owned storage with
+    // enough tail room before handing the payload to common-c.
+    unsigned char data[ROUND_TO_PKCS7_PADDED_LEN(MAX_MIC_PACKET_SIZE)];
+    (*env)->GetByteArrayRegion(env, opusData, 0, length, (jbyte*)data);
+    if ((*env)->ExceptionCheck(env)) {
         return -1;
     }
-    
-    int result = sendMicrophoneOpusData((const unsigned char*)data, (int)length);
-    
-    (*env)->ReleaseByteArrayElements(env, opusData, data, JNI_ABORT);
-    
-    return result;
+
+    return sendMicrophoneOpusData(data, (int)length);
 }
 
 JNIEXPORT jboolean JNICALL

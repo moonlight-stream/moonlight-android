@@ -300,4 +300,18 @@
     <string name="title_document_handbook">Документація</string>
     <string name="summary_document_handbook">Переглянути пов’язану документацію</string>
     <string name="title_about_us">Про нас</string>
+    <string name="title_checkbox_mic_volume_processing">Обробка гучності мікрофона</string>
+    <string name="summary_checkbox_mic_volume_processing">Налаштуйте гучність мікрофона перед надсиланням на хост. Фіксоване підсилення й балансування гучності взаємовиключні.</string>
+    <string name="title_checkbox_mic_gain">Підсилення гучності</string>
+    <string name="summary_checkbox_mic_gain">Змінюйте гучність мікрофона на фіксовану величину. Додатні значення підсилюють звук, а від’ємні послаблюють його.</string>
+    <string name="title_seekbar_mic_gain">Підсилення</string>
+    <string name="summary_seekbar_mic_gain">Установіть фіксоване підсилення. 0 dB зберігає початкову гучність і розташоване посередині повзунка.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Балансування гучності</string>
+    <string name="summary_checkbox_mic_balance">Стискає гучний вхідний сигнал, щоб зменшити коливання гучності та ризик перевантаження.</string>
+    <string name="title_seekbar_mic_balance">Компенсація виходу</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Установіть компенсаційне підсилення після балансування гучності. 50% відповідає +4 dB і є рекомендованим значенням.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Покращення голосу</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Зменшує низькочастотний шум і покращує чіткість мовлення. Доступне з фіксованим підсиленням і балансуванням гучності.</string>
 </resources>

@@ -160,4 +160,18 @@
     <string name="title_document_handbook">Документация</string>
     <string name="summary_document_handbook">Преглед на свързаната документация</string>
     <string name="title_about_us">За нас</string>
+    <string name="title_checkbox_mic_volume_processing">Обработка на силата на звука на микрофона</string>
+    <string name="summary_checkbox_mic_volume_processing">Регулирайте силата на звука на микрофона, преди да бъде изпратен към хоста. Фиксираното усилване и балансирането на звука се изключват взаимно.</string>
+    <string name="title_checkbox_mic_gain">Усилване на звука</string>
+    <string name="summary_checkbox_mic_gain">Регулирайте силата на звука на микрофона с фиксирана стойност. Положителните стойности го усилват, а отрицателните го намаляват.</string>
+    <string name="title_seekbar_mic_gain">Усилване</string>
+    <string name="summary_seekbar_mic_gain">Задайте фиксираното усилване. 0 dB запазва първоначалната сила на звука и е в средата на плъзгача.</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">Балансиране на звука</string>
+    <string name="summary_checkbox_mic_balance">Компресира силния входен сигнал, за да намали колебанията на звука и риска от изрязване.</string>
+    <string name="title_seekbar_mic_balance">Компенсация на изхода</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">Задайте компенсиращото усилване след балансиране на звука. 50% съответства на +4 dB и е препоръчителната стойност.</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">Подобряване на гласа</string>
+    <string name="summary_checkbox_mic_voice_enhancement">Намалява нискочестотния шум и подобрява яснотата на речта. Налично е при фиксирано усилване и балансиране на звука.</string>
 </resources>

@@ -206,6 +206,14 @@ class PreferenceConfiguration {
     var micIconColor: String = ""
     var micMenuActionMode: String = MIC_MENU_ACTION_SHOW_BUTTON
 
+    // 麦克风音量增益及其平衡设置
+    var micVolumeProcessingEnabled = false // 音量增益及其平衡总开关
+    var micGainEnabled = false // 音量增益（固定增益）
+    var micGainDb = 0 // 固定增益 dB -20~+20，0dB为原始音量
+    var micBalanceEnabled = false // 音量平衡（自动增益）
+    var micBalanceTargetPercent = 50 // 平衡目标音量百分比 1-100
+    var micVoiceEnhancementEnabled = true // 人声增强独立开关（默认开启）
+
     // ESC菜单设置
     var enableEscMenu = false
     var escMenuKey = 0
@@ -304,6 +312,12 @@ class PreferenceConfiguration {
                 .putInt(MIC_BITRATE_PREF_STRING, micBitrate)
                 .putString(MIC_ICON_COLOR_PREF_STRING, micIconColor)
                 .putString(MIC_MENU_ACTION_MODE_PREF_STRING, micMenuActionMode)
+                .putBoolean(MIC_VOLUME_PROCESSING_PREF_STRING, micVolumeProcessingEnabled)
+                .putBoolean(MIC_GAIN_ENABLED_PREF_STRING, micGainEnabled)
+                .putInt(MIC_GAIN_DB_PREF_STRING, micGainDb)
+                .putBoolean(MIC_BALANCE_ENABLED_PREF_STRING, micBalanceEnabled && !micGainEnabled)
+                .putInt(MIC_BALANCE_TARGET_PERCENT_PREF_STRING, micBalanceTargetPercent)
+                .putBoolean(MIC_VOICE_ENHANCEMENT_PREF_STRING, micVoiceEnhancementEnabled)
                 .putBoolean(ENABLE_ESC_MENU_PREF_STRING, enableEscMenu)
                 .putString(ESC_MENU_KEY_PREF_STRING, escMenuKey.toString())
                 .putBoolean(ENABLE_START_KEY_MENU_PREF_STRING, enableStartKeyMenu)
@@ -415,6 +429,12 @@ class PreferenceConfiguration {
         copy.micBitrate = this.micBitrate
         copy.micIconColor = this.micIconColor
         copy.micMenuActionMode = this.micMenuActionMode
+        copy.micVolumeProcessingEnabled = this.micVolumeProcessingEnabled
+        copy.micGainEnabled = this.micGainEnabled
+        copy.micGainDb = this.micGainDb
+        copy.micBalanceEnabled = this.micBalanceEnabled
+        copy.micBalanceTargetPercent = this.micBalanceTargetPercent
+        copy.micVoiceEnhancementEnabled = this.micVoiceEnhancementEnabled
         copy.enableEscMenu = this.enableEscMenu
         copy.escMenuKey = this.escMenuKey
         copy.enableStartKeyMenu = this.enableStartKeyMenu
@@ -540,6 +560,14 @@ class PreferenceConfiguration {
         private const val MIC_BITRATE_PREF_STRING = "seekbar_mic_bitrate_kbps"
         private const val MIC_ICON_COLOR_PREF_STRING = "list_mic_icon_color"
         private const val MIC_MENU_ACTION_MODE_PREF_STRING = "list_mic_menu_action_mode"
+
+        // 麦克风音量增益及其平衡设置
+        private const val MIC_VOLUME_PROCESSING_PREF_STRING = "checkbox_mic_volume_processing"
+        private const val MIC_GAIN_ENABLED_PREF_STRING = "checkbox_mic_gain"
+        private const val MIC_GAIN_DB_PREF_STRING = "seekbar_mic_gain_db"
+        private const val MIC_BALANCE_ENABLED_PREF_STRING = "checkbox_mic_balance"
+        private const val MIC_BALANCE_TARGET_PERCENT_PREF_STRING = "seekbar_mic_balance_target"
+        private const val MIC_VOICE_ENHANCEMENT_PREF_STRING = "checkbox_mic_voice_enhancement"
 
         private const val ENABLE_ESC_MENU_PREF_STRING = "checkbox_enable_esc_menu"
         private const val ESC_MENU_KEY_PREF_STRING = "list_esc_menu_key"
@@ -726,6 +754,14 @@ class PreferenceConfiguration {
         const val MIC_MENU_ACTION_SHOW_BUTTON = "show_button"
         const val MIC_MENU_ACTION_TOGGLE_MIC = "toggle_microphone"
         private const val DEFAULT_MIC_MENU_ACTION_MODE = MIC_MENU_ACTION_SHOW_BUTTON
+
+        // 麦克风音量增益及其平衡默认值
+        private const val DEFAULT_MIC_VOLUME_PROCESSING = false
+        private const val DEFAULT_MIC_GAIN_ENABLED = false
+        private const val DEFAULT_MIC_GAIN_DB = 0
+        private const val DEFAULT_MIC_BALANCE_ENABLED = false
+        private const val DEFAULT_MIC_BALANCE_TARGET_PERCENT = 50
+        private const val DEFAULT_MIC_VOICE_ENHANCEMENT = true
         private const val DEFAULT_ENABLE_ESC_MENU = true // 默认启用ESC菜单
         private val DEFAULT_ESC_MENU_KEY = KeyEvent.KEYCODE_ESCAPE
         private const val DEFAULT_ENABLE_START_KEY_MENU = true // 默认启用长按start键菜单
@@ -1367,6 +1403,15 @@ class PreferenceConfiguration {
             config.micBitrate = prefs.getInt(MIC_BITRATE_PREF_STRING, DEFAULT_MIC_BITRATE)
             config.micIconColor = prefs.getString(MIC_ICON_COLOR_PREF_STRING, DEFAULT_MIC_ICON_COLOR) ?: DEFAULT_MIC_ICON_COLOR
             config.micMenuActionMode = prefs.getString(MIC_MENU_ACTION_MODE_PREF_STRING, DEFAULT_MIC_MENU_ACTION_MODE) ?: DEFAULT_MIC_MENU_ACTION_MODE
+
+            // 读取麦克风音量增益及其平衡设置
+            config.micVolumeProcessingEnabled = prefs.getBoolean(MIC_VOLUME_PROCESSING_PREF_STRING, DEFAULT_MIC_VOLUME_PROCESSING)
+            config.micGainEnabled = prefs.getBoolean(MIC_GAIN_ENABLED_PREF_STRING, DEFAULT_MIC_GAIN_ENABLED)
+            config.micGainDb = prefs.getInt(MIC_GAIN_DB_PREF_STRING, DEFAULT_MIC_GAIN_DB).coerceIn(-20, 20)
+            config.micBalanceEnabled = prefs.getBoolean(MIC_BALANCE_ENABLED_PREF_STRING, DEFAULT_MIC_BALANCE_ENABLED) &&
+                    !config.micGainEnabled
+            config.micBalanceTargetPercent = prefs.getInt(MIC_BALANCE_TARGET_PERCENT_PREF_STRING, DEFAULT_MIC_BALANCE_TARGET_PERCENT).coerceIn(1, 100)
+            config.micVoiceEnhancementEnabled = prefs.getBoolean(MIC_VOICE_ENHANCEMENT_PREF_STRING, DEFAULT_MIC_VOICE_ENHANCEMENT)
 
             // 读取ESC菜单设置
             config.enableEscMenu = prefs.getBoolean(ENABLE_ESC_MENU_PREF_STRING, DEFAULT_ENABLE_ESC_MENU)

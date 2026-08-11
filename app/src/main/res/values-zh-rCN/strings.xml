@@ -639,6 +639,20 @@
     <string name="summary_seekbar_mic_bitrate">调整麦克风重定向的音频质量，更高的比特率提供更好的音频质量，但会使用更多带宽。</string>
     <string name="title_list_mic_icon_color">麦克风图标颜色</string>
     <string name="summary_list_mic_icon_color">选择麦克风按钮图标的颜色。</string>
+    <string name="title_checkbox_mic_volume_processing">麦克风音量处理</string>
+    <string name="summary_checkbox_mic_volume_processing">在发送到主机前调整麦克风音量。固定增益与音量平衡只能选择一种。</string>
+    <string name="title_checkbox_mic_gain">音量增益</string>
+    <string name="summary_checkbox_mic_gain">按固定增益调整麦克风音量：正值放大，负值衰减。</string>
+    <string name="title_seekbar_mic_gain">增益</string>
+    <string name="summary_seekbar_mic_gain">设置固定增益。0 dB 保持原始音量，滑块中点为 0 dB。</string>
+    <string name="suffix_seekbar_mic_gain_db">dB</string>
+    <string name="title_checkbox_mic_balance">音量平衡</string>
+    <string name="summary_checkbox_mic_balance">压缩过大的声音，减小音量波动并降低削波风险。</string>
+    <string name="title_seekbar_mic_balance">输出补偿</string>
+    <string name="summary_seekbar_mic_balance" formatted="false">设置音量平衡处理后的增益补偿。50% 对应 +4 dB，为推荐值。</string>
+    <string name="suffix_seekbar_mic_balance_target" formatted="false">%</string>
+    <string name="title_checkbox_mic_voice_enhancement">人声增强</string>
+    <string name="summary_checkbox_mic_voice_enhancement">减少低频噪声并提升语音清晰度，可用于固定增益和音量平衡模式。</string>
     <string name="title_checkbox_reduce_refresh_rate">允许降低刷新率</string>
     <string name="summary_checkbox_reduce_refresh_rate">较低的屏幕刷新率可以在增加一些视频延迟的情况下省电。</string>
     <string name="frame_conversion_error">主机 PC 报告了致命的视频编码错误。

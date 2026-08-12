@@ -20,6 +20,34 @@ import com.limelight.preferences.PreferenceConfiguration
 import com.limelight.ui.StreamView
 import kotlin.math.*
 
+internal inline fun containsStylusTool(pointerCount: Int, toolTypeAt: (Int) -> Int): Boolean {
+    for (i in 0 until pointerCount) {
+        when (toolTypeAt(i)) {
+            MotionEvent.TOOL_TYPE_STYLUS,
+            MotionEvent.TOOL_TYPE_ERASER -> return true
+        }
+    }
+    return false
+}
+
+internal const val CURRENT_MOTION_SAMPLE = -1
+
+internal inline fun visitMotionEventSamples(
+    historySize: Int,
+    pointerCount: Int,
+    visitor: (pointerIndex: Int, historyPosition: Int) -> Boolean
+): Boolean {
+    for (historyPosition in 0 until historySize) {
+        for (pointerIndex in 0 until pointerCount) {
+            if (!visitor(pointerIndex, historyPosition)) return false
+        }
+    }
+    for (pointerIndex in 0 until pointerCount) {
+        if (!visitor(pointerIndex, CURRENT_MOTION_SAMPLE)) return false
+    }
+    return true
+}
+
 /**
  * 处理所有触控/鼠标/触控笔 MotionEvent 逻辑。
  * 从 Game.java 提取，保持行为完全一致。
@@ -32,6 +60,7 @@ class TouchInputHandler(private val game: Game) {
     val relativeTouchContextMap = arrayOfNulls<TouchContext>(TOUCH_CONTEXT_LENGTH)
 
     // ---- 触控私有状态 ----
+    // Mouse-only baseline. Pen packets carry their full button state independently.
     private var lastButtonState = 0
     private var multiFingerDownTime = 0L
 
@@ -61,6 +90,7 @@ class TouchInputHandler(private val game: Game) {
     var detectMouseMiddle = false         // 键盘处理也会读写
     var detectMouseMiddleDown = false     // 键盘处理也会读写
     private val nonRootTouchpadHandler = NonRootTouchpadHandler()
+    private val penPointerCoords = MotionEvent.PointerCoords()
 
     // ---- 公共入口 ----
 
@@ -69,9 +99,14 @@ class TouchInputHandler(private val game: Game) {
         if (!game.grabbedInput) return false
 
         val eventSource = event.source
+        val hasStylusTool = eventHasStylusTool(event)
+
+        if (view != null && hasStylusTool && trySendPenEvent(view, event)) {
+            return true
+        }
 
         if (!BuildConfig.ROOT_BUILD && game.prefConfig.optimizeHardwareTouchpad &&
-            !eventHasStylusTool(event) &&
+            !hasStylusTool &&
             NonRootTouchpadHandler.isHardwareTouchpadEvent(event)) {
             if (game.inputCaptureProvider.isCapturingActive()) {
                 nonRootTouchpadHandler.handleMotionEvent(event, game.conn)
@@ -255,11 +290,6 @@ class TouchInputHandler(private val game: Game) {
                     changedButtons = buttonState xor lastButtonState
                 }
 
-                if (view != null && eventHasStylusTool(event) && trySendPenEvent(view, event)) {
-                    lastButtonState = buttonState
-                    return true
-                }
-
                 if (!game.inputCaptureProvider.isCapturingActive()) {
                     return true
                 }
@@ -295,8 +325,6 @@ class TouchInputHandler(private val game: Game) {
                             }
                         }
                     }
-                } else if (view != null && trySendPenEvent(view, event)) {
-                    return true
                 } else if (view != null) {
                     updateMousePosition(view, event)
                 }
@@ -736,9 +764,13 @@ class TouchInputHandler(private val game: Game) {
     }
 
     private fun getStreamViewRelativeNormalizedXY(view: View?, event: MotionEvent, pointerIndex: Int): FloatArray {
-        val activeStreamView = game.activeStreamView ?: return floatArrayOf(0f, 0f)
         val rawX = event.getX(pointerIndex)
         val rawY = event.getY(pointerIndex)
+        return getStreamViewRelativeNormalizedXY(view, rawX, rawY)
+    }
+
+    private fun getStreamViewRelativeNormalizedXY(view: View?, rawX: Float, rawY: Float): FloatArray {
+        val activeStreamView = game.activeStreamView ?: return floatArrayOf(0f, 0f)
 
         if (game.externalDisplayManager != null && game.externalDisplayManager?.isUsingExternalDisplay() == true) {
             val touchWidth: Float
@@ -800,6 +832,24 @@ class TouchInputHandler(private val game: Game) {
             }
         }
 
+        return getStreamViewNormalizedContactArea(contactAreaMajor, contactAreaMinor, orientation)
+    }
+
+    private fun getStreamViewNormalizedContactArea(event: MotionEvent, pointerCoords: MotionEvent.PointerCoords): FloatArray {
+        val orientation = if (event.device == null || event.device.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.source) == null) {
+            (Math.PI / 4).toFloat()
+        } else {
+            pointerCoords.orientation
+        }
+        val isHover = event.actionMasked == MotionEvent.ACTION_HOVER_ENTER ||
+            event.actionMasked == MotionEvent.ACTION_HOVER_MOVE ||
+            event.actionMasked == MotionEvent.ACTION_HOVER_EXIT
+        val contactAreaMajor = if (isHover) pointerCoords.toolMajor else pointerCoords.touchMajor
+        val contactAreaMinor = if (isHover) pointerCoords.toolMinor else pointerCoords.touchMinor
+        return getStreamViewNormalizedContactArea(contactAreaMajor, contactAreaMinor, orientation)
+    }
+
+    private fun getStreamViewNormalizedContactArea(contactAreaMajor: Float, contactAreaMinor: Float, orientation: Float): FloatArray {
         val majorCart = polarToCartesian(contactAreaMajor, orientation)
         val minorCart = polarToCartesian(contactAreaMinor, (orientation + (Math.PI / 2).toFloat()))
 
@@ -815,7 +865,44 @@ class TouchInputHandler(private val game: Game) {
         return floatArrayOf(cartesianToR(majorCart), cartesianToR(minorCart))
     }
 
-    private fun sendPenEventForPointer(view: View, event: MotionEvent, eventType: Byte, toolType: Byte, pointerIndex: Int): Boolean {
+    private fun getPressureOrDistance(event: MotionEvent, pointerCoords: MotionEvent.PointerCoords): Float {
+        return when (event.actionMasked) {
+            MotionEvent.ACTION_HOVER_ENTER, MotionEvent.ACTION_HOVER_MOVE, MotionEvent.ACTION_HOVER_EXIT -> {
+                val distanceRange = event.device?.getMotionRange(MotionEvent.AXIS_DISTANCE, event.source)
+                if (distanceRange != null) {
+                    normalizeValueInRange(pointerCoords.getAxisValue(MotionEvent.AXIS_DISTANCE), distanceRange)
+                } else {
+                    0f
+                }
+            }
+            else -> pointerCoords.pressure
+        }
+    }
+
+    private fun getRotationDegrees(event: MotionEvent, pointerCoords: MotionEvent.PointerCoords): Short {
+        if (event.device?.getMotionRange(MotionEvent.AXIS_ORIENTATION, event.source) != null) {
+            var rotationDegrees = Math.toDegrees(pointerCoords.orientation.toDouble()).toInt().toShort()
+            if (rotationDegrees < 0) rotationDegrees = (rotationDegrees + 360).toShort()
+            return rotationDegrees
+        }
+        return MoonBridge.LI_ROT_UNKNOWN
+    }
+
+    private fun sendPenEventForPointer(
+        view: View,
+        event: MotionEvent,
+        eventType: Byte,
+        toolType: Byte,
+        pointerIndex: Int,
+        historyPosition: Int = CURRENT_MOTION_SAMPLE
+    ): Boolean {
+        val pointerCoords = penPointerCoords
+        if (historyPosition == CURRENT_MOTION_SAMPLE) {
+            event.getPointerCoords(pointerIndex, pointerCoords)
+        } else {
+            event.getHistoricalPointerCoords(pointerIndex, historyPosition, pointerCoords)
+        }
+
         var penButtons: Byte = 0
         if (event.buttonState and MotionEvent.BUTTON_STYLUS_PRIMARY != 0) {
             penButtons = (penButtons.toInt() or MoonBridge.LI_PEN_BUTTON_PRIMARY.toInt()).toByte()
@@ -827,17 +914,17 @@ class TouchInputHandler(private val game: Game) {
         var tiltDegrees = MoonBridge.LI_TILT_UNKNOWN
         val dev = event.device
         if (dev?.getMotionRange(MotionEvent.AXIS_TILT, event.source) != null) {
-            tiltDegrees = Math.toDegrees(event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex).toDouble()).toInt().toByte()
+            tiltDegrees = Math.toDegrees(pointerCoords.getAxisValue(MotionEvent.AXIS_TILT).toDouble()).toInt().toByte()
         }
 
-        val normalizedCoords = getStreamViewRelativeNormalizedXY(view, event, pointerIndex)
-        val normalizedContactArea = getStreamViewNormalizedContactArea(event, pointerIndex)
+        val normalizedCoords = getStreamViewRelativeNormalizedXY(view, pointerCoords.x, pointerCoords.y)
+        val normalizedContactArea = getStreamViewNormalizedContactArea(event, pointerCoords)
         return game.conn?.sendPenEvent(
             eventType, toolType, penButtons,
             normalizedCoords[0], normalizedCoords[1],
-            getPressureOrDistance(event, pointerIndex),
+            getPressureOrDistance(event, pointerCoords),
             normalizedContactArea[0], normalizedContactArea[1],
-            getRotationDegrees(event, pointerIndex), tiltDegrees
+            getRotationDegrees(event, pointerCoords), tiltDegrees
         ) != MoonBridge.LI_ERR_UNSUPPORTED
     }
 
@@ -847,17 +934,19 @@ class TouchInputHandler(private val game: Game) {
 
         if (event.actionMasked == MotionEvent.ACTION_MOVE) {
             var handledStylusEvent = false
-            for (i in 0 until event.pointerCount) {
-                val toolType = convertToolTypeToStylusToolType(event, i)
-                if (toolType == MoonBridge.LI_TOOL_TYPE_UNKNOWN) continue
-                handledStylusEvent = true
-
-                if (game.prefConfig.enableEnhancedTouch) {
-                    nativeTouchPointerMap[event.getPointerId(i)]?.updatePointerCoords(event, i)
+            val sentAllSamples = visitMotionEventSamples(event.historySize, event.pointerCount) { pointerIndex, historyPosition ->
+                val toolType = convertToolTypeToStylusToolType(event, pointerIndex)
+                if (toolType == MoonBridge.LI_TOOL_TYPE_UNKNOWN) {
+                    true
+                } else {
+                    handledStylusEvent = true
+                    if (historyPosition == CURRENT_MOTION_SAMPLE && game.prefConfig.enableEnhancedTouch) {
+                        nativeTouchPointerMap[event.getPointerId(pointerIndex)]?.updatePointerCoords(event, pointerIndex)
+                    }
+                    sendPenEventForPointer(view, event, eventType, toolType, pointerIndex, historyPosition)
                 }
-                if (!sendPenEventForPointer(view, event, eventType, toolType, i)) return false
             }
-            return handledStylusEvent
+            return sentAllSamples && handledStylusEvent
         } else if (event.actionMasked == MotionEvent.ACTION_CANCEL) {
             return game.conn?.sendPenEvent(
                 MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, MoonBridge.LI_TOOL_TYPE_UNKNOWN, 0,
@@ -1002,15 +1091,8 @@ class TouchInputHandler(private val game: Game) {
         )
     }
 
-    private fun eventHasStylusTool(event: MotionEvent): Boolean {
-        for (i in 0 until event.pointerCount) {
-            when (event.getToolType(i)) {
-                MotionEvent.TOOL_TYPE_STYLUS,
-                MotionEvent.TOOL_TYPE_ERASER -> return true
-            }
-        }
-        return false
-    }
+    private fun eventHasStylusTool(event: MotionEvent): Boolean =
+        containsStylusTool(event.pointerCount) { event.getToolType(it) }
 
     fun getRelativeTouchContextMap(): Array<RelativeTouchContext?> =
         Array(relativeTouchContextMap.size) { i ->

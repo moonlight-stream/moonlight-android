@@ -38,6 +38,10 @@ import android.widget.Toast
 import androidx.core.view.WindowCompat
 
 class AddComputerManually : Activity() {
+    companion object {
+        const val EXTRA_ADDED_COMPUTER_UUID = "com.limelight.extra.ADDED_COMPUTER_UUID"
+    }
+
     private lateinit var hostText: EditText
     private lateinit var portText: EditText
     private lateinit var addPcButton: Button
@@ -165,6 +169,7 @@ class AddComputerManually : Activity() {
         var portTestResult: Int
         var hostAddress: String? = null
         var isIPv6 = false
+        var addedComputerUuid: String? = null
 
         val dialog = SpinnerDialog.displayDialog(this, resources.getString(R.string.title_add_pc),
                 resources.getString(R.string.msg_add_pc), false)
@@ -186,6 +191,9 @@ class AddComputerManually : Activity() {
 
                 details.manualAddress = ComputerDetails.AddressTuple(host, port)
                 success = managerBinder!!.addComputerBlocking(details)
+                if (success) {
+                    addedComputerUuid = details.uuid
+                }
                 if (!success) {
                     activeNetworkIsVpn = NetHelper.isActiveNetworkVpn(this)
                     // A VPN may route private subnets that don't match any local
@@ -242,6 +250,10 @@ class AddComputerManually : Activity() {
                 Toast.makeText(this@AddComputerManually, resources.getString(R.string.addpc_success), Toast.LENGTH_LONG).show()
 
                 if (!isFinishing) {
+                    setResult(
+                        RESULT_OK,
+                        Intent().putExtra(EXTRA_ADDED_COMPUTER_UUID, addedComputerUuid)
+                    )
                     this@AddComputerManually.finish()
                 }
             }

@@ -168,6 +168,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         private const val SHAKE_DEBOUNCE_INTERVAL = 3000L
         private const val MAX_DAILY_REFRESH = 7
         private const val VPN_PERMISSION_REQUEST_CODE = 101
+        private const val ADD_COMPUTER_REQUEST_CODE = 102
 
         private const val REFRESH_PREF_NAME = "RefreshLimit"
         private const val REFRESH_COUNT_KEY = "refresh_count"
@@ -217,6 +218,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     private var startupUpdateCheckRan = false
     private var lastShakeTime = 0L
     private var activeSceneNumber: Int? = null
+    private var pendingAddedComputerUuid: String? = null
 
     // Helpers
     private lateinit var shortcutHelper: ShortcutHelper
@@ -262,6 +264,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             // 即便预热慢于首次 tryPollIp，也只是把"加密初始化"这段时间从串行变成
             // 与网络往返重叠，最坏情况持平、最佳情况节省整段证书时间。
             managerBinder = localBinder
+            showPendingAddedComputer()
             startComputerUpdates()
 
             // 后台预热：等 DiscoveryService bind（mDNS 可能还没好），并把客户端证书
@@ -2016,7 +2019,10 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             onAction = { action ->
                 when (action.id) {
                     ADD_PC_MANUALLY_ID ->
-                    startActivity(Intent(this, AddComputerManually::class.java))
+                    startActivityForResult(
+                        Intent(this, AddComputerManually::class.java),
+                        ADD_COMPUTER_REQUEST_CODE
+                    )
                     ADD_PC_QR_SCAN_ID -> startQrScan()
                 }
             }
@@ -3251,12 +3257,29 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             return
         }
 
+        if (requestCode == ADD_COMPUTER_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                pendingAddedComputerUuid = data?.getStringExtra(
+                    AddComputerManually.EXTRA_ADDED_COMPUTER_UUID
+                )
+                showPendingAddedComputer()
+            }
+            return
+        }
+
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_PERMISSION_REQUEST_CODE && easyTierController != null) {
             easyTierController?.handleVpnPermissionResult(resultCode)
         } else if (requestCode == UpdateManager.INSTALL_PERMISSION_REQUEST_CODE) {
             UpdateManager.onInstallPermissionResult(this)
         }
+    }
+
+    private fun showPendingAddedComputer() {
+        val uuid = pendingAddedComputerUuid ?: return
+        val details = managerBinder?.getComputer(uuid) ?: return
+        pendingAddedComputerUuid = null
+        updateComputer(details)
     }
 
     // Utility

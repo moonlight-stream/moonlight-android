@@ -91,12 +91,12 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.content.edit
-import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.isNotEmpty
 import androidx.preference.PreferenceManager
 import kotlin.math.ceil
-import kotlin.math.roundToInt
 
 class AppView : ComponentActivity(), AdapterFragmentCallbacks {
 
@@ -1852,7 +1852,6 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
 
             val itemCount = appGridAdapter?.count ?: 0
             val totalRows = ceil(itemCount.toDouble() / spanCount).toInt()
-            val screenWidth = resources.displayMetrics.widthPixels
             var actualItemSize = getCurrentItemWidth()
 
             // 如果RecyclerView已经有子视图,优先使用实际测量的尺寸
@@ -1865,8 +1864,25 @@ class AppView : ComponentActivity(), AdapterFragmentCallbacks {
 
             // 计算并设置居中padding
             val totalWidth = actualItemSize * totalRows
-            val horizontalPadding = if (totalWidth < screenWidth) (screenWidth - totalWidth) / 2 else 0
-            rv.setPadding(horizontalPadding, rv.paddingTop, horizontalPadding, rv.paddingBottom)
+            val rootInsets = ViewCompat.getRootWindowInsets(rv)
+            val systemBars = rootInsets?.getInsets(WindowInsetsCompat.Type.systemBars())
+            val displayCutout = rootInsets?.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val safeLeft = maxOf(systemBars?.left ?: 0, displayCutout?.left ?: 0)
+            val safeRight = maxOf(systemBars?.right ?: 0, displayCutout?.right ?: 0)
+            val availableWidth = ((if (rv.width > 0) rv.width else resources.displayMetrics.widthPixels) -
+                    safeLeft - safeRight).coerceAtLeast(0)
+            val minimumEdgePadding = resources.getDimensionPixelSize(R.dimen.appview_edge_margin)
+            val contentPadding = if (totalWidth < availableWidth) {
+                ((availableWidth - totalWidth) / 2).coerceAtLeast(minimumEdgePadding)
+            } else {
+                minimumEdgePadding
+            }
+            rv.setPadding(
+                safeLeft + contentPadding,
+                rv.paddingTop,
+                safeRight + contentPadding,
+                rv.paddingBottom
+            )
 
             // 如果需要聚焦第一个应用，等待布局完成后再设置焦点和聚焦框位置
             if (shouldFocusFirstApp) {

@@ -3,14 +3,14 @@
     <!-- 按下状态 -->
     <item android:state_pressed="true">
         <shape>
-            <corners android:radius="16dp" />
+            <corners android:radius="@dimen/corner_radius_large" />
             <solid android:color="#4DFFFFFF" />
         </shape>
     </item>
     <!-- 默认状态 -->
     <item>
         <shape>
-            <corners android:radius="16dp" />
+            <corners android:radius="@dimen/corner_radius_large" />
             <solid android:color="#33FFFFFF" />
         </shape>
     </item>

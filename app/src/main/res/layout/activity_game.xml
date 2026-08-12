@@ -199,7 +199,7 @@
         android:layout_gravity="right"
         android:visibility="gone"
         android:preferKeepClear="true"
-        app:cardCornerRadius="20dp"
+        app:cardCornerRadius="@dimen/corner_radius_overlay"
         app:cardElevation="16dp"
         app:cardBackgroundColor="#80FF5722"
         app:cardUseCompatPadding="true"
@@ -258,7 +258,7 @@
         android:preferKeepClear="true"
         tools:ignore="UnusedAttribute"
         app:cardBackgroundColor="#F0202033"
-        app:cardCornerRadius="14dp"
+        app:cardCornerRadius="@dimen/corner_radius_medium"
         app:cardElevation="12dp">
 
         <LinearLayout

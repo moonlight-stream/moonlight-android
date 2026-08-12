@@ -8,7 +8,7 @@
                 android:centerColor="@color/pc_item_surface_pressed_center"
                 android:endColor="@color/pc_item_surface_pressed_end"
                 android:angle="135" />
-            <corners android:radius="12dp"/>
+            <corners android:radius="@dimen/corner_radius_large"/>
             <stroke android:width="2dp" android:color="@color/pc_item_outline_focused"/>
         </shape>
     </item>
@@ -21,7 +21,7 @@
                 android:centerColor="@color/pc_item_surface_focused_center"
                 android:endColor="@color/pc_item_surface_focused_end"
                 android:angle="135" />
-            <corners android:radius="12dp"/>
+            <corners android:radius="@dimen/corner_radius_large"/>
         </shape>
     </item>
 
@@ -33,7 +33,7 @@
                 android:centerColor="@color/pc_item_surface_focused_center"
                 android:endColor="@color/pc_item_surface_focused_end"
                 android:angle="135" />
-            <corners android:radius="12dp"/>
+            <corners android:radius="@dimen/corner_radius_large"/>
         </shape>
     </item>
     
@@ -45,7 +45,7 @@
                 android:centerColor="@color/pc_item_surface_default_center"
                 android:endColor="@color/pc_item_surface_default_end"
                 android:angle="135" />
-            <corners android:radius="12dp"/>
+            <corners android:radius="@dimen/corner_radius_large"/>
         </shape>
     </item>
 </selector>

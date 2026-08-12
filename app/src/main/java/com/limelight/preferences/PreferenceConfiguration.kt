@@ -730,7 +730,7 @@ class PreferenceConfiguration {
         private const val DEFAULT_LATENCY_TOAST = false
         private const val DEFAULT_ENABLE_STUN = false
         private const val DEFAULT_SCREEN_COMBINATION_MODE = "-1"
-        const val DEFAULT_FRAME_PACING = "latency"
+        const val DEFAULT_FRAME_PACING = "precise-sync"
         private const val DEFAULT_ABSOLUTE_MOUSE_MODE = false
         private const val DEFAULT_ENABLE_NATIVE_MOUSE_POINTER = false
         private const val DEFAULT_ENABLE_AUDIO_FX = false

@@ -6,7 +6,7 @@
             <stroke
                 android:width="1dp"
                 android:color="@color/crown_accent" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
     <item android:state_focused="true">
@@ -15,13 +15,13 @@
             <stroke
                 android:width="1dp"
                 android:color="@color/crown_accent" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <solid android:color="@color/crown_accent" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
 </selector>

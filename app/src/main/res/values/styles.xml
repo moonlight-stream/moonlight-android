@@ -27,6 +27,7 @@
         <item name="android:windowTranslucentStatus">false</item>
         <item name="android:windowTranslucentNavigation">false</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:buttonStyle">@style/AppButtonStyle</item>
     </style>
 
     <!--
@@ -52,6 +53,19 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:buttonStyle">@style/AppButtonStyle</item>
+    </style>
+
+    <!-- Default filled button: regular actions use the shared 12dp radius. -->
+    <style name="AppButtonStyle" parent="android:Widget.Button">
+        <item name="android:background">@drawable/app_button_background</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:paddingRight">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:elevation">0dp</item>
     </style>
     
     <!-- 虚拟键盘基础样式 -->
@@ -169,6 +183,8 @@
         <item name="android:textColorPrimary">@color/settings_preference_title_text</item>
         <item name="android:textColorSecondary">@color/settings_preference_summary_text</item>
         <item name="preferenceTheme">@style/MyPreferenceThemeOverlay</item>
+        <item name="android:buttonStyle">@style/AppButtonStyle</item>
+        <item name="buttonStyle">@style/AppButtonStyle</item>
     </style>
 
     <!-- 自定义 Preference 主题：紧凑左缩进 (无 icon 不预留空间) -->
@@ -253,6 +269,7 @@
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowAnimationStyle">@style/GameMenuDialogAnimation</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:buttonStyle">@style/GameMenuButtonStyle</item>
     </style>
 
     <!-- GameMenu 按钮样式 -->
@@ -319,6 +336,11 @@
         <item name="android:listDivider">@color/app_dialog_outline</item>
         <!-- 标题样式 -->
         <item name="android:windowTitleStyle">@style/AppDialogTitleStyle</item>
+        <item name="android:buttonStyle">@style/AppDialogButtonStyle</item>
+        <item name="buttonStyle">@style/AppDialogButtonStyle</item>
+        <item name="buttonBarPositiveButtonStyle">@style/AppDialogButtonStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/AppDialogButtonStyle</item>
+        <item name="buttonBarNeutralButtonStyle">@style/AppDialogButtonStyle</item>
     </style>
 
     <style name="AppActionSheetAnimation">

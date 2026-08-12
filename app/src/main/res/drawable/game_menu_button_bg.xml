@@ -7,7 +7,7 @@
                 android:centerColor="@color/theme_pink_gradient_center"
                 android:endColor="@color/theme_pink_gradient_end"
                 android:angle="45" />
-            <corners android:radius="12dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
             <stroke android:width="1.5dp" android:color="@color/theme_pink_primary" />
         </shape>
     </item>
@@ -18,7 +18,7 @@
                 android:centerColor="@color/theme_pink_gradient_center"
                 android:endColor="@color/theme_pink_gradient_end"
                 android:angle="45" />
-            <corners android:radius="12dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
             <stroke android:width="1.5dp" android:color="@color/theme_blue_primary" />
         </shape>
     </item>
@@ -29,7 +29,7 @@
                 android:centerColor="@color/theme_pink_gradient_center"
                 android:endColor="@color/theme_pink_gradient_end"
                 android:angle="45" />
-            <corners android:radius="12dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
             <stroke android:width="1.5dp" android:color="@color/theme_pink_primary" />
         </shape>
     </item>
@@ -40,7 +40,7 @@
                 android:centerColor="@color/theme_pink_gradient_center"
                 android:endColor="@color/theme_pink_gradient_end"
                 android:angle="45" />
-            <corners android:radius="12dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
             <stroke android:width="1dp" android:color="@color/theme_pink_dark" />
         </shape>
     </item>

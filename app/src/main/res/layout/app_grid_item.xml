@@ -10,7 +10,7 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:cardCornerRadius="4dp">
+        app:cardCornerRadius="@dimen/corner_radius_small">
     <ImageView
         android:id="@+id/grid_image"
         android:scaleType="centerCrop"

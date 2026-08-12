@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import com.easytier.jni.EasyTierManager
 import com.limelight.LimeLog
 import com.limelight.R
+import com.limelight.ui.theme.AppShapes
 import com.limelight.utils.AppDialogStyler
 
 import org.json.JSONArray
@@ -232,7 +233,7 @@ class EasyTierController(
                         modifier = Modifier
                                 .widthIn(max = 560.dp)
                                 .heightIn(max = 560.dp),
-                        shape = RoundedCornerShape(10.dp),
+                        shape = AppShapes.medium,
                         color = panel,
                         tonalElevation = 0.dp,
                         shadowElevation = 12.dp
@@ -313,13 +314,15 @@ class EasyTierController(
                         ) {
                             TextButton(
                                     onClick = { onAction(EasyTierDialogAction.Close) },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    shape = AppShapes.medium
                             ) {
                                 Text(stringResource(R.string.dialog_button_close))
                             }
                             ComposeButton(
                                     onClick = { onAction(EasyTierDialogAction.SaveConfig) },
                                     modifier = Modifier.weight(1.25f),
+                                    shape = AppShapes.medium,
                                     colors = ButtonDefaults.buttonColors(
                                             containerColor = input,
                                             contentColor = textPrimary
@@ -331,6 +334,7 @@ class EasyTierController(
                             ComposeButton(
                                     onClick = { onAction(EasyTierDialogAction.ToggleService) },
                                     modifier = Modifier.weight(1.25f),
+                                    shape = AppShapes.medium,
                                     colors = ButtonDefaults.buttonColors(
                                             containerColor = accent,
                                             contentColor = colorResource(R.color.app_dialog_text_primary)
@@ -379,6 +383,7 @@ class EasyTierController(
             ComposeButton(
                     onClick = onRefresh,
                     modifier = Modifier.fillMaxWidth(),
+                    shape = AppShapes.medium,
                     colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(R.color.crown_input_background),
                             contentColor = colorResource(R.color.crown_text_primary)
@@ -482,7 +487,8 @@ class EasyTierController(
 
             TextButton(
                     onClick = { onAdvancedExpandedChange(!advancedExpanded) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = AppShapes.medium
             ) {
                 Text(stringResource(
                         if (advancedExpanded) R.string.easytier_hide_advanced_flags
@@ -517,7 +523,7 @@ class EasyTierController(
     private fun EasyTierInfoCard(content: @Composable () -> Unit) {
         Card(
                 colors = CardDefaults.cardColors(containerColor = colorResource(R.color.crown_section_background)),
-                shape = RoundedCornerShape(8.dp),
+                shape = AppShapes.small,
                 modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -616,7 +622,7 @@ class EasyTierController(
                 },
                 minLines = minLines,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
+                shape = AppShapes.small
         )
     }
 
@@ -636,7 +642,7 @@ class EasyTierController(
         Row(
                 modifier = Modifier
                         .fillMaxWidth()
-                        .background(colorResource(R.color.crown_section_background), RoundedCornerShape(8.dp))
+                        .background(colorResource(R.color.crown_section_background), AppShapes.small)
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
         ) {

@@ -1,9 +1,12 @@
 package com.limelight.ui
 
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import androidx.recyclerview.widget.RecyclerView
+import com.limelight.R
 import com.limelight.grid.GenericGridAdapter
 
 /**
@@ -69,6 +72,8 @@ class SelectionIndicatorAnimator(
     }
 
     private fun setIndicatorPositionFast(targetView: View) {
+        updateCornerRadius(targetView)
+
         val targetLocation = IntArray(2)
         targetView.getLocationInWindow(targetLocation)
 
@@ -125,6 +130,8 @@ class SelectionIndicatorAnimator(
     }
 
     private fun setIndicatorPosition(targetView: View, withAnimation: Boolean) {
+        updateCornerRadius(targetView)
+
         val targetLocation = IntArray(2)
         targetView.getLocationInWindow(targetLocation)
 
@@ -167,6 +174,18 @@ class SelectionIndicatorAnimator(
             .scaleY(1.0f)
             .setDuration(SCALE_ANIMATION_DURATION.toLong())
             .start()
+    }
+
+    private fun updateCornerRadius(targetView: View) {
+        // The indicator follows the item container, while the artwork is inset by
+        // the container padding. Adding that inset keeps both corner arcs concentric.
+        val artworkRadius = rootView.resources.getDimension(R.dimen.corner_radius_small)
+        val outerRadius = artworkRadius + targetView.paddingLeft
+        val background = selectionIndicator.background.mutate() as? LayerDrawable ?: return
+
+        for (index in 0 until background.numberOfLayers) {
+            (background.getDrawable(index) as? GradientDrawable)?.cornerRadius = outerRadius
+        }
     }
 
     private fun getCurrentPosition(): Int = positionProvider?.getCurrentPosition() ?: -1

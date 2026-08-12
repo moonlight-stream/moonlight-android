@@ -8,5 +8,5 @@
         android:width="1dp"
         android:color="@color/app_dialog_outline_strong" />
     <!-- 圆角 (这个值比大的背景要小) -->
-    <corners android:radius="4dp" />
+    <corners android:radius="@dimen/corner_radius_extra_small" />
 </shape>

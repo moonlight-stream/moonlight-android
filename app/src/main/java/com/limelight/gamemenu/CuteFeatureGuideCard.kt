@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.limelight.R
 import com.limelight.ui.UiDismissKeyHandler
+import com.limelight.ui.theme.AppShapes
 
 @Composable
 internal fun CuteFeatureGuideCard(
@@ -151,6 +152,7 @@ internal fun CuteFeatureGuideCard(
             ) {
                 TextButton(
                     onClick = onSkip,
+                    shape = AppShapes.medium,
                     modifier = Modifier
                         .focusRequester(skipFocusRequester)
                         .focusProperties {
@@ -176,6 +178,7 @@ internal fun CuteFeatureGuideCard(
                 )
                 TextButton(
                     onClick = onAction,
+                    shape = AppShapes.medium,
                     modifier = Modifier
                         .focusRequester(actionFocusRequester)
                         .onGloballyPositioned { isActionLaidOut = true }

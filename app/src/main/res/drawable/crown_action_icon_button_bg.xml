@@ -3,19 +3,19 @@
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/crown_button_pressed" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/crown_button_focused" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <solid android:color="@android:color/transparent" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
 </selector>

@@ -4,21 +4,21 @@
         <shape android:shape="rectangle">
             <solid android:color="@color/crown_button_pressed" />
             <stroke android:width="1dp" android:color="@color/crown_accent" />
-            <corners android:radius="6dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/crown_button_focused" />
             <stroke android:width="1dp" android:color="@color/crown_accent" />
-            <corners android:radius="6dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <solid android:color="#D8323644" />
             <stroke android:width="1dp" android:color="#18FFFFFF" />
-            <corners android:radius="6dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
         </shape>
     </item>
 </selector>

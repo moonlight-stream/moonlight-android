@@ -3,19 +3,19 @@
     <item android:state_enabled="false">
         <shape android:shape="rectangle">
             <solid android:color="@color/add_pc_button_disabled" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/theme_pink_dark" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/add_pc_accent" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
             <stroke
                 android:width="2dp"
                 android:color="@color/add_pc_accent_focus" />
@@ -24,7 +24,7 @@
     <item>
         <shape android:shape="rectangle">
             <solid android:color="@color/add_pc_accent" />
-            <corners android:radius="8dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
 </selector>

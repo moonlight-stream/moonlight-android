@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,6 +48,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.limelight.R
+import com.limelight.ui.theme.AppShapes
 
 
 @Composable
@@ -301,7 +301,7 @@ private fun InlineSegmentedControl(
         verticalAlignment = Alignment.CenterVertically
     ) {
         segments.forEach { segment ->
-            val segmentShape = RoundedCornerShape(7.dp)
+            val segmentShape = AppShapes.small
             val background = if (segment.selected) {
                 accent.copy(alpha = 0.12f)
             } else {

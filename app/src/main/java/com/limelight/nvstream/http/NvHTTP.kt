@@ -18,9 +18,12 @@ import java.security.SecureRandom
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.util.LinkedList
+import java.util.Locale
 import java.util.Stack
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.abs
 
 import org.json.JSONObject
 
@@ -73,6 +76,7 @@ class NvHTTP(
     private lateinit var httpClientLongConnectTimeout: OkHttpClient
     private lateinit var httpClientLongConnectNoReadTimeout: OkHttpClient
     private lateinit var httpClientShortConnectTimeout: OkHttpClient
+    private val activeNetworkProbeCall = AtomicReference<okhttp3.Call?>()
 
     private lateinit var defaultTrustManager: X509TrustManager
     private lateinit var trustManager: X509TrustManager
@@ -99,6 +103,25 @@ class NvHTTP(
             )
         }
     }
+
+    data class NetworkProbeCapabilities(
+        val endpoint: String,
+        val minBytes: Long,
+        val maxBytes: Long
+    )
+
+    data class NetworkProbeMeasurement(
+        val bandwidthMbps: Double,
+        val responseLatencyMs: Double,
+        val responseJitterMs: Double,
+        val receivedBytes: Long
+    )
+
+    class NetworkProbeException(
+        val reason: String,
+        val retryAfterMs: Long = 0,
+        cause: Throwable? = null
+    ) : IOException(reason, cause)
 
     class DisplayInfo(
         val index: Int,
@@ -824,6 +847,140 @@ class NvHTTP(
         }
     }
 
+    /**
+     * Runs Foundation Sunshine's paired-client startup bandwidth probe.
+     * The probe is deliberately unavailable while a video session is active.
+     */
+    @Throws(IOException::class, InterruptedException::class)
+    fun runNetworkProbe(progress: ((receivedBytes: Long, totalBytes: Long) -> Unit)? = null): NetworkProbeMeasurement {
+        val probeClient = httpClientLongConnectTimeout.newBuilder()
+            .connectionPool(ConnectionPool(1, 5, TimeUnit.SECONDS))
+            .readTimeout(5, TimeUnit.SECONDS)
+            .build()
+
+        val capabilityUrl = getHttpsUrl(true).newBuilder()
+            .addPathSegments("api/network/capabilities")
+            .build()
+
+        val latencySamples = ArrayList<Double>(4)
+        var capabilities: NetworkProbeCapabilities? = null
+        repeat(4) {
+            val startedAt = System.nanoTime()
+            val call = probeClient.newCall(Request.Builder().url(capabilityUrl).get().build())
+            activeNetworkProbeCall.set(call)
+            try {
+                call.execute().use {
+                    val body = it.body.string()
+                    if (!it.isSuccessful) {
+                        throw parseNetworkProbeError(it.code, body)
+                    }
+                    if (capabilities == null) {
+                        capabilities = parseNetworkProbeCapabilities(body)
+                    }
+                }
+            } finally {
+                activeNetworkProbeCall.compareAndSet(call, null)
+            }
+            latencySamples += (System.nanoTime() - startedAt) / 1_000_000.0
+        }
+
+        val caps = capabilities ?: throw NetworkProbeException("invalid_capabilities")
+        if (caps.minBytes > MAX_NETWORK_PROBE_BYTES) {
+            throw NetworkProbeException("invalid_capabilities")
+        }
+        val sampleBytes = caps.maxBytes.coerceAtMost(MAX_NETWORK_PROBE_BYTES)
+        val nonce = UUID.randomUUID().toString()
+        val endpoint = caps.endpoint.trimStart('/')
+        val probeUrl = getHttpsUrl(true).newBuilder()
+            .addPathSegments(endpoint)
+            .addQueryParameter("bytes", sampleBytes.toString())
+            .addQueryParameter("nonce", nonce)
+            .build()
+
+        val call = probeClient.newCall(Request.Builder().url(probeUrl).get().build())
+        var receivedBytes = 0L
+        var bodyDurationSeconds = 0.0
+        activeNetworkProbeCall.set(call)
+        try {
+            call.execute().use {
+                if (!it.isSuccessful) {
+                    throw parseNetworkProbeError(it.code, it.body.string())
+                }
+                if (it.header("X-Bandwidth-Probe-Version") != "1" ||
+                    it.header("X-Bandwidth-Probe-Nonce") != nonce
+                ) {
+                    throw NetworkProbeException("invalid_response")
+                }
+
+                val probeStartedAt = System.nanoTime()
+                val buffer = ByteArray(DEFAULT_NETWORK_PROBE_BUFFER_BYTES)
+                val stream = it.body.byteStream()
+                while (true) {
+                    if (Thread.currentThread().isInterrupted) throw InterruptedException()
+                    val count = stream.read(buffer)
+                    if (count < 0) break
+                    receivedBytes += count
+                    progress?.invoke(receivedBytes, sampleBytes)
+                }
+                bodyDurationSeconds = (System.nanoTime() - probeStartedAt) / 1_000_000_000.0
+            }
+        } finally {
+            activeNetworkProbeCall.compareAndSet(call, null)
+        }
+
+        if (receivedBytes != sampleBytes) {
+            throw NetworkProbeException("incomplete_response")
+        }
+        if (bodyDurationSeconds <= 0.0) {
+            throw NetworkProbeException("invalid_duration")
+        }
+
+        // Drop the first request because it includes connection establishment and TLS setup.
+        val steadySamples = latencySamples.drop(1).ifEmpty { latencySamples }
+        val averageLatency = steadySamples.average()
+        val averageJitter = if (steadySamples.size < 2) 0.0 else
+            steadySamples.zipWithNext { left, right -> abs(right - left) }.average()
+
+        return NetworkProbeMeasurement(
+            bandwidthMbps = receivedBytes * 8.0 / bodyDurationSeconds / 1_000_000.0,
+            responseLatencyMs = averageLatency,
+            responseJitterMs = averageJitter,
+            receivedBytes = receivedBytes
+        )
+    }
+
+    fun cancelNetworkProbe() {
+        activeNetworkProbeCall.getAndSet(null)?.cancel()
+    }
+
+    internal fun parseNetworkProbeCapabilities(body: String): NetworkProbeCapabilities {
+        try {
+            val root = JSONObject(body)
+            val probe = root.getJSONObject("bandwidthProbe")
+            if (root.optInt("version", 0) < 1 || probe.optInt("version", 0) < 1) {
+                throw NetworkProbeException("unsupported_version")
+            }
+            val endpoint = probe.getString("endpoint")
+            val minBytes = probe.getLong("minBytes")
+            val maxBytes = probe.getLong("maxBytes")
+            if (endpoint != "/api/network/probe" || minBytes <= 0 || maxBytes < minBytes) {
+                throw NetworkProbeException("invalid_capabilities")
+            }
+            return NetworkProbeCapabilities(endpoint, minBytes, maxBytes)
+        } catch (e: NetworkProbeException) {
+            throw e
+        } catch (e: Exception) {
+            throw NetworkProbeException("invalid_capabilities", cause = e)
+        }
+    }
+
+    private fun parseNetworkProbeError(statusCode: Int, body: String): NetworkProbeException {
+        val json = runCatching { JSONObject(body) }.getOrNull()
+        val reason = json?.optString("error")?.takeIf { it.isNotBlank() }
+            ?: String.format(Locale.US, "http_%d", statusCode)
+        return NetworkProbeException(reason, json?.optLong("retryAfterMs", 0) ?: 0)
+    }
+
     /** 通知服务端启用/关闭 ABR。*/
     fun setAbrMode(config: AbrConfig): Boolean {
         val payload = JSONObject().apply {
@@ -954,6 +1111,8 @@ class NvHTTP(
         const val SHORT_CONNECTION_TIMEOUT = 3000
         const val LONG_CONNECTION_TIMEOUT = 5000
         const val READ_TIMEOUT = 7000
+        private const val MAX_NETWORK_PROBE_BYTES = 4L * 1024L * 1024L
+        private const val DEFAULT_NETWORK_PROBE_BUFFER_BYTES = 64 * 1024
 
         /**
          * Per-attempt timeout for clipboard blob upload/download. Generous

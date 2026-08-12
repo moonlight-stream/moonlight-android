@@ -11,6 +11,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.roundToInt
 
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DecodeFormat
@@ -23,6 +25,13 @@ import com.limelight.binding.PlatformBinding
 import com.limelight.binding.crypto.AndroidCryptoProvider
 import com.limelight.computers.ComputerManagerService
 import com.limelight.computers.PairStatePreflight
+import com.limelight.networkquality.NetworkQualitySheet
+import com.limelight.networkquality.StreamDeviceDisplay
+import com.limelight.networkquality.StreamNetworkQuality
+import com.limelight.networkquality.StreamNetworkQualityStore
+import com.limelight.networkquality.StreamNetworkRecommendation
+import com.limelight.networkquality.StreamNetworkTestResult
+import com.limelight.networkquality.supportsNetworkQualityProbe
 import com.limelight.dialogs.AddressSelectionDialog
 import com.limelight.grid.PcGridAdapter
 import com.limelight.grid.assets.DiskAssetLoader
@@ -34,6 +43,7 @@ import com.limelight.nvstream.http.PairingManager.PairState
 import com.limelight.nvstream.wol.WakeOnLanSender
 import com.limelight.preferences.AddComputerManually
 import com.limelight.preferences.BackgroundSource
+import com.limelight.preferences.CustomResolutionsConsts
 import com.limelight.preferences.GlPreferences
 import com.limelight.preferences.PreferenceConfiguration
 import com.limelight.preferences.StreamSettings
@@ -72,6 +82,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 
 import com.google.zxing.integration.android.IntentIntegrator
@@ -108,6 +119,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
+import android.text.format.DateUtils
 import androidx.preference.PreferenceManager
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import android.animation.ObjectAnimator
@@ -130,7 +142,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
-import android.widget.RelativeLayout
 import android.widget.Space
 import android.widget.TextView
 import android.widget.Toast
@@ -157,7 +168,6 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         private const val SHAKE_DEBOUNCE_INTERVAL = 3000L
         private const val MAX_DAILY_REFRESH = 7
         private const val VPN_PERMISSION_REQUEST_CODE = 101
-        private const val QR_SCAN_REQUEST_CODE = 102
 
         private const val REFRESH_PREF_NAME = "RefreshLimit"
         private const val REFRESH_COUNT_KEY = "refresh_count"
@@ -182,6 +192,9 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         private const val DISABLE_IPV6_ID = 15
         private const val OPEN_WEBUI_ID = 16
         private const val MORE_ACTIONS_ID = 17
+        private const val NETWORK_QUALITY_ID = 18
+        private const val ADD_PC_MANUALLY_ID = 19
+        private const val ADD_PC_QR_SCAN_ID = 20
 
     }
 
@@ -476,6 +489,30 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 v.layoutParams.height = insets.top
                 windowInsets
             }
+        }
+
+        // Keep the edge-anchored scene rail clear of navigation bars and display cutouts.
+        findViewById<View>(R.id.scenePresetContainer)?.let { sceneRail ->
+            val initialParams = sceneRail.layoutParams as ViewGroup.MarginLayoutParams
+            val baseBottomMargin = initialParams.bottomMargin
+            val baseEndMargin = initialParams.marginEnd
+            ViewCompat.setOnApplyWindowInsetsListener(sceneRail) { v, windowInsets ->
+                val systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+                val displayCutout = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+                val safeBottom = maxOf(systemBars.bottom, displayCutout.bottom)
+                val safeEnd = if (ViewCompat.getLayoutDirection(v) == ViewCompat.LAYOUT_DIRECTION_RTL) {
+                    maxOf(systemBars.left, displayCutout.left)
+                } else {
+                    maxOf(systemBars.right, displayCutout.right)
+                }
+                (v.layoutParams as ViewGroup.MarginLayoutParams).apply {
+                    bottomMargin = baseBottomMargin + safeBottom
+                    marginEnd = baseEndMargin + safeEnd
+                    v.layoutParams = this
+                }
+                windowInsets
+            }
+            ViewCompat.requestApplyInsets(sceneRail)
         }
 
         clientName = Settings.Global.getString(contentResolver, "device_name")
@@ -1579,6 +1616,8 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     private data class SceneConfiguration(
             val width: Int,
             val height: Int,
+            val isNativeResolution: Boolean,
+            val isCustomResolution: Boolean,
             val fps: Int,
             val bitrate: Int,
             val enableAdaptiveBitrate: Boolean,
@@ -1602,6 +1641,8 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         fun applyTo(prefs: PreferenceConfiguration): PreferenceConfiguration {
             prefs.width = width
             prefs.height = height
+            prefs.isNativeResolution = isNativeResolution
+            prefs.isCustomResolution = isCustomResolution
             prefs.fps = fps
             prefs.bitrate = bitrate
             prefs.enableAdaptiveBitrate = enableAdaptiveBitrate
@@ -1628,6 +1669,8 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             return JSONObject().apply {
                 put("width", width)
                 put("height", height)
+                put("isNativeResolution", isNativeResolution)
+                put("isCustomResolution", isCustomResolution)
                 put("fps", fps)
                 put("bitrate", bitrate)
                 put("enableAdaptiveBitrate", enableAdaptiveBitrate)
@@ -1655,6 +1698,8 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 return SceneConfiguration(
                         width = prefs.width,
                         height = prefs.height,
+                        isNativeResolution = prefs.isNativeResolution,
+                        isCustomResolution = prefs.isCustomResolution,
                         fps = prefs.fps,
                         bitrate = prefs.bitrate,
                         enableAdaptiveBitrate = prefs.enableAdaptiveBitrate,
@@ -1677,9 +1722,19 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             }
 
             fun fromJson(json: JSONObject, fallback: PreferenceConfiguration): SceneConfiguration {
+                val width = json.optInt("width", fallback.width)
+                val height = json.optInt("height", fallback.height)
+                val resolutionMode = resolveSceneResolutionMode(
+                    json,
+                    width,
+                    height,
+                    PreferenceConfiguration.RESOLUTIONS.asList()
+                )
                 return SceneConfiguration(
-                        width = json.optInt("width", fallback.width),
-                        height = json.optInt("height", fallback.height),
+                        width = width,
+                        height = height,
+                        isNativeResolution = resolutionMode.isNative,
+                        isCustomResolution = resolutionMode.isCustom,
                         fps = json.optInt("fps", fallback.fps),
                         bitrate = json.optInt("bitrate", fallback.bitrate),
                         enableAdaptiveBitrate = json.optBoolean("enableAdaptiveBitrate", fallback.enableAdaptiveBitrate),
@@ -1811,9 +1866,21 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     private fun saveCurrentConfiguration(sceneNumber: Int) {
+        saveConfigurationToScene(
+            sceneNumber,
+            PreferenceConfiguration.readPreferences(this),
+            markActive = true
+        )
+    }
+
+    private fun saveConfigurationToScene(
+        sceneNumber: Int,
+        preferences: PreferenceConfiguration,
+        markActive: Boolean
+    ): Boolean {
         try {
             val config = SceneConfiguration
-                    .fromPreferences(PreferenceConfiguration.readPreferences(this))
+                    .fromPreferences(preferences)
                     .toJson()
 
             getSharedPreferences(SCENE_PREF_NAME, MODE_PRIVATE)
@@ -1821,11 +1888,15 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                         putString(SCENE_KEY_PREFIX + sceneNumber, config.toString())
                     }
 
-            activeSceneNumber = sceneNumber
+            if (markActive) {
+                activeSceneNumber = sceneNumber
+            }
             updateSceneButtonStates()
             showToast(getString(R.string.scene_saved_successfully, sceneNumber))
+            return true
         } catch (e: JSONException) {
             showToast(getString(R.string.config_save_failed))
+            return false
         }
     }
 
@@ -1926,23 +1997,30 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         }
     }
 
-    private fun showAddComputerDialog() {
-        val items = arrayOf(
-            getString(R.string.addpc_manual),
-            getString(R.string.addpc_qr_scan)
-        )
-        val dialog = AlertDialog.Builder(this, R.style.AppDialogStyle)
-            .setTitle(getString(R.string.title_add_pc_choose))
-            .setItems(items) { _, which ->
-                if (which == 0) {
+    private fun showAddComputerActionSheet() {
+        AppActionSheet.show(
+            context = this,
+            title = getString(R.string.title_add_pc_choose),
+            actions = listOf(
+                AppActionSheet.Action(
+                    id = ADD_PC_MANUALLY_ID,
+                    title = getString(R.string.addpc_manual),
+                    opensSubmenu = true
+                ),
+                AppActionSheet.Action(
+                    id = ADD_PC_QR_SCAN_ID,
+                    title = getString(R.string.addpc_qr_scan),
+                    opensSubmenu = true
+                )
+            ),
+            onAction = { action ->
+                when (action.id) {
+                    ADD_PC_MANUALLY_ID ->
                     startActivity(Intent(this, AddComputerManually::class.java))
-                } else {
-                    startQrScan()
+                    ADD_PC_QR_SCAN_ID -> startQrScan()
                 }
             }
-            .create()
-        dialog.show()
-        AppDialogStyler.applySystemChoiceList(dialog, this)
+        )
     }
 
     private fun startQrScan() {
@@ -2275,13 +2353,39 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 return@launch
             }
 
-            ServerHelper.doStart(
-                this@PcView,
-                targetApp,
-                targetComputer,
-                managerBinder!!
-            )
+            startQuickStreamWithNetworkCheck(targetApp, targetComputer)
         }
+    }
+
+    private fun startQuickStreamWithNetworkCheck(app: NvApp, computer: ComputerDetails) {
+        val binder = managerBinder ?: return
+        if (!computer.supportsNetworkQualityProbe()) {
+            ServerHelper.doStart(this, app, computer, binder)
+            return
+        }
+        val endpointIdentity = computer.activeAddress?.let { "${it.address}:${it.port}" }
+        val result = StreamNetworkQualityStore.load(this, computer.uuid, endpointIdentity)
+        val prefs = PreferenceConfiguration.readPreferences(this)
+        val recommendation = result?.recommendationFor(networkDeviceDisplay())
+        if (computer.runningGameId != 0 || result == null || recommendation == null ||
+            !result.shouldWarnForBitrate(prefs.bitrate, recommendation)
+        ) {
+            ServerHelper.doStart(this, app, computer, binder)
+            return
+        }
+
+        NetworkQualitySheet.showStartWarning(
+            context = this,
+            computerName = computer.name.orEmpty(),
+            currentBitrateKbps = prefs.bitrate,
+            recommendation = recommendation,
+            onContinue = { ServerHelper.doStart(this, app, computer, binder) },
+            onUseRecommendation = {
+                if (applyNetworkRecommendation(recommendation)) {
+                    ServerHelper.doStart(this, app, computer, binder)
+                }
+            }
+        )
     }
 
     private fun quickStartStreamWithScreenMode(computer: ComputerDetails, itemView: View?, isSecondaryScreen: Boolean, screenMode: Int) {
@@ -2497,7 +2601,36 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             }
         }
 
-        add(TEST_NETWORK_ID, R.string.pcview_menu_test_network, sectionStart = true)
+        if (paired && details.state == ComputerDetails.State.ONLINE && details.supportsNetworkQualityProbe()) {
+            val endpointIdentity = details.activeAddress?.let { "${it.address}:${it.port}" }
+            val cached = StreamNetworkQualityStore.load(this@PcView, details.uuid, endpointIdentity)
+                ?.takeIf { it.isFresh() }
+            val trailing = cached?.let {
+                val qualityRes = when (it.quality) {
+                    StreamNetworkQuality.EXCELLENT -> R.string.network_quality_excellent
+                    StreamNetworkQuality.GOOD -> R.string.network_quality_good
+                    StreamNetworkQuality.FAIR -> R.string.network_quality_fair
+                    StreamNetworkQuality.POOR -> R.string.network_quality_poor
+                }
+                getString(
+                    R.string.network_quality_menu_summary,
+                    getString(qualityRes),
+                    DateUtils.getRelativeTimeSpanString(
+                        it.testedAtEpochMs,
+                        System.currentTimeMillis(),
+                        DateUtils.MINUTE_IN_MILLIS
+                    )
+                )
+            }
+            this.add(AppActionSheet.Action(
+                id = NETWORK_QUALITY_ID,
+                title = getString(R.string.network_quality_test_title),
+                sectionStart = true,
+                trailingText = trailing
+            ))
+        } else {
+            add(TEST_NETWORK_ID, R.string.pcview_menu_test_network, sectionStart = true)
+        }
         add(
             MORE_ACTIONS_ID,
             R.string.pcview_menu_more_actions,
@@ -2591,6 +2724,10 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
                 ServerHelper.doNetworkTest(this)
                 true
             }
+            NETWORK_QUALITY_ID -> {
+                runNetworkQualityTest(details)
+                true
+            }
             IPERF3_TEST_ID -> {
                 handleIperf3Test(details)
                 true
@@ -2617,6 +2754,187 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             }
             else -> false
         }
+    }
+
+    private fun runNetworkQualityTest(computer: ComputerDetails) {
+        val binder = managerBinder
+        if (binder == null || computer.activeAddress == null || computer.uuid.isNullOrBlank()) {
+            showToast(getString(R.string.error_pc_offline))
+            return
+        }
+
+        var testJob: Job? = null
+        val activeProbe = AtomicReference<NvHTTP?>()
+        val cancelProbe = {
+            testJob?.cancel()
+            activeProbe.getAndSet(null)?.cancelNetworkProbe()
+            Unit
+        }
+        val testingSheet = NetworkQualitySheet.showTesting(
+            this,
+            computer.name.orEmpty(),
+            onCancel = cancelProbe
+        )
+
+        testJob = uiScope.launch {
+            try {
+                val measurement = runInterruptible(Dispatchers.IO) {
+                    val http = NvHTTP(
+                        ServerHelper.getCurrentAddressFromComputer(computer),
+                        computer.httpsPort,
+                        binder.getUniqueId(),
+                        clientName,
+                        computer.serverCert,
+                        PlatformBinding.getCryptoProvider(this@PcView)
+                    )
+                    activeProbe.set(http)
+                    try {
+                        http.runNetworkProbe(testingSheet::updateProgress)
+                    } finally {
+                        activeProbe.compareAndSet(http, null)
+                    }
+                }
+                if (!isActive) return@launch
+
+                val result = StreamNetworkTestResult(
+                    bandwidthMbps = measurement.bandwidthMbps,
+                    responseLatencyMs = measurement.responseLatencyMs,
+                    responseJitterMs = measurement.responseJitterMs
+                )
+                val endpointIdentity = computer.activeAddress?.let { "${it.address}:${it.port}" }
+                StreamNetworkQualityStore.save(this@PcView, computer.uuid, endpointIdentity, result)
+                val recommendation = result.recommendationFor(networkDeviceDisplay())
+                pcGridAdapter.notifyDataSetChanged()
+                testingSheet.dismiss()
+                if (!isFinishing && !isDestroyed) {
+                    NetworkQualitySheet.showResult(
+                        this@PcView,
+                        computer.name.orEmpty(),
+                        result,
+                        recommendation,
+                        onSaveToSceneOne = {
+                            recommendation?.let(::saveNetworkRecommendationToSceneOne)
+                        },
+                        onContinue = {
+                            if (recommendation != null && applyNetworkRecommendation(recommendation)) {
+                                quickStartStream(computer, itemView = null, isSecondaryScreen = false)
+                            }
+                        }
+                    )
+                }
+            } catch (_: CancellationException) {
+                testingSheet.dismiss()
+            } catch (e: Exception) {
+                testingSheet.dismiss()
+                if (!isActive) return@launch
+                if (!isFinishing && !isDestroyed) {
+                    NetworkQualitySheet.showError(
+                        this@PcView,
+                        computer.name.orEmpty(),
+                        networkProbeErrorMessage(e)
+                    )
+                }
+            }
+        }
+    }
+
+    private fun networkProbeErrorMessage(error: Exception): String {
+        if (error is FileNotFoundException) {
+            return getString(R.string.network_quality_unsupported)
+        }
+        if (error is NvHTTP.NetworkProbeException) {
+            return when (error.reason) {
+                "stream_active" -> getString(R.string.network_quality_stream_active)
+                "not_paired" -> getString(R.string.scut_not_paired)
+                "rate_limited" -> getString(R.string.network_quality_rate_limited)
+                "unsupported_version", "invalid_capabilities" -> getString(R.string.network_quality_unsupported)
+                else -> getString(R.string.network_quality_test_failed_detail)
+            }
+        }
+        return error.message?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.network_quality_test_failed_detail)
+    }
+
+    private fun recommendedPreferences(recommendation: StreamNetworkRecommendation): PreferenceConfiguration =
+        PreferenceConfiguration.readPreferences(this).apply {
+            width = recommendation.width
+            height = recommendation.height
+            isNativeResolution = recommendation.usesNativeResolution
+            isCustomResolution = !recommendation.usesNativeResolution &&
+                !PreferenceConfiguration.RESOLUTIONS.contains("${recommendation.width}x${recommendation.height}")
+            fps = recommendation.fps
+            bitrate = recommendation.bitrateKbps
+            enableAdaptiveBitrate = true
+        }
+
+    private fun saveNetworkRecommendationToSceneOne(recommendation: StreamNetworkRecommendation): Boolean {
+        persistRecommendedCustomResolution(recommendation)
+        return saveConfigurationToScene(
+            sceneNumber = 1,
+            preferences = recommendedPreferences(recommendation),
+            markActive = false
+        )
+    }
+
+    private fun applyNetworkRecommendation(recommendation: StreamNetworkRecommendation): Boolean {
+        val prefs = recommendedPreferences(recommendation)
+        persistRecommendedCustomResolution(recommendation)
+        if (!prefs.writeScenePreferences(this)) {
+            showToast(getString(R.string.config_save_failed))
+            return false
+        }
+
+        pcGridAdapter.updateLayoutWithPreferences(this, prefs)
+        showToast(getString(R.string.network_quality_recommendation_applied))
+        return true
+    }
+
+    private fun persistRecommendedCustomResolution(recommendation: StreamNetworkRecommendation) {
+        if (recommendation.usesNativeResolution) return
+        val resolution = "${recommendation.width}x${recommendation.height}"
+        if (PreferenceConfiguration.RESOLUTIONS.contains(resolution)) return
+
+        val preferences = getSharedPreferences(
+            CustomResolutionsConsts.CUSTOM_RESOLUTIONS_FILE,
+            MODE_PRIVATE
+        )
+        val resolutions = preferences.getStringSet(
+            CustomResolutionsConsts.CUSTOM_RESOLUTIONS_KEY,
+            emptySet()
+        ).orEmpty().toMutableSet()
+        if (resolutions.add(resolution)) {
+            preferences.edit {
+                putStringSet(CustomResolutionsConsts.CUSTOM_RESOLUTIONS_KEY, resolutions)
+            }
+        }
+    }
+
+    private fun networkDeviceDisplay(): StreamDeviceDisplay {
+        val targetDisplay = TargetDisplayResolver(this).resolve(
+            PreferenceConfiguration.isExternalDisplayEnabled(this)
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val modes = targetDisplay.supportedModes
+            val nativeMode = modes.maxByOrNull {
+                it.physicalWidth.toLong() * it.physicalHeight.toLong()
+            } ?: targetDisplay.mode
+            val maxRefreshRate = modes.asSequence()
+                .filter {
+                    it.physicalWidth == nativeMode.physicalWidth &&
+                        it.physicalHeight == nativeMode.physicalHeight
+                }
+                .maxOfOrNull { it.refreshRate }
+                ?: nativeMode.refreshRate
+            return StreamDeviceDisplay(
+                nativeWidth = nativeMode.physicalWidth,
+                nativeHeight = nativeMode.physicalHeight,
+                maxFps = maxRefreshRate.roundToInt()
+            )
+        }
+
+        val size = android.graphics.Point()
+        targetDisplay.getRealSize(size)
+        return StreamDeviceDisplay(size.x, size.y, targetDisplay.refreshRate.toInt())
     }
 
     /**
@@ -2835,7 +3153,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
             val computer = pcGridAdapter.getItem(pos) as ComputerObject
 
             if (PcGridAdapter.isAddComputerCard(computer)) {
-                showAddComputerDialog()
+                showAddComputerActionSheet()
                 return@setOnItemClickListener
             }
 

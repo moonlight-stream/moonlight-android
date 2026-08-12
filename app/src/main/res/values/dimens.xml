@@ -1,5 +1,13 @@
 <resources>
 
+    <!-- Shared corner radius scale. Use CircleShape or half the component height for pills/circles. -->
+    <dimen name="corner_radius_extra_small">4dp</dimen>
+    <dimen name="corner_radius_small">8dp</dimen>
+    <dimen name="corner_radius_medium">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="corner_radius_overlay">20dp</dimen>
+    <dimen name="corner_radius_extra_large">24dp</dimen>
+
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>

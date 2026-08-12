@@ -5,7 +5,7 @@
     <item android:top="8dp" android:left="8dp">
         <shape android:shape="rectangle">
             <solid android:color="@color/pc_item_stack_shadow_back" />
-            <corners android:radius="6dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
             <stroke android:width="1dp" android:color="@color/pc_item_stack_shadow_back_stroke" />
         </shape>
     </item>
@@ -14,7 +14,7 @@
     <item android:top="4dp" android:left="4dp">
         <shape android:shape="rectangle">
             <solid android:color="@color/pc_item_stack_shadow_mid" />
-            <corners android:radius="6dp" />
+            <corners android:radius="@dimen/corner_radius_small" />
             <stroke android:width="1dp" android:color="@color/pc_item_stack_shadow_mid_stroke" />
         </shape>
     </item>
@@ -23,7 +23,7 @@
     <item>
         <shape android:shape="rectangle">
             <solid android:color="@color/pc_item_stack_shadow_front" />
-            <corners android:radius="4dp" />
+            <corners android:radius="@dimen/corner_radius_extra_small" />
             <stroke android:width="2dp" android:color="@color/pc_item_stack_shadow_front_stroke" />
         </shape>
     </item>

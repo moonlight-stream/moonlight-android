@@ -233,7 +233,6 @@
     <string name="addpc_back">Back</string>
     <string name="addpc_page_title">new DianLao ()</string>
     <string name="addpc_page_subtitle">Fill host and port into the brackets, then summon a Sunshine host.</string>
-    <string name="addpc_status_manual">Manual setup</string>
     <string name="addpc_address_label">Connection formula</string>
     <string name="addpc_host_hint">IP or domain</string>
     <string name="addpc_port_hint">47989</string>
@@ -750,7 +749,7 @@
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
     <string name="pacing_experimental_low_latency">Experimental: Ultra-low latency (advanced)</string>
-    <string name="pacing_precise_sync">Precise Sync</string>
+    <string name="pacing_precise_sync">Precise Sync (Recommended)</string>
 
     <string name="title_analog_scrolling">Use an analog stick to scroll</string>
     <string name="summary_analog_scrolling">Select an analog stick to scroll when in mouse emulation mode</string>
@@ -1975,4 +1974,35 @@ Tap again to replace it.</string>
     <string name="appview_guide_resume_body">While a session is running, tap the PC and app name to jump straight back in. No more taking the long way around.</string>
     <string name="appview_guide_card_title">Long-pressing is hard, huh?</string>
     <string name="appview_guide_card_body">Long-press an app to resume with saved settings, create a shortcut, hide it, or see details without launching it.</string>
+    <!-- Foundation Sunshine startup network probe -->
+    <string name="network_quality_test_title">Streaming Quality Test</string>
+    <string name="network_quality_card_summary">%1$.0f ms · %2$.0f Mbps</string>
+    <string name="network_quality_menu_summary">%1$s · %2$s</string>
+    <string name="network_quality_measuring_response">Measuring response time</string>
+    <string name="network_quality_measuring_bandwidth">Measuring stable bandwidth</string>
+    <string name="network_quality_test_failed">Streaming quality test failed</string>
+    <string name="network_quality_test_failed_detail">The network test could not be completed. Check the connection and try again.</string>
+    <string name="network_quality_unsupported">This host does not support the startup bandwidth probe. Update Foundation Sunshine and try again.</string>
+    <string name="network_quality_stream_active">The test is unavailable while a stream is active.</string>
+    <string name="network_quality_rate_limited">The host is cooling down after a recent test. Try again in a few seconds.</string>
+    <string name="network_quality_excellent">Excellent</string>
+    <string name="network_quality_good">Good</string>
+    <string name="network_quality_fair">Fair</string>
+    <string name="network_quality_poor">Poor</string>
+    <string name="network_quality_headroom_summary" formatted="false">35% headroom reserved</string>
+    <string name="network_quality_stable_mbps">Stable Mbps</string>
+    <string name="network_quality_response_ms">Response ms</string>
+    <string name="network_quality_jitter_ms">Variation ms</string>
+    <string name="network_quality_stable_recommendation">Stable recommendation</string>
+    <string name="network_quality_save_scene_1">Save to Scene 1</string>
+    <string name="network_quality_use_and_continue">Use settings and continue</string>
+    <string name="network_quality_continue_note">Updates the current settings, then continues to quick launch or game selection. Scene 1 is not overwritten.</string>
+    <string name="network_quality_no_stable_recommendation">This connection is below Moonlight’s minimum safe streaming bitrate.</string>
+    <string name="network_quality_no_stable_recommendation_note">No settings were changed. Improve the connection and run the test again.</string>
+    <string name="network_quality_recommendation_applied">Recommended streaming settings applied</string>
+    <string name="network_quality_warning_title">The current scene may be unstable</string>
+    <string name="network_quality_warning_body">Its bitrate is above the stable capacity measured for this network and may cause stutter.</string>
+    <string name="network_quality_warning_values">Current %1$d Mbps → Recommended %2$d Mbps</string>
+    <string name="network_quality_start_anyway">Start anyway</string>
+    <string name="network_quality_start_recommended">Use recommended</string>
 </resources>

@@ -93,6 +93,7 @@ import com.limelight.binding.input.advance_setting.config.PageConfigController
 import com.limelight.binding.input.advance_setting.share.CrownProfileShareManager
 import com.limelight.binding.input.advance_setting.share.GitHubCrownProfileStorePublisher
 import com.limelight.binding.input.advance_setting.sqlite.SuperConfigDatabaseHelper
+import com.limelight.ui.theme.AppShapes
 import com.limelight.utils.AppDialogStyler
 import com.limelight.utils.ConfigurationSyncScheduler
 import org.json.JSONObject
@@ -581,7 +582,7 @@ class CrownStoreActivity : AppCompatActivity() {
                     modifier = Modifier
                         .background(
                             color = colorResource(R.color.crown_input_background),
-                            shape = RoundedCornerShape(10.dp)
+                            shape = AppShapes.medium
                         )
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center
@@ -894,7 +895,7 @@ class CrownStoreActivity : AppCompatActivity() {
     ) {
         Card(
             modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            shape = AppShapes.large,
             colors = CardDefaults.cardColors(
                 containerColor = colorResource(R.color.crown_section_background)
             ),
@@ -1090,7 +1091,7 @@ class CrownStoreActivity : AppCompatActivity() {
                 .height(25.dp)
                 .background(
                     color = colorResource(R.color.crown_input_background),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = AppShapes.small
                 )
                 .padding(horizontal = 7.dp),
             contentAlignment = Alignment.Center
@@ -1145,7 +1146,7 @@ class CrownStoreActivity : AppCompatActivity() {
         ComposeButton(
             onClick = onClick,
             modifier = modifier.height(if (compact) 38.dp else 44.dp),
-            shape = RoundedCornerShape(10.dp),
+            shape = AppShapes.medium,
             colors = ButtonDefaults.buttonColors(
                 containerColor = container,
                 contentColor = content

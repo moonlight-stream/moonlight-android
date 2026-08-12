@@ -174,7 +174,6 @@
     <string name="addpc_back">返回</string>
     <string name="addpc_page_title">new DianLao ()</string>
     <string name="addpc_page_subtitle">把 host 和 port 填进括号里，召唤一台 Sunshine 主机。</string>
-    <string name="addpc_status_manual">手动配置</string>
     <string name="addpc_address_label">连接公式</string>
     <string name="addpc_host_hint">IP 或域名</string>
     <string name="addpc_port_hint">47989</string>
@@ -1362,7 +1361,7 @@
     <string name="settings_search_no_results">没有匹配的设置</string>
     <string name="no_app_found_for_streaming">未找到可串流的应用</string>
     <string name="notification_icon">通知图标</string>
-    <string name="pacing_precise_sync">精确同步</string>
+    <string name="pacing_precise_sync">精确同步（推荐）</string>
     <string name="summary_checkbox_control_only">仅建立控制流连接，不传输音视频流。适用于远程输入控制场景。需要 Sunshine 服务端支持仅控制模式。</string>
     <string name="summary_checkbox_enable_background_audio">隐藏整个窗口并在后台播放音频，可一边使用其他应用一边收听。</string>
     <string name="title_checkbox_control_only">仅控制模式</string>
@@ -1913,4 +1912,35 @@
     <string name="appview_guide_resume_body">已有会话时，点一下电脑名和应用名就能直接回到串流。别再绕远路啦。</string>
     <string name="appview_guide_card_title">长按都不会吗？</string>
     <string name="appview_guide_card_body">长按应用就能用上次设置恢复、创建快捷方式、隐藏应用或查看详情，不用真的启动它哦。</string>
+    <!-- Foundation Sunshine 启动前网络探测 -->
+    <string name="network_quality_test_title">串流质量检测</string>
+    <string name="network_quality_card_summary">%1$.0f ms · %2$.0f Mbps</string>
+    <string name="network_quality_menu_summary">%1$s · %2$s</string>
+    <string name="network_quality_measuring_response">正在测量响应延迟</string>
+    <string name="network_quality_measuring_bandwidth">正在测量稳定带宽</string>
+    <string name="network_quality_test_failed">串流质量检测失败</string>
+    <string name="network_quality_test_failed_detail">无法完成网络检测，请检查连接后重试。</string>
+    <string name="network_quality_unsupported">当前主机不支持启动前带宽探测，请升级 Foundation Sunshine 后重试。</string>
+    <string name="network_quality_stream_active">串流进行中时不能运行此检测。</string>
+    <string name="network_quality_rate_limited">主机刚刚完成过检测，请等待几秒后重试。</string>
+    <string name="network_quality_excellent">优秀</string>
+    <string name="network_quality_good">良好</string>
+    <string name="network_quality_fair">一般</string>
+    <string name="network_quality_poor">较差</string>
+    <string name="network_quality_headroom_summary" formatted="false">已预留 35% 波动余量</string>
+    <string name="network_quality_stable_mbps">稳定 Mbps</string>
+    <string name="network_quality_response_ms">响应 ms</string>
+    <string name="network_quality_jitter_ms">波动 ms</string>
+    <string name="network_quality_stable_recommendation">稳定推荐</string>
+    <string name="network_quality_save_scene_1">保存到场景 1</string>
+    <string name="network_quality_use_and_continue">使用此设置继续</string>
+    <string name="network_quality_continue_note">将更新当前设置，然后继续快捷启动或选择游戏；不会自动覆盖场景 1。</string>
+    <string name="network_quality_no_stable_recommendation">当前连接低于 Moonlight 可安全使用的最低串流码率。</string>
+    <string name="network_quality_no_stable_recommendation_note">未修改任何设置，请改善网络后重新检测。</string>
+    <string name="network_quality_recommendation_applied">已应用推荐串流设置</string>
+    <string name="network_quality_warning_title">当前场景可能不稳定</string>
+    <string name="network_quality_warning_body">当前码率高于这条网络测得的稳定承载能力，串流时可能出现卡顿。</string>
+    <string name="network_quality_warning_values">当前 %1$d Mbps → 建议 %2$d Mbps</string>
+    <string name="network_quality_start_anyway">仍然启动</string>
+    <string name="network_quality_start_recommended">使用建议值</string>
 </resources>

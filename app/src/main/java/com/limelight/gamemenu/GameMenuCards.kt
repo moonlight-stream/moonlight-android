@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
@@ -73,6 +72,7 @@ import androidx.compose.ui.window.PopupProperties
 import com.limelight.CustomKeyData
 import com.limelight.R
 import com.limelight.binding.audio.AudioVibrationService
+import com.limelight.ui.theme.AppShapes
 import java.util.Locale
 
 
@@ -334,7 +334,7 @@ private fun BitrateHelpButton(
             ) {
                 Surface(
                     color = colorResource(R.color.game_menu_card_background),
-                    shape = GameMenuCardShape,
+                    shape = AppShapes.overlay,
                     border = BorderStroke(GameMenuDimens.surfaceStroke, accent.copy(alpha = 0.22f)),
                     modifier = Modifier.widthIn(max = 260.dp)
                 ) {
@@ -534,7 +534,7 @@ private fun AudioHapticsChoiceRow(
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             choices.forEach { choice ->
-                val shape = RoundedCornerShape(7.dp)
+                val shape = AppShapes.small
                 Box(
                     modifier = Modifier
                         .weight(1f)

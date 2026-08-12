@@ -14,6 +14,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
@@ -21,6 +22,8 @@ import androidx.preference.PreferenceManager
 import com.limelight.LimeLog
 import com.limelight.PcView
 import com.limelight.R
+import com.limelight.networkquality.StreamNetworkQualityStore
+import com.limelight.networkquality.supportsNetworkQualityProbe
 import com.limelight.nvstream.http.ComputerDetails
 import com.limelight.nvstream.http.NvApp
 import com.limelight.nvstream.http.NvHTTP
@@ -226,18 +229,55 @@ class PcGridAdapter(
         val overlayView = view.findViewById<ImageView>(R.id.grid_overlay)
         val txtView = view.findViewById<TextView>(R.id.grid_text)
         val spinnerView = view.findViewById<View>(R.id.grid_spinner)
+        val networkQualityView = view.findViewById<LinearLayout>(R.id.grid_network_quality)
+        val networkQualityText = view.findViewById<TextView>(R.id.grid_network_quality_text)
 
         val computer = filtered[i]
         // 把 UUID 挂到 view tag 上，PcView FLIP 重排动画需要从可见 view 反查"当前显示的 PC"
         // —— 不能依赖 adapter.getItem(pos) 因为 itemList 在 sortList() 后已同步重排
         view.setTag(R.id.grid_text, computer.details?.uuid)
         populateView(view, imgView, spinnerView, txtView, overlayView, computer)
+        updateNetworkQuality(networkQualityView, networkQualityText, computer)
 
         if (imgView != null) {
             setupImageTouchListener(imgView, view, computer)
         }
 
         return view
+    }
+
+    private fun updateNetworkQuality(
+        container: LinearLayout?,
+        textView: TextView?,
+        computer: PcView.ComputerObject
+    ) {
+        if (container == null || textView == null || isAddComputerCard(computer)) {
+            container?.visibility = View.GONE
+            return
+        }
+
+        val details = computer.details
+        val supportsProbe = details.state == ComputerDetails.State.ONLINE &&
+                details.pairState == PairingManager.PairState.PAIRED &&
+                details.supportsNetworkQualityProbe()
+        if (!supportsProbe) {
+            container.visibility = View.GONE
+            return
+        }
+
+        val endpointIdentity = details.activeAddress?.let { "${it.address}:${it.port}" }
+        val result = StreamNetworkQualityStore.load(context, details.uuid, endpointIdentity)
+        if (result == null) {
+            container.visibility = View.GONE
+            return
+        }
+
+        textView.text = context.getString(
+            R.string.network_quality_card_summary,
+            result.responseLatencyMs,
+            result.bandwidthMbps
+        )
+        container.visibility = View.VISIBLE
     }
 
     @SuppressLint("ClickableViewAccessibility")

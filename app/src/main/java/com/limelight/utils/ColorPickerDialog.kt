@@ -72,7 +72,7 @@ class ColorPickerDialog(
             orientation = LinearLayout.HORIZONTAL
             background = rounded(
                 color(R.color.crown_panel_background),
-                dpToPx(14).toFloat(),
+                context.resources.getDimension(R.dimen.corner_radius_overlay),
                 color(R.color.crown_panel_border)
             )
             setPadding(dpToPx(14), dpToPx(14), dpToPx(14), dpToPx(14))

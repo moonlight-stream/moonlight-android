@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/game_menu_dialog_background" />
-    <corners android:radius="16dp" />
+    <corners android:radius="@dimen/corner_radius_overlay" />
     <!-- 渐变边框，模拟玻璃高光边缘 -->
     <stroke
         android:width="2dp"

@@ -76,6 +76,8 @@ import androidx.core.view.WindowInsetsCompat
 import com.limelight.R
 import com.limelight.ui.FeatureGuideRegistry
 import com.limelight.ui.FeatureGuideStore
+import com.limelight.ui.theme.AppCornerRadii
+import com.limelight.ui.theme.AppShapes
 import com.joco.showcase.sequence.SequenceShowcase
 import com.joco.showcase.sequence.rememberSequenceShowcaseState
 import com.joco.showcaseview.BackgroundAlpha
@@ -85,9 +87,12 @@ import com.joco.showcaseview.highlight.ShowcaseHighlight
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val GameMenuDialogShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-internal val GameMenuCardShape = RoundedCornerShape(10.dp)
-internal val GameMenuControlRadius = 10.dp
+private val GameMenuDialogShape = RoundedCornerShape(
+    topStart = AppCornerRadii.overlay,
+    topEnd = AppCornerRadii.overlay
+)
+internal val GameMenuCardShape = AppShapes.medium
+internal val GameMenuControlRadius = AppCornerRadii.medium
 internal val GameMenuControlShape = RoundedCornerShape(GameMenuControlRadius)
 private const val GAME_MENU_MAX_HEIGHT_FRACTION = 0.90f
 private const val GAME_MENU_WIDE_LAYOUT_MIN_WIDTH_DP = 576

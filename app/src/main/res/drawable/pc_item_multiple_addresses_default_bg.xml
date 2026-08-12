@@ -7,7 +7,7 @@
                 android:centerColor="@color/pc_item_stack_default_back_center"
                 android:endColor="@color/pc_item_stack_default_back_end"
                 android:startColor="@color/pc_item_stack_default_back_start" />
-            <corners android:radius="12dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
 
@@ -18,7 +18,7 @@
                 android:centerColor="@color/pc_item_stack_default_mid_center"
                 android:endColor="@color/pc_item_stack_default_mid_end"
                 android:startColor="@color/pc_item_stack_default_mid_start" />
-            <corners android:radius="12dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
 
@@ -29,7 +29,7 @@
                 android:centerColor="@color/pc_item_stack_default_front_center"
                 android:endColor="@color/pc_item_stack_default_front_end"
                 android:startColor="@color/pc_item_stack_default_front_start" />
-            <corners android:radius="12dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
 </layer-list>

@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -72,6 +71,8 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import com.limelight.R
+import com.limelight.ui.theme.AppCornerRadii
+import com.limelight.ui.theme.AppShapes
 import com.limelight.utils.AppBackgroundMode
 import kotlin.math.min
 
@@ -117,7 +118,7 @@ private object TopTabPanelShape : Shape {
             val tabHalfWidth = 38.dp.toPx()
             val shoulderWidth = 12.dp.toPx()
             val tabCorner = 12.dp.toPx()
-            val corner = 20.dp.toPx().coerceAtMost(size.width / 2f)
+            val corner = AppCornerRadii.overlay.toPx().coerceAtMost(size.width / 2f)
             val center = size.width / 2f
             val path = Path().apply {
                 moveTo(corner, tabHeight)
@@ -382,7 +383,7 @@ private fun DisplaySelectionRows(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(IntrinsicSize.Min)
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(AppShapes.medium)
                     .background(
                         MaterialTheme.colorScheme.onSurface.copy(
                             alpha = if (isDarkTheme) 0.06f else 0.035f
@@ -420,7 +421,7 @@ private fun SettingsShortcut(
 ) {
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(AppShapes.small)
             .clickable(onClick = onClick)
             .padding(horizontal = 6.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -479,7 +480,7 @@ private fun BackgroundModeSegmentedControl(
         modifier = Modifier
             .fillMaxWidth()
             .height(36.dp)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(AppShapes.medium)
             .background(
                 MaterialTheme.colorScheme.onSurface.copy(
                     alpha = if (isSystemInDarkTheme()) 0.06f else 0.035f
@@ -514,7 +515,7 @@ private fun SegmentButton(
     onClick: () -> Unit
 ) {
     val view = LocalView.current
-    val shape = RoundedCornerShape(7.dp)
+    val shape = AppShapes.small
     Box(
         modifier = modifier
             .fillMaxHeight()
@@ -740,7 +741,7 @@ private fun ScreenCombinationSegmentedControl(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(AppShapes.medium)
             .background(
                 MaterialTheme.colorScheme.onSurface.copy(
                     alpha = if (isDarkTheme) 0.06f else 0.035f
@@ -810,7 +811,7 @@ private fun SectionNavigationTitle(title: String, value: String, onClick: () -> 
         Box(
             modifier = Modifier
                 .size(36.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(AppShapes.small)
                 .semantics {
                     contentDescription = pickerContentDescription
                     role = Role.Button

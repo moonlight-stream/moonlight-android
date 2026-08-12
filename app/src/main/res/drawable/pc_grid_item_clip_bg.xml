@@ -4,5 +4,5 @@
     <!-- 透明背景，仅用于提供圆角轮廓 -->
     <solid android:color="@android:color/transparent" />
     <!-- 圆角半径与 pc_item_selector 保持一致 -->
-    <corners android:radius="12dp" />
+    <corners android:radius="@dimen/corner_radius_large" />
 </shape>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="104dp"
@@ -110,5 +111,37 @@
             android:elevation="1dp"
             tools:ignore="RtlHardcoded"
             tools:text="我的电脑" />
+        <LinearLayout
+            android:id="@+id/grid_network_quality"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="76dp"
+            android:layout_marginBottom="11dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:contentDescription="@null"
+                android:src="@drawable/phc_perf_wifi"
+                app:tint="@color/ui_shell_accent" />
+
+            <TextView
+                android:id="@+id/grid_network_quality_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/pc_item_text_disabled"
+                android:textSize="11sp"
+                tools:text="9 ms · 62 Mbps" />
+        </LinearLayout>
     </RelativeLayout>
 </FrameLayout>

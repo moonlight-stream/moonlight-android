@@ -8,5 +8,5 @@
         android:width="1dp"
         android:color="@color/app_dialog_outline_strong" />
     <!-- 圆角 -->
-    <corners android:radius="8dp" />
+    <corners android:radius="@dimen/corner_radius_small" />
 </shape>

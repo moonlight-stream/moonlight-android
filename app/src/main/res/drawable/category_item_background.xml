@@ -7,7 +7,7 @@
             <item>
                 <shape android:shape="rectangle">
                     <solid android:color="#44FF6B9D" />
-                    <corners android:radius="10dp" />
+                    <corners android:radius="@dimen/corner_radius_medium" />
                 </shape>
             </item>
         </layer-list>
@@ -19,13 +19,13 @@
             <item>
                 <shape android:shape="rectangle">
                     <solid android:color="#22FF6B9D" />
-                    <corners android:radius="10dp" />
+                    <corners android:radius="@dimen/corner_radius_medium" />
                 </shape>
             </item>
             <item>
                 <shape android:shape="rectangle">
                     <stroke android:width="1.5dp" android:color="#88FF6B9D" />
-                    <corners android:radius="10dp" />
+                    <corners android:radius="@dimen/corner_radius_medium" />
                 </shape>
             </item>
         </layer-list>
@@ -35,7 +35,7 @@
     <item android:state_selected="true">
         <shape android:shape="rectangle">
             <solid android:color="#18FF6B9D" />
-            <corners android:radius="10dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
     
@@ -43,7 +43,7 @@
     <item>
         <shape android:shape="rectangle">
             <solid android:color="#00000000" />
-            <corners android:radius="10dp" />
+            <corners android:radius="@dimen/corner_radius_medium" />
         </shape>
     </item>
 </selector>

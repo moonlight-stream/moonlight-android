@@ -43,18 +43,6 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/addPcStatusPill"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:background="@drawable/add_pc_status_pill_bg"
-                android:gravity="center"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:text="@string/addpc_status_manual"
-                android:textColor="@color/add_pc_text_secondary"
-                android:textSize="13sp" />
         </LinearLayout>
 
         <LinearLayout

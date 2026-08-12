@@ -67,6 +67,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.limelight.R
+import com.limelight.ui.theme.AppShapes
 import com.limelight.utils.HdrCapabilityHelper
 import com.limelight.utils.UiHelper
 
@@ -697,7 +698,7 @@ class CapabilityDiagnosticActivity : ComponentActivity() {
     private fun DiagnosticCardView(card: DiagnosticCard) {
         Card(
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF242436)),
-                shape = RoundedCornerShape(12.dp),
+                shape = AppShapes.medium,
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 modifier = Modifier.fillMaxWidth()
         ) {
@@ -715,7 +716,7 @@ class CapabilityDiagnosticActivity : ComponentActivity() {
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
+                                    .clip(AppShapes.small)
                                     .background(colorResource(R.color.crown_accent).copy(alpha = 0.18f))
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -766,7 +767,7 @@ class CapabilityDiagnosticActivity : ComponentActivity() {
                         fontSize = 12.sp,
                         modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(AppShapes.small)
                                 .background(row.tone.background)
                                 .padding(horizontal = 10.dp, vertical = 6.dp)
                 )

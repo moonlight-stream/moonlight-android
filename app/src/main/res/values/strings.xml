@@ -1935,6 +1935,14 @@ Tap again to replace it.</string>
     <string name="sponsor_wechat_summary">Scan with WeChat Pay to toss in a tiny token snack for continued development.</string>
     <string name="sponsor_wechat_action">Scan with WeChat Pay</string>
     <string name="sponsor_qr_content_description">Sponsor QR code</string>
+    <string name="sponsor_qr_dialog_title">Sponsor QR code</string>
+    <string name="sponsor_qr_long_press_hint">Long press the QR code to save it for scanning in WeChat</string>
+    <string name="sponsor_qr_saved">QR code saved to Pictures/Moonlight V+</string>
+    <string name="sponsor_qr_save_failed">Couldn’t save the QR code</string>
+    <string name="sponsor_qr_permission_retry">Allow storage access, then long press again to save</string>
+    <string name="sponsor_qr_saved_open_wechat_hint">Saved. In WeChat, choose Scan → Album</string>
+    <string name="sponsor_open_wechat">Open WeChat</string>
+    <string name="sponsor_wechat_not_installed">WeChat isn’t installed</string>
 
     <string name="iperf_output_title">Test output</string>
     <string name="iperf_output_empty_hint">Test results and detailed logs will appear here.</string>

@@ -483,6 +483,14 @@
     <string name="sponsor_wechat_summary">雜魚維護組還在努力修 bug 呢，掃碼投餵一點點，就能變成設備、咖啡和 token 補給。</string>
     <string name="sponsor_wechat_action">使用微信支付掃碼</string>
     <string name="sponsor_qr_content_description">贊助 QR code</string>
+    <string name="sponsor_qr_dialog_title">贊助 QR code</string>
+    <string name="sponsor_qr_long_press_hint">長按 QR code 可儲存到相簿，再用微信掃碼</string>
+    <string name="sponsor_qr_saved">QR code 已儲存到相簿</string>
+    <string name="sponsor_qr_save_failed">QR code 儲存失敗</string>
+    <string name="sponsor_qr_permission_retry">允許儲存權限後，請再次長按儲存</string>
+    <string name="sponsor_qr_saved_open_wechat_hint">QR code 已儲存，開啟微信後選擇「掃一掃 → 相簿」</string>
+    <string name="sponsor_open_wechat">開啟微信</string>
+    <string name="sponsor_wechat_not_installed">尚未安裝微信</string>
     <string name="toast_update_integrity_mismatch">更新下載內容不是有效安裝包，請切換網路或使用瀏覽器下載。</string>
     <string name="wheel_alignment_title">對齊方式</string>
     <string name="wheel_alignment_center">分區中線朝上</string>

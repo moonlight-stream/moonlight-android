@@ -2,6 +2,7 @@ package com.limelight.preferences
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
@@ -18,6 +19,9 @@ import com.limelight.utils.HelpLauncher
 class SponsorPreference : Preference {
     private var cachedGithubQrContent: String? = null
     private var cachedGithubQrBitmap: Bitmap? = null
+    private val wechatQrBitmap: Bitmap by lazy(LazyThreadSafetyMode.NONE) {
+        requireNotNull(BitmapFactory.decodeResource(context.resources, R.drawable.sponsor_wechat_qr))
+    }
 
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) :
             super(context, attrs, defStyleAttr) { initialize() }
@@ -47,14 +51,23 @@ class SponsorPreference : Preference {
 
         if (isChinese) {
             actionView.setText(R.string.sponsor_wechat_action)
-            qrView.setImageResource(R.drawable.sponsor_wechat_qr)
+            qrView.setImageBitmap(wechatQrBitmap)
+            bindQrActions(qrView, wechatQrBitmap, showWechatAction = true)
             actionView.visibility = View.GONE
         } else {
             val githubUrl = context.getString(R.string.sponsor_github_url)
+            val qrBitmap = getGithubQrBitmap(githubUrl)
             actionView.setText(R.string.sponsor_github_action)
-            qrView.setImageBitmap(getGithubQrBitmap(githubUrl))
+            qrView.setImageBitmap(qrBitmap)
+            bindQrActions(qrView, qrBitmap, showWechatAction = false)
             actionView.visibility = View.VISIBLE
             actionView.setOnClickListener { HelpLauncher.launchUrl(context, githubUrl) }
+        }
+    }
+
+    private fun bindQrActions(qrView: ImageView, bitmap: Bitmap, showWechatAction: Boolean) {
+        qrView.setOnClickListener {
+            SponsorQrDialog(context, bitmap, showWechatAction).show()
         }
     }
 

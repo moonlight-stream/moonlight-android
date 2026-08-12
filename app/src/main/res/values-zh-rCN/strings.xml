@@ -1873,6 +1873,14 @@
     <string name="sponsor_wechat_summary">杂鱼维护组还在努力修 bug 呢，扫码投喂一点点，就能变成设备、咖啡和 token 补给。</string>
     <string name="sponsor_wechat_action">使用微信支付扫码</string>
     <string name="sponsor_qr_content_description">赞助二维码</string>
+    <string name="sponsor_qr_dialog_title">赞助二维码</string>
+    <string name="sponsor_qr_long_press_hint">长按二维码可保存到相册，再用微信扫码</string>
+    <string name="sponsor_qr_saved">二维码已保存到相册</string>
+    <string name="sponsor_qr_save_failed">二维码保存失败</string>
+    <string name="sponsor_qr_permission_retry">允许存储权限后，请再次长按保存</string>
+    <string name="sponsor_qr_saved_open_wechat_hint">二维码已保存，打开微信后选择「扫一扫 → 相册」</string>
+    <string name="sponsor_open_wechat">打开微信</string>
+    <string name="sponsor_wechat_not_installed">未安装微信</string>
     <string name="toast_update_integrity_mismatch">更新下载内容不是有效安装包，请切换网络或使用浏览器下载。</string>
     <string name="iperf_output_title">测试输出</string>
     <string name="iperf_output_empty_hint">测试结果和详细日志将在这里显示。</string>

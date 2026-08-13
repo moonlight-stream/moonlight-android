@@ -489,7 +489,8 @@
     <string name="summary_hdr_peak_brightness_nits">数值越高，Sunshine 会按更亮的 HDR 屏幕处理。修改后需要重新连接串流。</string>
     <string name="suffix_hdr_peak_brightness_nits">尼特</string>
     <string name="title_hdr_mode">HDR 模式</string>
-    <string name="summary_hdr_mode">选择 HDR 传输函数：HDR10 (PQ) 适用于大多数显示器，HLG 适用于广播内容。</string>
+    <string name="summary_hdr_mode">选择 HDR10 (PQ)、HDR10+ 或 HLG。使用 HDR10+ 前需在 Sunshine 中开启“动态元数据分析”。</string>
+    <string name="hdr_mode_hdr10_plus">HDR10+（需开启动态元数据分析）</string>
     <string name="hdr_mode_hlg">HLG (混合对数伽马)</string>
     <string name="title_enable_perf_overlay">性能监控图层</string>
     <string name="summary_enable_perf_overlay">显示实时的串流监控数据，盯帧必备！</string>
@@ -1377,6 +1378,7 @@
     <string name="toast_virtual_controller_not_enabled">虚拟手柄未启用</string>
     <string name="toast_enable_notification_for_bg">请在设置中开启通知权限，以便在后台时保持串流连接</string>
     <string name="perf_decoder">解码器</string>
+    <string name="perf_hdr_format">HDR 格式</string>
     <string name="perf_resolution">分辨率</string>
     <string name="perf_fps">帧率</string>
     <string name="perf_rx_fps">Rx</string>

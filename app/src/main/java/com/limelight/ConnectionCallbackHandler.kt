@@ -224,10 +224,11 @@ class ConnectionCallbackHandler(private val game: Game) {
             shortcutHelper.reportGameLaunched(computer, game.app!!)
         }
 
-        // 检查是否启用了HDR并主动设置初始状态
+        // Prepare the output pipeline when HDR is expected. This is intentionally separate from
+        // the host setHdrMode callback so diagnostics don't claim HDR before the stream activates.
         val appSupportsHdr = game.intent.getBooleanExtra(Game.EXTRA_APP_HDR, false)
-        if (appSupportsHdr && game.prefConfig.enableHdr) {
-            game.setHdrMode(true, null)
+        if (appSupportsHdr && game.prefConfig.enableHdr && game.isNegotiatedHdrEnabled()) {
+            game.prepareInitialHdrOutput()
         }
 
         // 初始化麦克风管理器

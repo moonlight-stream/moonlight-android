@@ -101,9 +101,11 @@ class StreamConfiguration private constructor() {
 
         /**
          * Sets the HDR mode for the video stream.
-         * @param hdrMode 0 = SDR (default), 1 = HDR10/PQ (SMPTE ST 2084), 2 = HLG (Hybrid Log-Gamma, ARIB STD-B67)
+         * @param hdrMode Client HDR selection. HDR10+ is mapped to the HDR10/PQ host protocol value.
          */
-        fun setHdrMode(hdrMode: Int): Builder = apply { config.hdrMode = hdrMode }
+        fun setHdrMode(hdrMode: Int): Builder = apply {
+            config.hdrMode = HdrModePolicy.toProtocolMode(hdrMode)
+        }
         fun setHdrBrightnessOverride(enabled: Boolean, peakBrightnessNits: Int): Builder = apply {
             config.hdrBrightnessOverride = enabled
             config.hdrPeakBrightnessNits = peakBrightnessNits.coerceIn(300, 4000)

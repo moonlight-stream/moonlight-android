@@ -2,6 +2,7 @@ package com.limelight.framegen
 
 import android.content.SharedPreferences
 import com.limelight.LimeLog
+import com.limelight.nvstream.HdrModePolicy
 import com.limelight.nvstream.jni.MoonBridge
 import com.limelight.preferences.FramegenSettings
 
@@ -78,7 +79,13 @@ object FramegenRuntimePlanner {
             inputFps = inputFps,
             presentationFps = presentationFps(prefs, inputFps),
             inputHdrEnabled = inputHdrEnabled,
-            inputHdrMode = if (inputHdrEnabled) inputHdrMode else MoonBridge.HDR_MODE_SDR,
+            // Framegen carries static transfer characteristics only. HDR10+ therefore uses
+            // the same PQ mode as HDR10 while dynamic metadata remains on the direct path.
+            inputHdrMode = if (inputHdrEnabled) {
+                HdrModePolicy.toProtocolMode(inputHdrMode)
+            } else {
+                MoonBridge.HDR_MODE_SDR
+            },
             inputHdrFullRange = inputHdrEnabled && inputHdrFullRange,
             adaptiveEnabled = adaptiveEnabled,
             allowAdaptiveWithoutDoubling = adaptiveEnabled && !regularEnabled,

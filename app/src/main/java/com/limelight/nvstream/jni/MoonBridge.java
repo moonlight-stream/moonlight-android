@@ -46,15 +46,19 @@ public class MoonBridge {
     public static final int COLOR_RANGE_LIMITED = 0;
     public static final int COLOR_RANGE_FULL = 1;
 
-    // HDR mode values for dynamicRangeMode parameter
+    // Client-side HDR mode values. HDR_MODE_HDR10_PLUS is a local selection that
+    // uses the HDR10/PQ dynamicRangeMode on the wire and additionally enables
+    // Android's HDR10+ metadata path.
     public static final int HDR_MODE_SDR = 0;      // SDR (default)
     public static final int HDR_MODE_HDR10 = 1;    // HDR10/PQ (SMPTE ST 2084)
     public static final int HDR_MODE_HLG = 2;      // HLG (Hybrid Log-Gamma, ARIB STD-B67)
+    public static final int HDR_MODE_HDR10_PLUS = 3; // HDR10/PQ with ST 2094-40 dynamic metadata
 
     public static final int CAPABILITY_DIRECT_SUBMIT = 1;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AVC = 2;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_HEVC = 4;
     public static final int CAPABILITY_REFERENCE_FRAME_INVALIDATION_AV1 = 0x40;
+    public static final int CAPABILITY_PRESERVE_HEVC_SEI = 0x80;
 
     public static final int DR_OK = 0;
     public static final int DR_NEED_IDR = -1;

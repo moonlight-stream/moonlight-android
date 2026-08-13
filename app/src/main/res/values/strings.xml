@@ -645,8 +645,9 @@
     <string name="summary_hdr_peak_brightness_nits">Higher values make Sunshine target a brighter HDR display. Reconnect the stream after changing this.</string>
     <string name="suffix_hdr_peak_brightness_nits">nits</string>
     <string name="title_hdr_mode">HDR Mode</string>
-    <string name="summary_hdr_mode">Select HDR transfer function: HDR10 (PQ) for most displays, HLG for broadcast-style content</string>
+    <string name="summary_hdr_mode">Choose HDR10 (PQ), HDR10+, or HLG. HDR10+ requires Dynamic Metadata Analysis to be enabled in Sunshine.</string>
     <string name="hdr_mode_hdr10">HDR10 (PQ)</string>
+    <string name="hdr_mode_hdr10_plus">HDR10+ (requires Dynamic Metadata Analysis)</string>
     <string name="hdr_mode_hlg">HLG (Hybrid Log-Gamma)</string>
     <string name="title_full_range">Force full range video (Experimental)</string>
     <string name="summary_full_range">This will cause loss of detail in light and dark areas if your device doesn\'t properly display full range video content.</string>
@@ -1627,6 +1628,7 @@ Tap again to replace it.</string>
     <string name="toast_virtual_controller_not_enabled">Virtual controller not enabled</string>
     <string name="toast_enable_notification_for_bg">Please enable notification permission in settings to keep streaming in background</string>
     <string name="perf_decoder">Decoder</string>
+    <string name="perf_hdr_format">HDR Format</string>
     <string name="perf_resolution">Resolution</string>
     <string name="perf_fps">FPS</string>
     <string name="perf_rx_fps">Rx</string>

@@ -28,7 +28,17 @@ class PerformanceInfo {
     var decodeTimeMs: Float = 0f
     var totalTimeMs: Float = 0f
     var bandWidth: String? = null
-    var isHdrActive: Boolean = false // 实际HDR激活状态
+    var hdrFormat: StreamHdrFormat = StreamHdrFormat.SDR
+    /** Compatibility view for consumers that only distinguish SDR from HDR. */
+    var isHdrActive: Boolean
+        get() = hdrFormat.isHdr
+        set(value) {
+            hdrFormat = when {
+                !value -> StreamHdrFormat.SDR
+                hdrFormat.isHdr -> hdrFormat
+                else -> StreamHdrFormat.HDR10
+            }
+        }
     var renderingLatencyMs: Float = 0f // 渲染时间
     var onePercentLowFps: Float = 0f // 1% low FPS (P99帧间隔倒数)
 }

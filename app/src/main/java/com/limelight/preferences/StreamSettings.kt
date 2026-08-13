@@ -86,6 +86,7 @@ import com.limelight.utils.ConfigurationSyncManager
 import com.limelight.utils.ConfigurationSyncScheduler
 import com.limelight.utils.Dialog
 import com.limelight.utils.AppDialogStyler
+import com.limelight.utils.HdrCapabilityHelper
 import com.limelight.ui.ScreenCombinationModePickerView
 import com.limelight.utils.UiHelper
 import com.limelight.utils.UpdateManager
@@ -3289,12 +3290,13 @@ class StreamSettings : AppCompatActivity() {
             } else {
                 // 获取目标显示器的 HDR 能力（优先使用外接显示器）
                 val targetDisplay = getTargetDisplay()
-                val hdrCaps = targetDisplay.hdrCapabilities
 
-                // We must now ensure our display is compatible with HDR10 / HLG
-                val supportedHdrTypes = hdrCaps?.supportedHdrTypes
-                val foundHdr10 = supportedHdrTypes?.any { it == Display.HdrCapabilities.HDR_TYPE_HDR10 } == true
-                val foundHlg = supportedHdrTypes?.any { it == Display.HdrCapabilities.HDR_TYPE_HLG } == true
+                // Settings are shown before a concrete display mode is selected, so use the
+                // display-wide capabilities rather than restricting the menu to the current mode.
+                val hdrTypeSupport = HdrCapabilityHelper.getDisplayWideHdrTypeSupport(targetDisplay)
+                val foundHdr10 = hdrTypeSupport.hasHdr10
+                val foundHdr10Plus = hdrTypeSupport.hasHdr10Plus
+                val foundHlg = hdrTypeSupport.hasHlg
 
                 val category = findPreference<PreferenceCategory>("category_screen_position")!!
                 val hdrPref = findPreference<CheckBoxPreference>("checkbox_enable_hdr")
@@ -3303,7 +3305,7 @@ class StreamSettings : AppCompatActivity() {
                 val hdrPeakBrightnessPref = findPreference<Preference>("seekbar_hdr_peak_brightness_nits")
                 val hdrModePref = findPreference<ListPreference>("list_hdr_mode")
 
-                if (!foundHdr10) {
+                if (!foundHdr10 && !foundHdr10Plus && !foundHlg) {
                     LimeLog.info("Excluding HDR toggle based on display capabilities")
                     // 必须先移除依赖项，再移除被依赖的项，否则会崩溃
                     if (hdrModePref != null) {
@@ -3347,13 +3349,32 @@ class StreamSettings : AppCompatActivity() {
                 } else {
                     // HDR is supported, configure the HDR mode preference
                     if (hdrModePref != null) {
-                        // If HLG is not supported, remove it from the options
-                        if (!foundHlg) {
-                            LimeLog.info("Display does not support HLG, limiting to HDR10 only")
-                            // Keep only HDR10 option
-                            hdrModePref.entries = arrayOf<CharSequence>(getString(R.string.hdr_mode_hdr10))
-                            hdrModePref.entryValues = arrayOf<CharSequence>("1")
+                        val entries = mutableListOf<CharSequence>()
+                        val entryValues = mutableListOf<CharSequence>()
+
+                        if (foundHdr10 || foundHdr10Plus) {
+                            entries += getString(R.string.hdr_mode_hdr10)
+                            entryValues += "1"
+                        }
+                        if (foundHdr10Plus) {
+                            entries += getString(R.string.hdr_mode_hdr10_plus)
+                            entryValues += "3"
+                        }
+                        if (foundHlg) {
+                            entries += getString(R.string.hdr_mode_hlg)
+                            entryValues += "2"
+                        }
+
+                        hdrModePref.entries = entries.toTypedArray()
+                        hdrModePref.entryValues = entryValues.toTypedArray()
+
+                        // An HDR10+ selection may have been restored from another display/profile.
+                        // Prefer static HDR10 when this display cannot present HDR10+.
+                        if (hdrModePref.value == "3" && !foundHdr10Plus && foundHdr10) {
                             hdrModePref.value = "1"
+                        }
+                        if (hdrModePref.value !in entryValues) {
+                            hdrModePref.value = entryValues.first().toString()
                         }
 
                         // 当前选中值由通用的 SummaryProvider 自动显示（applyListPreferenceCurrentValueSummary），

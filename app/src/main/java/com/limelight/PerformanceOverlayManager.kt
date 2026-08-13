@@ -341,9 +341,8 @@ class PerformanceOverlayManager(
 
     private fun buildDecoderInfo(performanceInfo: PerformanceInfo): String {
         val decoderTypeInfo = getDecoderTypeInfo(performanceInfo.decoder)
-        // NBSP (\u00A0) 防止 TextView 在 "H265 HDR" 的空格处断行
-        return if (performanceInfo.isHdrActive) "${decoderTypeInfo.shortName}\u00A0HDR"
-               else decoderTypeInfo.shortName
+        // NBSP (\u00A0) keeps the codec and dynamic-range format on one line.
+        return "${decoderTypeInfo.shortName}\u00A0${performanceInfo.hdrFormat.displayName}"
     }
 
     private fun getCurrentMoonPhaseIcon(): String {
@@ -1085,7 +1084,7 @@ class PerformanceOverlayManager(
             decoderInfo.append("Codec: ").append(perfInfo.decoder).append("\n\n")
             val decoderTypeInfo = getDecoderTypeInfo(perfInfo.decoder)
             decoderInfo.append("Type: ").append(decoderTypeInfo.fullName).append("\n")
-            decoderInfo.append("HDR: ").append(if (perfInfo.isHdrActive) "Enabled" else "Disabled").append("\n")
+            decoderInfo.append("Dynamic range: ").append(perfInfo.hdrFormat.diagnosticName).append("\n")
         }
         decoderInfo.append(activity.getString(R.string.perf_decoder_info))
         return decoderInfo.toString()

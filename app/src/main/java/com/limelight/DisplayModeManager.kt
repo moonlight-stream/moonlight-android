@@ -17,6 +17,7 @@ object DisplayModeManager {
     /** Immutable display mode choice bound to the display whose mode ids it references. */
     data class DisplayModeSelection(
         val displayId: Int,
+        val selectedModeId: Int,
         val refreshRate: Float,
         val preferredModeId: Int,
         val useSetFrameRate: Boolean,
@@ -60,13 +61,38 @@ object DisplayModeManager {
         return false
     }
 
-    fun selectBestDisplayMode(display: Display, prefConfig: PreferenceConfiguration): DisplayModeSelection {
+    fun selectBestDisplayMode(
+        display: Display,
+        prefConfig: PreferenceConfiguration,
+        acceptableHdrTypes: IntArray = IntArray(0),
+    ): DisplayModeSelection {
         val displayRefreshRate: Float
+        var selectedModeId = -1
         var preferredModeId = -1
         var useSetFrameRate = false
         var aspectRatioMatch = false
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val supportedModes = display.supportedModes
+            val eligibleModes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                acceptableHdrTypes.isNotEmpty()
+            ) {
+                supportedModes.filter { mode ->
+                    mode.supportedHdrTypes.any { supportedType ->
+                        acceptableHdrTypes.any { it == supportedType }
+                    }
+                }.ifEmpty {
+                    LimeLog.warning("No display mode supports the requested HDR type; using normal mode selection")
+                    supportedModes.asList()
+                }
+            } else {
+                supportedModes.asList()
+            }
+
+            // Start from the mode Android is actually using. A candidate may be
+            // rejected by the resolution/refresh-rate constraints below; in that
+            // case we must keep the current mode instead of retaining an arbitrary
+            // first HDR-eligible mode that was never validated by those constraints.
             var bestMode = display.mode
             val isNativeResolutionStream = prefConfig.usesNativeDisplayMode
             var refreshRateIsGood = isRefreshRateGoodMatch(bestMode.refreshRate, prefConfig.fps)
@@ -74,7 +100,7 @@ object DisplayModeManager {
 
             LimeLog.info("Current display mode: ${bestMode.physicalWidth}x${bestMode.physicalHeight}x${bestMode.refreshRate}")
 
-            for (candidate in display.supportedModes) {
+            for (candidate in eligibleModes) {
                 val refreshRateReduced = candidate.refreshRate < bestMode.refreshRate
                 val resolutionReduced = candidate.physicalWidth < bestMode.physicalWidth ||
                         candidate.physicalHeight < bestMode.physicalHeight
@@ -129,7 +155,14 @@ object DisplayModeManager {
             LimeLog.info("Best display mode: ${bestMode.physicalWidth}x${bestMode.physicalHeight}x${bestMode.refreshRate}")
 
             if (display.mode.modeId != bestMode.modeId) {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || UiHelper.isColorOS() ||
+                // setFrameRate() requests only a refresh rate, so Android may choose a different
+                // same-resolution mode whose HDR types don't match the mode we validated above.
+                // Pin the exact mode whenever mode-specific HDR capabilities influenced selection.
+                val requiresExactHdrMode =
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                        acceptableHdrTypes.isNotEmpty()
+                if (requiresExactHdrMode ||
+                    Build.VERSION.SDK_INT < Build.VERSION_CODES.S || UiHelper.isColorOS() ||
                     display.mode.physicalWidth != bestMode.physicalWidth ||
                     display.mode.physicalHeight != bestMode.physicalHeight
                 ) {
@@ -143,6 +176,7 @@ object DisplayModeManager {
             }
 
             displayRefreshRate = bestMode.refreshRate
+            selectedModeId = bestMode.modeId
         } else {
             @Suppress("DEPRECATION")
             var bestRefreshRate = display.refreshRate
@@ -179,6 +213,7 @@ object DisplayModeManager {
 
         return DisplayModeSelection(
             displayId = display.displayId,
+            selectedModeId = selectedModeId,
             refreshRate = displayRefreshRate,
             preferredModeId = preferredModeId,
             useSetFrameRate = useSetFrameRate,

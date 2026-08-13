@@ -25,6 +25,14 @@ internal class RendererDiagnostics(
     val adaptivePlayback: Boolean,
     val refFrameInvalidationActive: Boolean,
     val fusedIdrFrame: Boolean,
+    val hdr10PlusEligible: Boolean,
+    val hdr10PlusConfigured: Boolean,
+    val hdr10PlusOutputFramesQueried: Long,
+    val hdr10PlusMetadataFrames: Long,
+    val hdr10PlusMetadataChanges: Long,
+    val hdr10PlusLastMetadataSize: Int,
+    val hdr10PlusLastPresentationTimeUs: Long,
+    val hdr10PlusMetadataQueryFailures: Int,
     val glRenderer: String?,
     val avcDecoder: MediaCodecInfo?,
     val hevcDecoder: MediaCodecInfo?,
@@ -100,6 +108,15 @@ internal class RendererException(
         sb.append("RFI active: ${r.refFrameInvalidationActive}$d")
         sb.append("Using modern SPS patching: ${Build.VERSION.SDK_INT >= Build.VERSION_CODES.O}$d")
         sb.append("Fused IDR frames: ${r.fusedIdrFrame}$d")
+        sb.append(
+            "HDR10+: eligible=${r.hdr10PlusEligible}, configured=${r.hdr10PlusConfigured}, " +
+                "observed=${r.hdr10PlusConfigured && r.hdr10PlusMetadataFrames > 0}, " +
+                "queried=${r.hdr10PlusOutputFramesQueried}, " +
+                "metadata=${r.hdr10PlusMetadataFrames}, changes=${r.hdr10PlusMetadataChanges}, " +
+                "lastSize=${r.hdr10PlusLastMetadataSize}, " +
+                "lastPtsUs=${r.hdr10PlusLastPresentationTimeUs}, " +
+                "queryFailures=${r.hdr10PlusMetadataQueryFailures}$d"
+        )
         sb.append("Video dimensions: ${r.initialWidth}x${r.initialHeight}$d")
         sb.append("FPS target: ${r.refreshRate}$d")
         sb.append("Bitrate: ${r.bitrate} Kbps$d")

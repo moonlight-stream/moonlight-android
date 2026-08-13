@@ -124,7 +124,7 @@ class PreferenceConfiguration {
     var enableHdrHighBrightness = false
     var hdrBrightnessOverride = false
     var hdrPeakBrightnessNits = 1000
-    var hdrMode = 0 // 0=HDR disabled, 1=HDR10/PQ, 2=HLG
+    var hdrMode = 0 // 0=HDR disabled, 1=HDR10/PQ, 2=HLG, 3=HDR10+ (local selection)
     var enablePip = false
     var enablePerfOverlay = false
     var enableJitterMonitor = false
@@ -496,7 +496,7 @@ class PreferenceConfiguration {
         private const val ENABLE_HDR_HIGH_BRIGHTNESS_PREF_STRING = "checkbox_enable_hdr_high_brightness"
         private const val HDR_BRIGHTNESS_OVERRIDE_PREF_STRING = "checkbox_hdr_brightness_override"
         private const val HDR_PEAK_BRIGHTNESS_NITS_PREF_STRING = "seekbar_hdr_peak_brightness_nits"
-        private const val HDR_MODE_PREF_STRING = "list_hdr_mode" // 0=SDR, 1=HDR10, 2=HLG
+        private const val HDR_MODE_PREF_STRING = "list_hdr_mode" // 0=SDR, 1=HDR10, 2=HLG, 3=HDR10+
         private const val ENABLE_PIP_PREF_STRING = "checkbox_enable_pip"
         private const val ENABLE_PERF_OVERLAY_STRING = "checkbox_enable_perf_overlay"
         private const val ENABLE_JITTER_MONITOR_STRING = "checkbox_enable_jitter_monitor"
@@ -701,7 +701,7 @@ class PreferenceConfiguration {
         private const val DEFAULT_ENABLE_HDR_HIGH_BRIGHTNESS = false
         private const val DEFAULT_HDR_BRIGHTNESS_OVERRIDE = false
         private const val DEFAULT_HDR_PEAK_BRIGHTNESS_NITS = 1000
-        private const val DEFAULT_HDR_MODE = 1 // 默认 HDR10/PQ 模式 (0=禁用自动HDR切换, 1=HDR10, 2=HLG)
+        private const val DEFAULT_HDR_MODE = 1 // 默认 HDR10/PQ 模式 (0=SDR, 1=HDR10, 2=HLG, 3=HDR10+)
         private const val DEFAULT_ENABLE_PIP = false
         private const val DEFAULT_ENABLE_PERF_OVERLAY = false
         private const val DEFAULT_ENABLE_JITTER_MONITOR = false

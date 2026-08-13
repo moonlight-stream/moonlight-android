@@ -201,8 +201,12 @@ class MicrophoneManager(
     private fun setupMicrophoneButton() {
         val button = micButton ?: return
 
-        button.visibility = if (enableMic) View.VISIBLE else View.GONE
-        if (enableMic) {
+        val prefConfig = PreferenceConfiguration.readPreferences(context)
+        val showButton = enableMic &&
+            prefConfig.micMenuActionMode == PreferenceConfiguration.MIC_MENU_ACTION_SHOW_BUTTON
+
+        button.visibility = if (showButton) View.VISIBLE else View.GONE
+        if (showButton) {
             updateMicrophoneButtonState()
             button.setOnClickListener {
                 if (checkMicrophonePermission()) {

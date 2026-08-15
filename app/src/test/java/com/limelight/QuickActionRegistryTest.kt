@@ -1,6 +1,8 @@
 package com.limelight
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QuickActionRegistryTest {
@@ -11,6 +13,12 @@ class QuickActionRegistryTest {
             assertEquals(0, action.iconRes)
             assertEquals("HK", action.iconText)
         }
+    }
+
+    @Test
+    fun onlyLocalKeyboardRequiresGameFocus() {
+        assertTrue(requireNotNull(QuickActionRegistry.getBuiltin("toggle_keyboard")).requiresGameFocus)
+        assertFalse(requireNotNull(QuickActionRegistry.getBuiltin("toggle_perf")).requiresGameFocus)
     }
 
     @Test

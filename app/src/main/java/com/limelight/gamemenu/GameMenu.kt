@@ -870,6 +870,13 @@ class GameMenu(
             Toast.makeText(game, getString(R.string.toast_enable_mic_redirect), Toast.LENGTH_SHORT).show()
             return
         }
+
+        if (QuickActionRegistry.getBuiltin(id)?.requiresGameFocus == true) {
+            activeDialog?.dismiss()
+            runWithGameFocus(Runnable { actionExecutor.execute(id) })
+            return
+        }
+
         actionExecutor.execute(id)
     }
 

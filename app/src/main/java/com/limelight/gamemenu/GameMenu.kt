@@ -96,6 +96,11 @@ class GameMenu(
     // 菜单历史栈，用于二级/多级菜单的回退
     private val menuStack: ArrayDeque<MenuPage> = ArrayDeque()
     private val handler = Handler(Looper.getMainLooper())
+    private val gameFocusActionRunner = GameFocusActionRunner(
+        canRun = { !game.isFinishing },
+        hasGameFocus = game::hasWindowFocus,
+        scheduleRetry = { action -> handler.postDelayed(action, TEST_GAME_FOCUS_DELAY) }
+    )
     private val actionExecutor = StreamActionExecutor(game, { conn }, handler)
     private val bitrateCardController = BitrateCardController(game, conn)
     private val audioHapticsCardController = AudioHapticsCardController(game)
@@ -194,27 +199,13 @@ class GameMenu(
     }
 
     /**
-     * 在游戏获得焦点时运行任务
-     */
-    private fun runWithGameFocus(runnable: Runnable) {
-        if (game.isFinishing) return
-
-        if (!game.hasWindowFocus()) {
-            handler.postDelayed({ runWithGameFocus(runnable) }, TEST_GAME_FOCUS_DELAY)
-            return
-        }
-
-        runnable.run()
-    }
-
-    /**
      * 执行菜单选项
      */
     private fun run(option: MenuOption?) {
         if (option?.runnable == null) return
 
         if (option.isWithGameFocus) {
-            runWithGameFocus(option.runnable)
+            gameFocusActionRunner.run(option.runnable)
         } else {
             option.runnable.run()
         }
@@ -740,8 +731,9 @@ class GameMenu(
         // Focus-dependent actions must wait until the dialog has released the game window.
         // Dismissing first also preserves the interaction order of the legacy menu.
         if (option.isWithGameFocus && !option.isKeepDialog) {
-            dialog.dismiss()
-            option.runnable?.let(::runWithGameFocus)
+            option.runnable?.let { action ->
+                gameFocusActionRunner.dismissThenRun(Runnable(dialog::dismiss), action)
+            }
             return
         }
 
@@ -871,9 +863,11 @@ class GameMenu(
             return
         }
 
-        if (QuickActionRegistry.getBuiltin(id)?.requiresGameFocus == true) {
-            activeDialog?.dismiss()
-            runWithGameFocus(Runnable { actionExecutor.execute(id) })
+        if (QuickActionRegistry.getBuiltin(id)?.isWithGameFocus == true) {
+            gameFocusActionRunner.dismissThenRun(
+                dismiss = Runnable { activeDialog?.dismiss() },
+                action = Runnable { actionExecutor.execute(id) }
+            )
             return
         }
 

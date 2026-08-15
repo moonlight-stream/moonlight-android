@@ -21,7 +21,7 @@ data class StreamAction(
     val labelRes: Int = 0,
     val tintableIcon: Boolean = false,
     val iconText: String? = null,
-    val requiresGameFocus: Boolean = false
+    val isWithGameFocus: Boolean = false
 )
 
 data class CustomKeyData(val name: String, val keys: ShortArray)
@@ -120,7 +120,7 @@ object StreamActionRegistry {
             "KB",
             R.drawable.ic_keyboard_cute,
             labelRes = R.string.quick_btn_keyboard,
-            requiresGameFocus = true
+            isWithGameFocus = true
         ),
         "toggle_controller" to StreamAction("toggle_controller", "Pad", R.drawable.ic_controller_cute, 0, R.string.quick_btn_controller),
         "toggle_perf" to StreamAction("toggle_perf", "Perf", R.drawable.ic_performance_cute, 0, R.string.quick_btn_perf),

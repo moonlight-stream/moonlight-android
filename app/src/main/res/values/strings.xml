@@ -49,7 +49,7 @@
     <string name="sunshine_webui_auth_title">Sign in to %1$s (%2$s)</string>
     <string name="sunshine_webui_auth_user_hint">Username</string>
     <string name="sunshine_webui_auth_pass_hint">Password</string>
-    <string name="about_dialog_official_site">🌐 Official Website</string>
+    <string name="about_dialog_official_site">Official Website</string>
     <string name="pcview_ipv6_disabled">IPv6 disabled for this PC</string>
     <string name="pcview_ipv6_enabled">IPv6 enabled for this PC</string>
 
@@ -703,9 +703,42 @@
     <string name="summary_about_mode">View app information and project details</string>
     
     <!-- About dialog strings -->
-    <string name="about_dialog_description">Moonlight V+ is an enhanced client built for Foundation Sunshine, delivering the ultimate game streaming experience.</string>
+    <string name="about_dialog_description">Moonlight V+ is an enhanced client built for Foundation Sunshine, delivering a smoother game-streaming experience.</string>
     <string name="about_dialog_project_info">Based on Moonlight-Android open source project, crafted by the Foundation community</string>
-    <string name="about_dialog_thanks">Thank you for choosing Moonlight V+! If you find it useful, please give us a star on GitHub ⭐</string>
+    <string name="about_dialog_thanks">Thank you for choosing and supporting us.</string>
+    <string name="about_dialog_bilibili_badge" translatable="false">TV</string>
+    <string name="about_dialog_bilibili_title">Moonlight V+ on Bilibili</string>
+    <string name="about_dialog_bilibili_summary">Follow for release news and feature demos</string>
+    <string name="about_dialog_handbook_action">Documentation</string>
+    <string name="about_dialog_ecosystem_action">Ecosystem</string>
+    <string name="about_dialog_ecosystem_title">AlkaidLab Ecosystem</string>
+    <string name="about_dialog_ecosystem_lead">From the host to phones, tablets, TVs, and desktops, choose the client that fits your platform.</string>
+    <string name="about_dialog_ecosystem_footer">Projects open in a secure external browser.</string>
+    <string name="about_dialog_ecosystem_open_action">Open project</string>
+    <string name="about_dialog_ecosystem_sunshine_badge" translatable="false">SUN</string>
+    <string name="about_dialog_ecosystem_sunshine_title" translatable="false">Foundation Sunshine</string>
+    <string name="about_dialog_ecosystem_sunshine_platform">WINDOWS · HOST</string>
+    <string name="about_dialog_ecosystem_sunshine_description">An enhanced streaming host with HDR, virtual displays, remote microphone support, and a modern control panel.</string>
+    <string name="about_dialog_ecosystem_pc_badge" translatable="false">PC</string>
+    <string name="about_dialog_ecosystem_pc_title" translatable="false">Moonlight PC</string>
+    <string name="about_dialog_ecosystem_pc_platform" translatable="false">WINDOWS · LINUX · MACOS</string>
+    <string name="about_dialog_ecosystem_pc_description">A cross-platform enhanced Moonlight client for desktops and Steam Link.</string>
+    <string name="about_dialog_ecosystem_vplus_badge" translatable="false">AND</string>
+    <string name="about_dialog_ecosystem_vplus_title" translatable="false">Moonlight V+</string>
+    <string name="about_dialog_ecosystem_vplus_platform" translatable="false">ANDROID · ANDROID TV</string>
+    <string name="about_dialog_ecosystem_vplus_description">An enhanced Android client designed for phones, tablets, and TVs.</string>
+    <string name="about_dialog_ecosystem_voidlink_badge" translatable="false">iOS</string>
+    <string name="about_dialog_ecosystem_voidlink_title" translatable="false">VoidLink Extreme</string>
+    <string name="about_dialog_ecosystem_voidlink_platform" translatable="false">IPHONE · IPAD</string>
+    <string name="about_dialog_ecosystem_voidlink_description">A touch- and controller-friendly streaming client for iOS and iPadOS.</string>
+    <string name="about_dialog_ecosystem_harmony_badge" translatable="false">HM</string>
+    <string name="about_dialog_ecosystem_harmony_title">Moonlight V+ for HarmonyOS</string>
+    <string name="about_dialog_ecosystem_harmony_platform" translatable="false">HARMONYOS NEXT</string>
+    <string name="about_dialog_ecosystem_harmony_description">A native Moonlight V+ client for HarmonyOS phones and tablets.</string>
+    <string name="about_dialog_ecosystem_mac_badge" translatable="false">MAC</string>
+    <string name="about_dialog_ecosystem_mac_title" translatable="false">Moonlight macOS Enhanced</string>
+    <string name="about_dialog_ecosystem_mac_platform" translatable="false">APPLE SILICON · INTEL</string>
+    <string name="about_dialog_ecosystem_mac_description">An enhanced Moonlight client optimized for a native macOS experience.</string>
     <string name="about_dialog_github">GitHub</string>
     <string name="about_dialog_star">Star Project</string>
     <string name="about_dialog_qq">Join QQ Group</string>

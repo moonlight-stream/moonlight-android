@@ -856,6 +856,7 @@ class StreamSettings : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        AboutDialogLauncher.release(this)
         super.onDestroy()
         externalDisplayManager?.cleanup()
         externalDisplayManager = null

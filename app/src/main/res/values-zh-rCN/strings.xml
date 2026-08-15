@@ -554,7 +554,7 @@
     <string name="sunshine_webui_auth_title">登录 %1$s（%2$s）</string>
     <string name="sunshine_webui_auth_user_hint">用户名</string>
     <string name="sunshine_webui_auth_pass_hint">密码</string>
-    <string name="about_dialog_official_site">🌐 访问官方网站</string>
+    <string name="about_dialog_official_site">访问官网</string>
     <string name="pcview_menu_header_unknown">刷新中</string>
     <string name="pcview_menu_header_offline">离线</string>
     <string name="pcview_menu_header_online">在线</string>
@@ -596,11 +596,27 @@
     <string name="summary_about_mode">请前往GitHub查看，喜欢的话点个Star支持一下我们吧。</string>
 
     <!-- About dialog strings -->
-    <string name="about_dialog_description">Moonlight V+ 是专为 Foundation Sunshine 打造的增强客户端，为您带来极致的游戏串流体验。</string>
+    <string name="about_dialog_description">Moonlight V+ 是专为 Foundation Sunshine 打造的增强客户端，为您带来更流畅的游戏串流体验。</string>
     <string name="about_dialog_project_info">基于 Moonlight-Android 开源项目，由基地社区倾力打造</string>
-    <string name="about_dialog_thanks">感谢您选择 Moonlight V+！如果觉得好用，欢迎在 GitHub 上点个 Star 支持我们 ⭐</string>
-    <string name="about_dialog_star">Star 项目</string>
+    <string name="about_dialog_thanks">感谢您的选择与支持。</string>
+    <string name="about_dialog_bilibili_title">Moonlight V+ 官方 B站</string>
+    <string name="about_dialog_bilibili_summary">关注账号，获取版本动态与功能演示</string>
+    <string name="about_dialog_handbook_action">文档手册</string>
+    <string name="about_dialog_ecosystem_action">基地生态</string>
+    <string name="about_dialog_ecosystem_title">基地生态</string>
+    <string name="about_dialog_ecosystem_lead">从主机端到手机、平板、电视和桌面客户端，选择适合你的平台。</string>
+    <string name="about_dialog_ecosystem_footer">项目将通过安全的外部浏览器打开。</string>
+    <string name="about_dialog_ecosystem_open_action">打开项目</string>
+    <string name="about_dialog_ecosystem_sunshine_platform">WINDOWS · 服务端</string>
+    <string name="about_dialog_ecosystem_sunshine_description">基地增强串流服务端，支持 HDR、虚拟显示器、远程麦克风与现代控制面板。</string>
+    <string name="about_dialog_ecosystem_pc_description">面向桌面与 Steam Link 的跨平台 Moonlight 增强客户端。</string>
+    <string name="about_dialog_ecosystem_vplus_description">面向手机、平板和电视的 Android 增强客户端。</string>
+    <string name="about_dialog_ecosystem_voidlink_description">触控友好、手柄友好的 iOS 与 iPadOS 串流客户端。</string>
+    <string name="about_dialog_ecosystem_harmony_title">Moonlight V+ 鸿蒙版</string>
+    <string name="about_dialog_ecosystem_harmony_description">面向鸿蒙手机和平板的原生 Moonlight V+ 客户端。</string>
+    <string name="about_dialog_ecosystem_mac_description">针对 macOS 原生体验优化的 Moonlight 增强客户端。</string>
     <string name="about_dialog_qq">加入QQ群</string>
+    <string name="about_dialog_star">Star 项目</string>
     <string name="about_dialog_close">关闭</string>
     <string name="about_dialog_no_browser">未找到可用的外部浏览器</string>
     <string name="about_dialog_choose_browser">选择浏览器打开</string>

@@ -33,6 +33,9 @@
     <color name="game_menu_button_pressed">#FF33363F</color>
     <color name="game_menu_button_border">#18FF8FA3</color>
     <color name="game_menu_button_border_pressed">@color/game_menu_accent</color>
+    <!-- Controller diagnostics need a stronger neutral outline than menu chrome. -->
+    <color name="controller_diag_outline">#FFD7DCE4</color>
+    <color name="controller_diag_control_surface">#FF3A3D46</color>
     <color name="game_menu_list_item_pressed">#FF33363F</color>
     <color name="game_menu_list_item_focused">#FF373A44</color>
     <color name="game_menu_list_item_border">#0CFFFFFF</color>
@@ -82,6 +85,7 @@
     <color name="about_dialog_window_end">#E61B1C22</color>
     <color name="about_dialog_panel_surface">#F223242B</color>
     <color name="about_dialog_panel_outline">#33FFFFFF</color>
+    <color name="about_dialog_link_surface">#FF32262E</color>
 
     <!-- Manual add computer screen -->
     <color name="add_pc_background">#FF15161B</color>

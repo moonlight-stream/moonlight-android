@@ -2338,7 +2338,7 @@ private fun ControllerButtonSection(
         shape = shape,
         border = BorderStroke(
             GameMenuDimens.surfaceStroke,
-            colorResource(R.color.game_menu_button_border)
+            colorResource(R.color.controller_diag_outline)
         ),
         modifier = modifier
             .heightIn(min = if (compact) 88.dp else 116.dp)
@@ -2559,7 +2559,7 @@ private fun ControllerDiagramKey(
             )
             .border(
                 GameMenuDimens.surfaceStroke,
-                if (pressed) accent else colorResource(R.color.game_menu_button_border),
+                if (pressed) accent else colorResource(R.color.controller_diag_outline),
                 CircleShape
             ),
         contentAlignment = Alignment.Center
@@ -2591,7 +2591,7 @@ private fun ControllerCompactKey(
             )
             .border(
                 GameMenuDimens.surfaceStroke,
-                if (pressed) accent else colorResource(R.color.game_menu_button_border),
+                if (pressed) accent else colorResource(R.color.controller_diag_outline),
                 CircleShape
             ),
         contentAlignment = Alignment.Center
@@ -2614,15 +2614,20 @@ private fun ControllerAxisIndicator(
     pressed: Boolean
 ) {
     val accent = colorResource(R.color.game_menu_accent)
+    val idleOutline = colorResource(R.color.controller_diag_outline)
     val compact = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val active = pressed || kotlin.math.abs(x) > ANALOG_ACTIVE_THRESHOLD ||
         kotlin.math.abs(y) > ANALOG_ACTIVE_THRESHOLD
     Surface(
-        color = accent.copy(alpha = if (active) 0.16f else 0.03f),
+        color = if (active) {
+            accent.copy(alpha = 0.16f)
+        } else {
+            colorResource(R.color.controller_diag_control_surface)
+        },
         shape = CircleShape,
         border = BorderStroke(
             GameMenuDimens.surfaceStroke,
-            accent.copy(alpha = if (active) 0.55f else 0.12f)
+            if (active) accent.copy(alpha = 0.72f) else idleOutline
         )
     ) {
         Row(
@@ -2637,7 +2642,7 @@ private fun ControllerAxisIndicator(
                 modifier = Modifier
                     .size(6.dp)
                     .background(
-                        if (active) accent else colorResource(R.color.game_menu_button_border),
+                        if (active) accent else idleOutline,
                         CircleShape
                     )
             )
@@ -2890,8 +2895,8 @@ private fun ControllerShortcutCard(
         shape = shape,
         border = BorderStroke(
             GameMenuDimens.surfaceStroke,
-            if (recognized) accent.copy(alpha = 0.48f)
-            else colorResource(R.color.game_menu_button_border)
+            if (recognized) accent.copy(alpha = 0.72f)
+            else colorResource(R.color.controller_diag_outline)
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -2968,7 +2973,7 @@ private fun ShortcutKeyChip(label: String, active: Boolean) {
             )
             .border(
                 GameMenuDimens.surfaceStroke,
-                if (active) accent else colorResource(R.color.game_menu_button_border),
+                if (active) accent else colorResource(R.color.controller_diag_outline),
                 CircleShape
             )
             .padding(horizontal = 9.dp, vertical = 5.dp)
@@ -2981,9 +2986,9 @@ private fun GamepadSilhouetteVisualization(state: ShortcutSimulatorUiState) {
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val accent = colorResource(R.color.game_menu_accent)
     val bodyColor = colorResource(R.color.game_menu_card_background)
-    val outline = colorResource(R.color.game_menu_button_border)
-    val idleControl = colorResource(R.color.game_menu_dialog_background)
-    val textColor = colorResource(R.color.game_menu_text_secondary)
+    val outline = colorResource(R.color.controller_diag_outline)
+    val idleControl = colorResource(R.color.controller_diag_control_surface)
+    val textColor = colorResource(R.color.game_menu_text_primary)
     val shape = if (isLandscape) RectangleShape else GameMenuCardShape
     val visualizationModifier = if (isLandscape) {
         Modifier
@@ -3115,7 +3120,13 @@ private fun GamepadSilhouetteVisualization(state: ShortcutSimulatorUiState) {
                     centerX + axisX.coerceIn(-1f, 1f) * 30f,
                     centerY + axisY.coerceIn(-1f, 1f) * 30f
                 )
-                drawCircle(if (active) accent else outline, 36f * scale, knob)
+                drawCircle(if (active) accent else idleControl, 36f * scale, knob)
+                drawCircle(
+                    activeStroke(active),
+                    36f * scale,
+                    knob,
+                    style = Stroke(width = 3f * scale)
+                )
                 drawControllerLabel(label, point(centerX, centerY + 91f), textColor, scale, 22f)
             }
             drawStick(
@@ -3214,13 +3225,13 @@ private fun GamepadSilhouetteVisualization(state: ShortcutSimulatorUiState) {
             }
 
             drawLine(
-                outline.copy(alpha = 0.55f),
+                outline.copy(alpha = 0.78f),
                 point(155f, 390f),
                 point(245f, 475f),
                 strokeWidth = 3f * scale
             )
             drawLine(
-                outline.copy(alpha = 0.55f),
+                outline.copy(alpha = 0.78f),
                 point(845f, 390f),
                 point(755f, 475f),
                 strokeWidth = 3f * scale

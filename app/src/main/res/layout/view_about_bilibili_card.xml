@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/about_bilibili_button"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="64dp"
+    android:background="@drawable/about_dialog_bilibili_card_bg"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:layout_width="36dp"
+        android:layout_height="30dp"
+        android:background="@drawable/about_dialog_bilibili_badge_bg"
+        android:gravity="center"
+        android:text="@string/about_dialog_bilibili_badge"
+        android:textColor="@color/app_dialog_accent_color"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:text="@string/about_dialog_bilibili_title"
+            android:textColor="@color/app_dialog_accent_color"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxLines="2"
+            android:text="@string/about_dialog_bilibili_summary"
+            android:textColor="@color/app_dialog_subtitle_color"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@null"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_about_chevron_right" />
+
+</LinearLayout>

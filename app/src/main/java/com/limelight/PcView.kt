@@ -367,6 +367,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
         if (completeOnCreateCalled) {
             initializeViews()
         }
+        AboutDialogLauncher.onConfigurationChanged(this, newConfig)
     }
 
     override fun onResume() {
@@ -394,6 +395,7 @@ class PcView : Activity(), AdapterFragmentCallbacks, ShakeDetector.Listener, Eas
     }
 
     override fun onDestroy() {
+        AboutDialogLauncher.release(this)
         super.onDestroy()
 
         uiScope.cancel()

@@ -787,7 +787,7 @@ class PreferenceConfiguration {
 
         private const val DEFAULT_ENABLE_DOUBLE_CLICK_DRAG = false
         private const val DEFAULT_DOUBLE_TAP_TIME_THRESHOLD = 125 // 默认125ms
-        private const val DEFAULT_ENABLE_LOCAL_CURSOR_RENDERING = true
+        private const val DEFAULT_ENABLE_LOCAL_CURSOR_RENDERING = false
         private const val DEFAULT_OPTIMIZE_HARDWARE_TOUCHPAD = false
 
         private const val DEFAULT_REVERSE_RESOLUTION = false

@@ -848,11 +848,11 @@
     <string name="game_menu_touch_mode_classic_short">鼠标</string>
     <string name="game_menu_touch_mode_trackpad_short">触控板</string>
     <string name="game_menu_touch_mode_native_mouse_short">外设</string>
-    <string name="game_menu_local_cursor_rendering">本地光标渲染</string>
+    <string name="game_menu_local_cursor_rendering">低延迟本地光标</string>
     <string name="game_menu_touch_mode_native_mouse">外接鼠标</string>
     <string name="game_menu_touch_mode_enhanced_summary">直接触摸主机画面，支持多点触控</string>
     <string name="game_menu_touch_mode_classic_summary">触摸位置直接控制鼠标</string>
-    <string name="game_menu_touch_mode_trackpad_summary">像笔记本触控板一样滑动，自动使用低延迟指针</string>
+    <string name="game_menu_touch_mode_trackpad_summary">像笔记本触控板一样滑动，默认使用兼容的主机光标</string>
     <string name="game_menu_touch_mode_native_mouse_summary">适合蓝牙、USB 鼠标和键盘触摸板</string>
     <string name="game_menu_current_selection">当前：%1$s</string>
     <string name="game_menu_trackpad_double_click_drag">双击并按住拖动</string>
@@ -1075,8 +1075,8 @@
     <string name="dialog_seekbar_double_tap_time_threshold">调整双击识别的时间间隔，数值越大越容易触发双击</string>
 
     <!-- 本地光标 -->
-    <string name="title_local_cursor_rendering">显示一个本地光标</string>
-    <string name="summary_local_cursor_rendering">显示一个本地光标，可通过触摸板模式控制光标。</string>
+    <string name="title_local_cursor_rendering">低延迟本地光标</string>
+    <string name="summary_local_cursor_rendering">仅跟随本机触控板；使用主机鼠标、Steam Input 或 FPS 游戏时请关闭。</string>
     <string name="toast_local_cursor_fallback">已自动使用兼容指针模式</string>
 
     <!-- 特殊按键映射 -->
@@ -1413,8 +1413,8 @@
     <string name="toast_double_click_drag_disabled">已关闭双击按住功能</string>
     <string name="game_menu_on">开启</string>
     <string name="game_menu_off">关闭</string>
-    <string name="toast_local_cursor_enabled">本地光标渲染已开启</string>
-    <string name="toast_local_cursor_disabled">本地光标渲染已关闭</string>
+    <string name="toast_local_cursor_enabled">低延迟本地光标已开启</string>
+    <string name="toast_local_cursor_disabled">低延迟本地光标已关闭</string>
     <string name="toast_crown_not_enabled">王冠未启用</string>
     <string name="game_menu_toggle_touch">触控输入</string>
     <string name="toast_touch_enabled">触控已开启</string>

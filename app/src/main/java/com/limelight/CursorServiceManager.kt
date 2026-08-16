@@ -229,16 +229,23 @@ class CursorServiceManager(
     fun isServiceRunning(): Boolean = localModeActive
 
     private fun shouldUseLocalMode(): Boolean {
-        val nativePointer = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
-                prefConfig.enableNativeMousePointer
-        val touchpadOverlay = prefConfig.touchscreenTrackpad &&
-                cursorOverlay != null
-        return nativePointer || touchpadOverlay
+        return CursorModePolicy.shouldUseLocalMode(
+            nativePointerSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N,
+            nativePointerEnabled = prefConfig.enableNativeMousePointer,
+            touchpadEnabled = prefConfig.touchscreenTrackpad,
+            localCursorEnabled = prefConfig.enableLocalCursorRendering,
+            hasCursorOverlay = cursorOverlay != null
+        )
     }
 
     private fun shouldRenderOverlay(): Boolean {
-        return localModeActive && prefConfig.touchscreenTrackpad &&
-                !prefConfig.enableNativeMousePointer
+        return CursorModePolicy.shouldRenderTouchpadOverlay(
+            localModeActive = localModeActive,
+            nativePointerSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N,
+            touchpadEnabled = prefConfig.touchscreenTrackpad,
+            localCursorEnabled = prefConfig.enableLocalCursorRendering,
+            nativePointerEnabled = prefConfig.enableNativeMousePointer
+        )
     }
 
     private fun reconcileCursorMode() {
@@ -454,6 +461,31 @@ class CursorServiceManager(
         private const val CURSOR_UPDATE_TIMEOUT_MS = 1500L
         private const val SOURCE_CURSOR_CACHE_KB = 8 * 1024
         private const val RENDERED_CURSOR_CACHE_KB = 8 * 1024
+    }
+}
+
+internal object CursorModePolicy {
+    fun shouldUseLocalMode(
+        nativePointerSupported: Boolean,
+        nativePointerEnabled: Boolean,
+        touchpadEnabled: Boolean,
+        localCursorEnabled: Boolean,
+        hasCursorOverlay: Boolean
+    ): Boolean {
+        val nativePointer = nativePointerSupported && nativePointerEnabled
+        val touchpadOverlay = touchpadEnabled && localCursorEnabled && hasCursorOverlay
+        return nativePointer || touchpadOverlay
+    }
+
+    fun shouldRenderTouchpadOverlay(
+        localModeActive: Boolean,
+        nativePointerSupported: Boolean,
+        touchpadEnabled: Boolean,
+        localCursorEnabled: Boolean,
+        nativePointerEnabled: Boolean
+    ): Boolean {
+        return localModeActive && touchpadEnabled && localCursorEnabled &&
+                !(nativePointerSupported && nativePointerEnabled)
     }
 }
 

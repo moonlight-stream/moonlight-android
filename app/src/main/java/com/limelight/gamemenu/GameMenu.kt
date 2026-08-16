@@ -261,6 +261,28 @@ class GameMenu(
             )
         }
 
+        if (isTouchscreenTrackpad) {
+            val localCursorToggleAction = Runnable { toggleLocalCursorRendering() }
+            touchModeOptionsList.add(
+                MenuOption(
+                    label = getString(R.string.game_menu_local_cursor_rendering),
+                    isWithGameFocus = false,
+                    runnable = Runnable {
+                        localCursorToggleAction.run()
+                        rebuildAndReplaceMenu()
+                    },
+                    iconKey = null,
+                    isShowIcon = false,
+                    isKeepDialog = true,
+                    subtitle = getString(R.string.summary_local_cursor_rendering),
+                    inlineControl = InlineControl.Toggle(
+                        checked = game.prefConfig.enableLocalCursorRendering,
+                        toggleAction = localCursorToggleAction
+                    )
+                )
+            )
+        }
+
         //触控板仅移动
         if (isTouchscreenTrackpad) {
             touchModeOptionsList.add(
@@ -290,6 +312,24 @@ class GameMenu(
         }
 
         showSubMenu(getString(R.string.game_menu_switch_touch_mode), touchModeOptionsList.toTypedArray())
+    }
+
+    private fun toggleLocalCursorRendering() {
+        game.prefConfig.enableLocalCursorRendering =
+            !game.prefConfig.enableLocalCursorRendering
+        game.cursorServiceManager.refreshCursorMode()
+        game.prefConfig.writePreferences(game)
+        Toast.makeText(
+            game,
+            getString(
+                if (game.prefConfig.enableLocalCursorRendering) {
+                    R.string.toast_local_cursor_enabled
+                } else {
+                    R.string.toast_local_cursor_disabled
+                }
+            ),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun buildTouchModeSegments(compactLabels: Boolean = false): List<SegmentOption> {

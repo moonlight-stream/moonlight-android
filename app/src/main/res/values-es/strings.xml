@@ -373,9 +373,12 @@
     <string name="game_menu_touch_mode_classic_short">Ratón</string>
     <string name="game_menu_touch_mode_trackpad_short">Panel</string>
     <string name="game_menu_touch_mode_native_mouse_short">Externo</string>
+    <string name="game_menu_local_cursor_rendering">Cursor local de baja latencia</string>
     <string name="game_menu_touch_mode_enhanced_summary">Toca directamente la pantalla del host; admite multitoque</string>
     <string name="game_menu_touch_mode_classic_summary">La posición tocada controla directamente el ratón</string>
-    <string name="game_menu_touch_mode_trackpad_summary">Desliza como en un portátil; el cursor de baja latencia es automático</string>
+    <string name="game_menu_touch_mode_trackpad_summary">Desliza como en un portátil; usa el cursor compatible del host de forma predeterminada</string>
+    <string name="title_local_cursor_rendering">Cursor local de baja latencia</string>
+    <string name="summary_local_cursor_rendering">Solo sigue este panel táctil; desactívalo al usar el ratón del host, Steam Input o juegos FPS.</string>
     <string name="game_menu_touch_mode_native_mouse_summary">Para ratones Bluetooth, USB y paneles táctiles de teclado</string>
     <string name="game_menu_current_selection">Actual: %1$s</string>
     <string name="game_menu_trackpad_double_click_drag">Toca dos veces y mantén para arrastrar</string>
@@ -384,6 +387,8 @@
     <string name="game_menu_option_disabled">Desactivado</string>
     <string name="game_menu_toggle_remote_mouse_summary">Muestra u oculta el ratón remoto del host</string>
     <string name="toast_local_cursor_fallback">Se está usando un modo de cursor compatible para este host</string>
+    <string name="toast_local_cursor_enabled">Cursor local de baja latencia activado</string>
+    <string name="toast_local_cursor_disabled">Cursor local de baja latencia desactivado</string>
     <string name="gyro_activation_always">Siempre Activado</string>
     <string name="gyro_activation_method">Método de Activación</string>
     <string name="gyro_invert_x_axis">X Rev</string>

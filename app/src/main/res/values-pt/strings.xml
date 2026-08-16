@@ -547,11 +547,13 @@
     <string name="game_menu_touch_mode_classic_short">Rato</string>
     <string name="game_menu_touch_mode_trackpad_short">Touchpad</string>
     <string name="game_menu_touch_mode_native_mouse_short">Externo</string>
-    <string name="game_menu_local_cursor_rendering">Renderização de cursor local</string>
+    <string name="game_menu_local_cursor_rendering">Cursor local de baixa latência</string>
     <string name="game_menu_touch_mode_native_mouse">Rato externo</string>
     <string name="game_menu_touch_mode_enhanced_summary">Toque diretamente no ecrã do anfitrião; suporta multitoque</string>
     <string name="game_menu_touch_mode_classic_summary">A posição tocada controla diretamente o rato</string>
-    <string name="game_menu_touch_mode_trackpad_summary">Deslize como num touchpad; o cursor de baixa latência é automático</string>
+    <string name="game_menu_touch_mode_trackpad_summary">Deslize como num touchpad; usa o cursor compatível do anfitrião por predefinição</string>
+    <string name="title_local_cursor_rendering">Cursor local de baixa latência</string>
+    <string name="summary_local_cursor_rendering">Segue apenas este touchpad; desative-o ao usar o rato do anfitrião ou o Steam Input, ou ao jogar jogos FPS.</string>
     <string name="game_menu_touch_mode_native_mouse_summary">Para ratos Bluetooth, USB e touchpads de teclado</string>
     <string name="game_menu_current_selection">Atual: %1$s</string>
     <string name="game_menu_trackpad_double_click_drag">Toque duas vezes e mantenha para arrastar</string>
@@ -560,6 +562,8 @@
     <string name="game_menu_option_disabled">Desativado</string>
     <string name="game_menu_toggle_remote_mouse_summary">Mostrar ou ocultar o rato remoto do anfitrião</string>
     <string name="toast_local_cursor_fallback">A usar um modo de cursor compatível para este anfitrião</string>
+    <string name="toast_local_cursor_enabled">Cursor local de baixa latência ativado</string>
+    <string name="toast_local_cursor_disabled">Cursor local de baixa latência desativado</string>
     <string name="toast_touch_mode_enhanced_on">Toque multiponto aprimorado ativado</string>
     <string name="toast_touch_mode_classic_on">Modo de rato clássico ativado</string>
     <string name="toast_touch_mode_trackpad_on">Modo trackpad ativado</string>

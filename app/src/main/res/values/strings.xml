@@ -1053,11 +1053,11 @@
     <string name="game_menu_touch_mode_classic_short">Mouse</string>
     <string name="game_menu_touch_mode_trackpad_short">Pad</string>
     <string name="game_menu_touch_mode_native_mouse_short">External</string>
-    <string name="game_menu_local_cursor_rendering">Local Cursor</string>
+    <string name="game_menu_local_cursor_rendering">Low-latency local cursor</string>
     <string name="game_menu_touch_mode_native_mouse">External mouse</string>
     <string name="game_menu_touch_mode_enhanced_summary">Touch the host screen directly; supports multi-touch</string>
     <string name="game_menu_touch_mode_classic_summary">The touched position directly controls the mouse</string>
-    <string name="game_menu_touch_mode_trackpad_summary">Swipe like a laptop touchpad; low-latency cursor is automatic</string>
+    <string name="game_menu_touch_mode_trackpad_summary">Swipe like a laptop touchpad; uses the compatible host cursor by default</string>
     <string name="game_menu_touch_mode_native_mouse_summary">For Bluetooth, USB mice, and keyboard touchpads</string>
     <string name="game_menu_current_selection">Current: %1$s</string>
     <string name="game_menu_trackpad_double_click_drag">Double-tap and hold to drag</string>
@@ -1360,8 +1360,8 @@ Tap again to replace it.</string>
     <string name="dialog_seekbar_double_tap_time_threshold">Adjust the time interval for double-tap recognition. Larger values make double-tap easier to trigger.</string>
 
     <!-- Local cursor rendering -->
-    <string name="title_local_cursor_rendering">Show local cursor</string>
-    <string name="summary_local_cursor_rendering">Display a local cursor that can be controlled via touchpad mode</string>
+    <string name="title_local_cursor_rendering">Low-latency local cursor</string>
+    <string name="summary_local_cursor_rendering">Tracks this touchpad only; keep off with a host mouse, Steam Input, or FPS games.</string>
     <string name="toast_local_cursor_fallback">Using compatible cursor mode for this host</string>
 
     <!-- Special key mapping -->
@@ -1680,8 +1680,8 @@ Tap again to replace it.</string>
     <string name="toast_double_click_drag_disabled">Double-click drag disabled</string>
     <string name="game_menu_on">On</string>
     <string name="game_menu_off">Off</string>
-    <string name="toast_local_cursor_enabled">Local cursor rendering enabled</string>
-    <string name="toast_local_cursor_disabled">Local cursor rendering disabled</string>
+    <string name="toast_local_cursor_enabled">Low-latency local cursor enabled</string>
+    <string name="toast_local_cursor_disabled">Low-latency local cursor disabled</string>
     <string name="toast_crown_not_enabled">Crown is off</string>
     <string name="game_menu_toggle_touch">Touch Input</string>
     <string name="toast_touch_enabled">Touch enabled</string>

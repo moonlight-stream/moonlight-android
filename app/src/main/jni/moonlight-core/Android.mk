@@ -18,6 +18,8 @@ LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/src/ConnectionTester.c \
                    moonlight-common-c/src/ControlStream.c \
                    moonlight-common-c/src/CursorStream.c \
+                   moonlight-common-c/src/Ds5HapticsIrStream.c \
+                   moonlight-common-c/src/Ds5HapticsStream.c \
                    moonlight-common-c/src/FakeCallbacks.c \
                    moonlight-common-c/src/InputStream.c \
                    moonlight-common-c/src/LinkedBlockingQueue.c \

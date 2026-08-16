@@ -48,6 +48,16 @@ abstract class AbstractController(
 
     abstract fun rumbleTriggers(leftTrigger: Short, rightTrigger: Short)
 
+    open val supportsAdaptiveTriggers: Boolean = false
+
+    open fun setAdaptiveTriggers(
+        eventFlags: Byte,
+        typeLeft: Byte,
+        typeRight: Byte,
+        left: ByteArray,
+        right: ByteArray
+    ) = Unit
+
     protected fun notifyDeviceRemoved() {
         listener.deviceRemoved(this)
     }

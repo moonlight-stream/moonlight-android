@@ -390,6 +390,15 @@ public class MoonBridge {
         }
     }
 
+    public static void bridgeClSetAdaptiveTriggers(short controllerNumber, byte eventFlags,
+                                                   byte typeLeft, byte typeRight,
+                                                   byte[] left, byte[] right) {
+        if (connectionListener != null) {
+            connectionListener.setAdaptiveTriggers(
+                    controllerNumber, eventFlags, typeLeft, typeRight, left, right);
+        }
+    }
+
     public static void bridgeClSetMotionEventState(short controllerNumber, byte eventType, short sampleRateHz) {
         if (connectionListener != null) {
             connectionListener.setMotionEventState(controllerNumber, eventType, sampleRateHz);

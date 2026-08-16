@@ -24,6 +24,13 @@ abstract class AbstractDualSenseController(
     private var inputThread: Thread? = null
     private var stopped = false
 
+    // Serializes output reports with the teardown sequence so no queued effect can
+    // be sent after the final clear or alongside connection.close().
+    protected val outputLock = Any()
+
+    @Volatile
+    protected var outputClosed = false
+
     protected var inEndpt: UsbEndpoint? = null
     protected var outEndpt: UsbEndpoint? = null
 
@@ -157,10 +164,23 @@ abstract class AbstractDualSenseController(
             stopped = true
         }
 
-        try {
-            rumble(0, 0)
-        } catch (e: Exception) {
-            Log.d("DualSenseController", "Failed to cancel rumble during stop", e)
+        // Hold the output lock across the final clear so a report already queued by
+        // the rumble worker cannot re-engage an effect after this point.
+        synchronized(outputLock) {
+            try {
+                rumble(0, 0)
+                setAdaptiveTriggers(
+                    DualSenseOutputReport.BOTH_TRIGGER_FLAGS.toByte(),
+                    DualSenseOutputReport.EFFECT_TYPE_OFF,
+                    DualSenseOutputReport.EFFECT_TYPE_OFF,
+                    ByteArray(DualSenseOutputReport.EFFECT_PAYLOAD_SIZE),
+                    ByteArray(DualSenseOutputReport.EFFECT_PAYLOAD_SIZE)
+                )
+            } catch (e: Exception) {
+                Log.d("DualSenseController", "Failed to clear controller output during stop", e)
+            } finally {
+                outputClosed = true
+            }
         }
 
         inputThread?.let {
@@ -186,10 +206,12 @@ abstract class AbstractDualSenseController(
             }
         }
 
-        try {
-            connection.close()
-        } catch (e: Exception) {
-            Log.w("DualSenseController", "Failed to close connection", e)
+        synchronized(outputLock) {
+            try {
+                connection.close()
+            } catch (e: Exception) {
+                Log.w("DualSenseController", "Failed to close connection", e)
+            }
         }
 
         notifyDeviceRemoved()

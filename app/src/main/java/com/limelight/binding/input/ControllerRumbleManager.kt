@@ -17,6 +17,7 @@ import android.os.VibratorManager
 
 import com.limelight.LimeLog
 import com.limelight.binding.input.driver.AbstractController
+import com.limelight.binding.input.driver.DualSenseOutputReport
 import com.limelight.nvstream.input.ControllerPacket
 import com.limelight.nvstream.jni.MoonBridge
 
@@ -31,10 +32,18 @@ class ControllerRumbleManager(private val handler: ControllerHandler) {
 
     private data class BaseRumble(val lowFrequency: Short, val highFrequency: Short)
     private data class TriggerRumble(val left: Short, val right: Short)
+    private data class AdaptiveTriggers(
+        val eventFlags: Byte,
+        val typeLeft: Byte,
+        val typeRight: Byte,
+        val left: ByteArray,
+        val right: ByteArray
+    )
 
     private inner class UsbRumbleOutput(val device: AbstractController) {
         private val pendingBase = AtomicReference<BaseRumble?>()
         private val pendingTriggers = AtomicReference<TriggerRumble?>()
+        private val pendingAdaptiveTriggers = AtomicReference<AdaptiveTriggers?>()
         @Volatile
         private var closed = false
         private val runnable = Runnable {
@@ -53,6 +62,19 @@ class ControllerRumbleManager(private val handler: ControllerHandler) {
                     LimeLog.warning("Controller trigger rumble failed: ${e.message}")
                 }
             }
+            pendingAdaptiveTriggers.getAndSet(null)?.let { triggers ->
+                try {
+                    device.setAdaptiveTriggers(
+                        triggers.eventFlags,
+                        triggers.typeLeft,
+                        triggers.typeRight,
+                        triggers.left,
+                        triggers.right
+                    )
+                } catch (e: Exception) {
+                    LimeLog.warning("Controller adaptive triggers failed: ${e.message}")
+                }
+            }
         }
 
         fun submitBase(rumble: BaseRumble) {
@@ -67,6 +89,12 @@ class ControllerRumbleManager(private val handler: ControllerHandler) {
             schedule()
         }
 
+        fun submitAdaptiveTriggers(triggers: AdaptiveTriggers) {
+            if (closed) return
+            pendingAdaptiveTriggers.set(triggers)
+            schedule()
+        }
+
         private fun schedule() {
             if (closed) return
             // A stable runnable lets the worker keep only this device's latest state.
@@ -74,6 +102,7 @@ class ControllerRumbleManager(private val handler: ControllerHandler) {
             if (!handler.backgroundThreadHandler.post(runnable)) {
                 pendingBase.set(null)
                 pendingTriggers.set(null)
+                pendingAdaptiveTriggers.set(null)
             }
         }
 
@@ -81,6 +110,7 @@ class ControllerRumbleManager(private val handler: ControllerHandler) {
             closed = true
             pendingBase.set(null)
             pendingTriggers.set(null)
+            pendingAdaptiveTriggers.set(null)
             handler.backgroundThreadHandler.removeCallbacks(runnable)
         }
     }
@@ -473,6 +503,49 @@ class ControllerRumbleManager(private val handler: ControllerHandler) {
                 }
             }
         }
+    }
+
+    fun handleAdaptiveTriggers(
+        controllerNumber: Short,
+        eventFlags: Byte,
+        typeLeft: Byte,
+        typeRight: Byte,
+        left: ByteArray,
+        right: ByteArray
+    ) {
+        if (handler.stopped ||
+            left.size != DualSenseOutputReport.EFFECT_PAYLOAD_SIZE ||
+            right.size != DualSenseOutputReport.EFFECT_PAYLOAD_SIZE
+        ) {
+            return
+        }
+
+        // Callers hand off exclusive payload snapshots, so queue them as-is for the
+        // USB output worker, which only reads them.
+        val triggers = AdaptiveTriggers(eventFlags, typeLeft, typeRight, left, right)
+        for (i in 0 until handler.usbDeviceContexts.size()) {
+            val deviceContext = handler.usbDeviceContexts.valueAt(i)
+            if (handler.prefConfig.multiController && !deviceContext.assignedControllerNumber) {
+                continue
+            }
+            if (deviceContext.controllerNumber == controllerNumber) {
+                val device = deviceContext.device ?: continue
+                if (device.supportsAdaptiveTriggers) {
+                    usbRumbleOutput(device).submitAdaptiveTriggers(triggers)
+                }
+            }
+        }
+    }
+
+    fun clearAdaptiveTriggers(controllerNumber: Short) {
+        handleAdaptiveTriggers(
+            controllerNumber,
+            DualSenseOutputReport.BOTH_TRIGGER_FLAGS.toByte(),
+            DualSenseOutputReport.EFFECT_TYPE_OFF,
+            DualSenseOutputReport.EFFECT_TYPE_OFF,
+            ByteArray(DualSenseOutputReport.EFFECT_PAYLOAD_SIZE),
+            ByteArray(DualSenseOutputReport.EFFECT_PAYLOAD_SIZE)
+        )
     }
 
     @TargetApi(31)

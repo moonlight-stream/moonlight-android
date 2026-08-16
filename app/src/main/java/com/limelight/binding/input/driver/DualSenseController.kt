@@ -15,6 +15,8 @@ class DualSenseController(
     listener: UsbDriverListener
 ) : AbstractDualSenseController(device, connection, deviceId, listener) {
 
+    override val supportsAdaptiveTriggers: Boolean = true
+
     private fun normalizeThumbStickAxis(value: Int): Float {
         return (2.0f * value / 255.0f) - 1.0f
     }
@@ -128,28 +130,36 @@ class DualSenseController(
     }
 
     override fun rumble(lowFreqMotor: Short, highFreqMotor: Short) {
-        val reportData = byteArrayOf(
-            0x02, // Report ID
-            (0x01 or 0x02).toByte(), // valid_flag0
-            0x00, // valid_flag1
-            (highFreqMotor.toInt() ushr 8).toByte(),
-            (lowFreqMotor.toInt() ushr 8).toByte(),
-            0x00, 0x00, 0x00, 0x00,
-            0x00, // mute_button_led
-            0x10, // power_save_control
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // R2 trigger effect
-            0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // L2 trigger effect
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x02, 0x00, 0x02, 0x00,
-            0x00, // player leds
-            0x78, 0x78, 0xEF.toByte() // RGB values
-        )
-        sendCommand(reportData)
+        sendCommand(DualSenseOutputReport.rumble(lowFreqMotor, highFreqMotor))
     }
 
     override fun rumbleTriggers(leftTrigger: Short, rightTrigger: Short) {
         // DS5 supports trigger rumble but implementation is complex
+    }
+
+    override fun setAdaptiveTriggers(
+        eventFlags: Byte,
+        typeLeft: Byte,
+        typeRight: Byte,
+        left: ByteArray,
+        right: ByteArray
+    ) {
+        if (left.size != DualSenseOutputReport.EFFECT_PAYLOAD_SIZE ||
+            right.size != DualSenseOutputReport.EFFECT_PAYLOAD_SIZE
+        ) {
+            Log.w("DualSenseController", "Ignoring malformed adaptive trigger payload")
+            return
+        }
+
+        sendCommand(
+            DualSenseOutputReport.adaptiveTriggers(
+                eventFlags,
+                typeLeft,
+                typeRight,
+                left,
+                right
+            )
+        )
     }
 
     override fun sendCommand(data: ByteArray) {
@@ -157,10 +167,17 @@ class DualSenseController(
             Log.w("DualSenseController", "Cannot send command: invalid parameters")
             return
         }
-        Log.d("DualSenseController", "sendCommand")
-        val res = connection.bulkTransfer(outEndpt, data, data.size, 1000)
-        if (res != data.size) {
-            Log.w("DualSenseController", "Command transfer failed: expected ${data.size}, got $res")
+        synchronized(outputLock) {
+            // Re-check under the lock: stop() sets this after sending its final
+            // clear, so no stale report may follow it.
+            if (outputClosed) {
+                return
+            }
+            Log.d("DualSenseController", "sendCommand")
+            val res = connection.bulkTransfer(outEndpt, data, data.size, 1000)
+            if (res != data.size) {
+                Log.w("DualSenseController", "Command transfer failed: expected ${data.size}, got $res")
+            }
         }
     }
 

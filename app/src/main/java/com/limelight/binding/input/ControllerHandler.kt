@@ -2627,6 +2627,22 @@ class ControllerHandler(
     fun handleRumbleTriggers(controllerNumber: Short, leftTrigger: Short, rightTrigger: Short) =
         hapticsCoordinator.submitHostTriggers(controllerNumber, leftTrigger, rightTrigger)
 
+    fun handleSetAdaptiveTriggers(
+        controllerNumber: Short,
+        eventFlags: Byte,
+        typeLeft: Byte,
+        typeRight: Byte,
+        left: ByteArray,
+        right: ByteArray
+    ) = hapticsCoordinator.submitHostAdaptiveTriggers(
+        controllerNumber,
+        eventFlags,
+        typeLeft,
+        typeRight,
+        left,
+        right
+    )
+
     @TargetApi(31)
     fun handleSetControllerLED(controllerNumber: Short, r: Byte, g: Byte, b: Byte) =
         rumbleManager.handleSetControllerLED(controllerNumber, r, g, b)

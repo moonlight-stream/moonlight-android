@@ -335,6 +335,32 @@ internal class ControllerHapticsCoordinator(
         }
     }
 
+    fun submitHostAdaptiveTriggers(
+        controllerNumber: Short,
+        eventFlags: Byte,
+        typeLeft: Byte,
+        typeRight: Byte,
+        left: ByteArray,
+        right: ByteArray
+    ) {
+        // Snapshot the payloads before deferring: the rumble manager queues these
+        // arrays across threads and hands them to the USB output worker as-is.
+        val leftSnapshot = left.copyOf()
+        val rightSnapshot = right.copyOf()
+        runOnOutputThread {
+            if (!isStoppingOrStopped()) {
+                handler.rumbleManager.handleAdaptiveTriggers(
+                    controllerNumber,
+                    eventFlags,
+                    typeLeft,
+                    typeRight,
+                    leftSnapshot,
+                    rightSnapshot
+                )
+            }
+        }
+    }
+
     fun clearControllerIfUnavailable(controllerNumber: Short) {
         runOnOutputThread {
             if (stopped || controllerHasRumble(controllerNumber)) return@runOnOutputThread
@@ -528,6 +554,7 @@ internal class ControllerHapticsCoordinator(
                 allowDeviceFallback = true
             )
             handler.rumbleManager.handleRumbleTriggers(controllerNumber, 0, 0)
+            handler.rumbleManager.clearAdaptiveTriggers(controllerNumber)
         }
     }
 

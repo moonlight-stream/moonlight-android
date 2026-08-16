@@ -1828,6 +1828,24 @@ class Game : Activity(), SurfaceHolder.Callback,
         controllerHandler.handleRumbleTriggers(controllerNumber, leftTrigger, rightTrigger)
     }
 
+    override fun setAdaptiveTriggers(
+        controllerNumber: Short,
+        eventFlags: Byte,
+        typeLeft: Byte,
+        typeRight: Byte,
+        left: ByteArray,
+        right: ByteArray
+    ) {
+        controllerHandler.handleSetAdaptiveTriggers(
+            controllerNumber,
+            eventFlags,
+            typeLeft,
+            typeRight,
+            left,
+            right
+        )
+    }
+
     override fun setHdrMode(enabled: Boolean, hdrMetadata: ByteArray?) {
         LimeLog.info("Display HDR mode: ${if (enabled) "enabled" else "disabled"}")
         applyHdrOutputState(enabled)

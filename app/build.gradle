@@ -179,7 +179,8 @@ android {
             resValue "string", "app_label_root", audioHapticsAppLabel
 
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
+                    'proguard-rules.pro', 'proguard-debug.pro'
         }
         release {
             // To whomever is releasing/using an APK in release mode with

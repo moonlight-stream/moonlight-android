@@ -1,6 +1,5 @@
 package com.limelight.utils
 
-import android.content.res.Configuration
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.util.Locale
@@ -32,28 +31,4 @@ class AboutDialogLauncherPolicyTest {
         }
     }
 
-    @Test
-    fun ecosystemColumnsAdaptToNarrowTabletAndLandscapeScreens() {
-        assertEquals(
-            1,
-            AboutDialogLauncher.ecosystemColumnCount(
-                390,
-                Configuration.ORIENTATION_PORTRAIT
-            )
-        )
-        assertEquals(
-            2,
-            AboutDialogLauncher.ecosystemColumnCount(
-                700,
-                Configuration.ORIENTATION_PORTRAIT
-            )
-        )
-        assertEquals(
-            3,
-            AboutDialogLauncher.ecosystemColumnCount(
-                960,
-                Configuration.ORIENTATION_LANDSCAPE
-            )
-        )
-    }
 }

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-
-    <solid android:color="@color/about_dialog_panel_surface" />
-
-    <corners android:radius="@dimen/corner_radius_large" />
-
-</shape>

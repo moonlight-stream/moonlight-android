@@ -109,10 +109,6 @@
     <color name="iperf_output_hint">#99242830</color>
 
     <!-- About dialog keeps its own layered card treatment. -->
-    <color name="about_dialog_window_start">#F2F8F5FC</color>
-    <color name="about_dialog_window_center">#F2FEF7FB</color>
-    <color name="about_dialog_window_end">#F2FFF0F8</color>
-    <color name="about_dialog_panel_surface">#FFFFFFFF</color>
     <color name="about_dialog_panel_outline">#FFE8DDE6</color>
     <color name="about_dialog_link_surface">#FFFFF5F8</color>
 

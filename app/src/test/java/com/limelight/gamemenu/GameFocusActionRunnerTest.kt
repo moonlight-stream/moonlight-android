@@ -1,6 +1,7 @@
 package com.limelight.gamemenu
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
@@ -28,5 +29,42 @@ class GameFocusActionRunnerTest {
         requireNotNull(pendingRetry).run()
 
         assertEquals(listOf("dismiss", "run"), events)
+    }
+
+    @Test
+    fun doesNotRunOrRetryWhenOwnerCannotRun() {
+        var actionRan = false
+        var retryScheduled = false
+        val runner = GameFocusActionRunner(
+            canRun = { false },
+            hasGameFocus = { false },
+            scheduleRetry = { retryScheduled = true }
+        )
+
+        runner.run(Runnable { actionRan = true })
+
+        assertFalse(actionRan)
+        assertFalse(retryScheduled)
+    }
+
+    @Test
+    fun stopsRetryingAfterMaximumAttempts() {
+        var actionRan = false
+        val retries = ArrayDeque<Runnable>()
+        val runner = GameFocusActionRunner(
+            canRun = { true },
+            hasGameFocus = { false },
+            scheduleRetry = retries::addLast,
+            maxAttempts = 2
+        )
+
+        runner.run(Runnable { actionRan = true })
+        assertEquals(1, retries.size)
+        retries.removeFirst().run()
+        assertEquals(1, retries.size)
+        retries.removeFirst().run()
+
+        assertFalse(actionRan)
+        assertEquals(0, retries.size)
     }
 }

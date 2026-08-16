@@ -104,59 +104,6 @@ object AppDialogStyler {
         }
     }
 
-    fun applyAboutDialog(dialog: Dialog, context: Context) {
-        installDismissKeys(dialog)
-        dialog.window?.setBackgroundDrawableResource(R.drawable.dialog_about_window_bg)
-        val accentColor = ContextCompat.getColor(context, R.color.app_dialog_accent_color)
-        listOf(
-            DialogInterface.BUTTON_POSITIVE,
-            DialogInterface.BUTTON_NEGATIVE,
-            DialogInterface.BUTTON_NEUTRAL
-        ).forEach { buttonId -> findButton(dialog, buttonId)?.setTextColor(accentColor) }
-        compactAboutDialogActions(dialog, context)
-    }
-
-    private fun compactAboutDialogActions(dialog: Dialog, context: Context) {
-        val buttonPanelId = context.resources.getIdentifier("buttonPanel", "id", "android")
-        val buttonPanel = dialog.findViewById<ViewGroup>(buttonPanelId) ?: return
-
-        // Apply width changes before ButtonBarLayout's first measure. Once the
-        // platform stacks the buttons, some versions keep that state until the
-        // available width changes.
-        val actionHeight = dpToPx(context, 48)
-        val actionHorizontalPadding = dpToPx(context, 8)
-        (buttonPanel.layoutParams as? ViewGroup.MarginLayoutParams)?.let { layoutParams ->
-            layoutParams.bottomMargin = 0
-            buttonPanel.layoutParams = layoutParams
-        }
-
-        val buttons = listOf(
-            DialogInterface.BUTTON_POSITIVE,
-            DialogInterface.BUTTON_NEGATIVE,
-            DialogInterface.BUTTON_NEUTRAL
-        ).mapNotNull { buttonId -> findButton(dialog, buttonId) }
-
-        (buttons.firstOrNull()?.parent as? ViewGroup)?.apply {
-            setPaddingRelative(actionHorizontalPadding, 0, actionHorizontalPadding, 0)
-        }
-        buttons.forEach { button ->
-            button.apply {
-                minHeight = actionHeight
-                minimumHeight = actionHeight
-                minWidth = 0
-                minimumWidth = 0
-                setPaddingRelative(
-                    actionHorizontalPadding,
-                    0,
-                    actionHorizontalPadding,
-                    0
-                )
-            }
-        }
-
-        buttonPanel.requestLayout()
-    }
-
     fun styleChoiceListContainer(listView: ListView?, context: Context) {
         listView ?: return
         listView.setBackgroundColor(Color.TRANSPARENT)

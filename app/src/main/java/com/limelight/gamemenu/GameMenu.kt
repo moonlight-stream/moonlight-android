@@ -99,7 +99,7 @@ class GameMenu(
     private val gameFocusActionRunner = GameFocusActionRunner(
         canRun = { !game.isFinishing },
         hasGameFocus = game::hasWindowFocus,
-        scheduleRetry = { action -> handler.postDelayed(action, TEST_GAME_FOCUS_DELAY) }
+        scheduleRetry = { action -> handler.postDelayed(action, GAME_FOCUS_RETRY_DELAY_MS) }
     )
     private val actionExecutor = StreamActionExecutor(game, { conn }, handler)
     private val bitrateCardController = BitrateCardController(game, conn)
@@ -731,8 +731,11 @@ class GameMenu(
         // Focus-dependent actions must wait until the dialog has released the game window.
         // Dismissing first also preserves the interaction order of the legacy menu.
         if (option.isWithGameFocus && !option.isKeepDialog) {
-            option.runnable?.let { action ->
+            val action = option.runnable
+            if (action != null) {
                 gameFocusActionRunner.dismissThenRun(Runnable(dialog::dismiss), action)
+            } else {
+                dialog.dismiss()
             }
             return
         }
@@ -1423,7 +1426,7 @@ class GameMenu(
     }
 
     companion object {
-        private const val TEST_GAME_FOCUS_DELAY = 10L
+        private const val GAME_FOCUS_RETRY_DELAY_MS = 10L
         private const val DIALOG_DIM_AMOUNT = 0.0f
         private const val DIALOG_LANDSCAPE_WIDTH_FRACTION = 0.88f
         private const val DIALOG_PORTRAIT_WIDTH_FRACTION = 0.95f

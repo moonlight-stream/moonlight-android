@@ -348,13 +348,20 @@
         <item name="android:windowExitAnimation">@anim/app_action_sheet_exit</item>
     </style>
 
-    <style name="AppActionSheetStyle" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="AppTranslucentDialogStyle" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.42</item>
+    </style>
+
+    <style name="AppActionSheetStyle" parent="AppTranslucentDialogStyle">
         <item name="android:windowAnimationStyle">@style/AppActionSheetAnimation</item>
+    </style>
+
+    <style name="AppComposeDialogStyle" parent="AppTranslucentDialogStyle">
+        <item name="android:windowAnimationStyle">@style/AppDialogAnimation</item>
     </style>
 
     <!-- 通用弹窗动画 -->

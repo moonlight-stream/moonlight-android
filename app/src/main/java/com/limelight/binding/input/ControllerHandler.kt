@@ -587,13 +587,20 @@ class ControllerHandler(
         // normal input packet. Sending a removal packet for it can create a legacy
         // Xbox controller on hosts that keep controller 0 active.
         if (context.controllerArrival.isReported) {
+            val activeMask = getActiveControllerMask()
             conn.sendControllerInput(
-                context.controllerNumber, getActiveControllerMask(),
+                context.controllerNumber, activeMask,
                 0,
                 0.toByte(), 0.toByte(),
                 0.toShort(), 0.toShort(),
                 0.toShort(), 0.toShort()
             )
+
+            val controllerNumber = context.controllerNumber.toInt() and 0xFF
+            if ((activeMask.toInt() and (1 shl controllerNumber)) == 0) {
+                // The host removed this slot, so a reconnect must send a fresh arrival event.
+                sentControllerArrivalMetadata[controllerNumber] = null
+            }
         }
     }
 

@@ -2603,20 +2603,6 @@ class Game : Activity(), SurfaceHolder.Callback,
     fun isVirtualControllerVisible(): Boolean =
         virtualController?.elements?.firstOrNull()?.visibility == View.VISIBLE
 
-    fun toggleScreenDs5Touchpad() {
-        val enabled = !prefConfig.screenDs5Touchpad
-        prefConfig.screenDs5Touchpad = enabled
-        defaultPreferences().edit()
-            .putBoolean(PreferenceConfiguration.SCREEN_DS5_TOUCHPAD_PREF_STRING, enabled)
-            .apply()
-        controllerHandler.setScreenDs5TouchpadEnabled(enabled)
-        Toast.makeText(
-            this,
-            if (enabled) R.string.toast_screen_ds5_touchpad_enabled else R.string.toast_screen_ds5_touchpad_disabled,
-            Toast.LENGTH_SHORT
-        ).show()
-    }
-
     fun initializeControllerManager() {
         val manager = controllerManager ?: ControllerManager(streamView.parent as FrameLayout, this)
             .also { controllerManager = it }

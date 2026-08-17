@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
@@ -1344,22 +1343,6 @@ class GameMenu(
             subtitle = getString(R.string.game_menu_toggle_remote_mouse_summary)
         ))
 
-        if (game.packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
-            normalOptions.add(MenuOption(
-                label = getString(R.string.game_menu_screen_ds5_touchpad),
-                isWithGameFocus = false,
-                runnable = null,
-                iconKey = "game_menu_screen_ds5_touchpad",
-                isShowIcon = true,
-                isKeepDialog = true,
-                subtitle = getString(R.string.game_menu_screen_ds5_touchpad_summary),
-                inlineControl = InlineControl.Toggle(
-                    checked = game.prefConfig.screenDs5Touchpad,
-                    toggleAction = Runnable { game.toggleScreenDs5Touchpad() }
-                )
-            ))
-        }
-
         normalOptions.add(MenuOption(
             label = getString(R.string.game_menu_enable_pan_zoom).trim(),
             isWithGameFocus = false,
@@ -1504,7 +1487,6 @@ class GameMenu(
             "game_menu_cancel" to R.drawable.ic_cancel_cute,
             "mouse_mode" to R.drawable.ic_mouse_cute,
             "game_menu_mouse_emulation" to R.drawable.ic_mouse_emulation_cute,
-            "game_menu_screen_ds5_touchpad" to R.drawable.ic_controller_cute,
             "crown_function_menu" to R.drawable.ic_super_crown,
             "crown_visibility" to R.drawable.ic_ui_settings,
             "crown_touch" to R.drawable.ic_touch_settings,

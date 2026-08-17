@@ -599,6 +599,11 @@
             android:summary="@string/summary_checkbox_multi_controller"
             android:defaultValue="true" />
         <CheckBoxPreference
+            android:key="checkbox_screen_ds5_touchpad"
+            android:title="@string/title_checkbox_screen_ds5_touchpad"
+            android:summary="@string/summary_checkbox_screen_ds5_touchpad"
+            android:defaultValue="false" />
+        <CheckBoxPreference
             android:key="checkbox_mouse_emulation"
             android:title="@string/title_checkbox_mouse_emulation"
             android:summary="@string/summary_checkbox_mouse_emulation"

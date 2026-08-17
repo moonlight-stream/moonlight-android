@@ -3002,6 +3002,9 @@ class StreamSettings : AppCompatActivity() {
             if (!requireActivity().packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
                 val category = findPreference<PreferenceCategory>("category_onscreen_controls")!!
                 screen.removePreference(category)
+
+                val gamepadCategory = findPreference<PreferenceCategory>("category_gamepad_settings")!!
+                gamepadCategory.removePreference(findPreference("checkbox_screen_ds5_touchpad")!!)
             }
 
             // Hide remote desktop mouse mode on pre-Oreo (which doesn't have pointer capture)

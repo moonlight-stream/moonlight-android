@@ -336,6 +336,9 @@ class ControllerHandler(
     internal val rumbleManager = ControllerRumbleManager(this)
     private val hapticsCoordinator = ControllerHapticsCoordinator(this)
 
+    @Volatile
+    private var screenDs5TouchpadPressed = false
+
     private val REMAP_IGNORE = -1
     private val REMAP_CONSUME = -2
 
@@ -1216,6 +1219,9 @@ class ControllerHandler(
      * with a touchpad instead of its legacy Xbox virtual controller.
      */
     fun setScreenDs5TouchpadEnabled(enabled: Boolean): Int {
+        if (!enabled) {
+            screenDs5TouchpadPressed = false
+        }
         val baseMetadata = controllerArrivalMetadata[0]
         val activeMask = getActiveControllerMask()
         if (!enabled && baseMetadata == null && (activeMask.toInt() and 1) == 0) {
@@ -1228,6 +1234,13 @@ class ControllerHandler(
             0,
             baseMetadata ?: ControllerArrivalMetadata(MoonBridge.LI_CTYPE_XBOX, 0, 0)
         )
+    }
+
+    /** Merge the screen clickpad state into controller 0 without replacing other inputs. */
+    fun setScreenDs5TouchpadPressed(pressed: Boolean) {
+        if (screenDs5TouchpadPressed == pressed || stopped) return
+        screenDs5TouchpadPressed = pressed
+        sendControllerInputPacket(defaultContext)
     }
 
     internal fun sendControllerArrivalEvent(
@@ -1334,6 +1347,9 @@ class ControllerHandler(
             leftStickY = maxByMagnitude(leftStickY, defaultContext.leftStickY)
             rightStickX = maxByMagnitude(rightStickX, defaultContext.rightStickX)
             rightStickY = maxByMagnitude(rightStickY, defaultContext.rightStickY)
+        }
+        if (controllerNumber.toInt() == 0 && prefConfig.screenDs5Touchpad && screenDs5TouchpadPressed) {
+            inputMap = inputMap or ControllerPacket.TOUCHPAD_FLAG
         }
 
         if (originalContext.mouseEmulationActive) {

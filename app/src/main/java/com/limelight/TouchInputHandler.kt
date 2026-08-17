@@ -13,6 +13,7 @@ import com.limelight.binding.input.touch.NativeTouchContext
 import com.limelight.binding.input.touch.RelativeTouchContext
 import com.limelight.binding.input.touch.TouchContext
 import com.limelight.binding.input.touchpad.NonRootTouchpadHandler
+import com.limelight.binding.input.touchpad.ScreenDs5PressureClickDetector
 import com.limelight.binding.input.virtual_controller.VirtualController
 import com.limelight.nvstream.NvConnection
 import com.limelight.nvstream.input.MouseButtonPacket
@@ -92,6 +93,8 @@ class TouchInputHandler(private val game: Game) {
     var detectMouseMiddleDown = false     // 键盘处理也会读写
     private val nonRootTouchpadHandler = NonRootTouchpadHandler()
     private val penPointerCoords = MotionEvent.PointerCoords()
+    private val screenDs5PressureClickDetector = ScreenDs5PressureClickDetector()
+    private var screenDs5PressurePointerId = MotionEvent.INVALID_POINTER_ID
 
     // ---- 公共入口 ----
 
@@ -1089,11 +1092,63 @@ class TouchInputHandler(private val game: Game) {
             }
             else -> sendPointer(event.actionIndex)
         }
+        if (supported || event.actionMasked == MotionEvent.ACTION_UP ||
+            event.actionMasked == MotionEvent.ACTION_CANCEL
+        ) {
+            updateScreenDs5TouchpadPress(view ?: game.streamView, event)
+        }
         if (supported && event.actionMasked == MotionEvent.ACTION_DOWN) {
             (view ?: game.streamView).performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
         }
         return supported
     }
+
+    private fun updateScreenDs5TouchpadPress(view: View, event: MotionEvent) {
+        val transition = when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                screenDs5PressurePointerId = event.getPointerId(event.actionIndex)
+                screenDs5PressureClickDetector.begin(
+                    event.getPressure(event.actionIndex),
+                    event.isDeepPress(),
+                )
+            }
+            MotionEvent.ACTION_MOVE,
+            MotionEvent.ACTION_POINTER_DOWN -> updateTrackedScreenPressure(event)
+            MotionEvent.ACTION_POINTER_UP -> {
+                if (event.getPointerId(event.actionIndex) == screenDs5PressurePointerId) {
+                    screenDs5PressurePointerId = MotionEvent.INVALID_POINTER_ID
+                    screenDs5PressureClickDetector.end()
+                } else {
+                    updateTrackedScreenPressure(event)
+                }
+            }
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL -> {
+                screenDs5PressurePointerId = MotionEvent.INVALID_POINTER_ID
+                screenDs5PressureClickDetector.end()
+            }
+            else -> null
+        } ?: return
+
+        game.controllerHandler.setScreenDs5TouchpadPressed(transition)
+        game.ds5TouchpadFeedbackView?.setTouchpadPressed(transition)
+        if (transition) {
+            view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+        }
+    }
+
+    private fun updateTrackedScreenPressure(event: MotionEvent): Boolean? {
+        val pointerIndex = event.findPointerIndex(screenDs5PressurePointerId)
+        if (pointerIndex < 0) return screenDs5PressureClickDetector.end()
+        return screenDs5PressureClickDetector.update(
+            event.getPressure(pointerIndex),
+            event.isDeepPress(),
+        )
+    }
+
+    private fun MotionEvent.isDeepPress(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+            classification == MotionEvent.CLASSIFICATION_DEEP_PRESS
 
     private fun multiFingerTapChecker(event: MotionEvent) {
         if (event.pointerCount == game.prefConfig.nativeTouchFingersToToggleKeyboard) {

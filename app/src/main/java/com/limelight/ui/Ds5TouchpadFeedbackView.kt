@@ -55,6 +55,7 @@ class Ds5TouchpadFeedbackView(context: Context) : View(context) {
     }
 
     private var introStartedAt = 0L
+    private var touchpadPressed = false
 
     init {
         isClickable = false
@@ -95,6 +96,12 @@ class Ds5TouchpadFeedbackView(context: Context) : View(context) {
         postInvalidateOnAnimation()
     }
 
+    fun setTouchpadPressed(pressed: Boolean) {
+        if (touchpadPressed == pressed) return
+        touchpadPressed = pressed
+        postInvalidateOnAnimation()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val now = SystemClock.uptimeMillis()
@@ -104,7 +111,7 @@ class Ds5TouchpadFeedbackView(context: Context) : View(context) {
     }
 
     private fun drawContacts(canvas: Canvas, now: Long): Boolean {
-        val radius = 18f * density
+        val radius = (if (touchpadPressed) 23f else 18f) * density
         var animating = false
         val iterator = contacts.iterator()
         while (iterator.hasNext()) {
@@ -122,10 +129,16 @@ class Ds5TouchpadFeedbackView(context: Context) : View(context) {
             }
             val x = contact.x.coerceIn(0f, 1f) * width
             val y = contact.y.coerceIn(0f, 1f) * height
-            contactFillPaint.alpha = (42 * alpha).toInt()
+            contactFillPaint.color = if (touchpadPressed) 0xFF8AB4F8.toInt() else Color.WHITE
+            contactStrokePaint.color = if (touchpadPressed) 0xFF8AB4F8.toInt() else Color.WHITE
+            contactFillPaint.alpha = ((if (touchpadPressed) 92 else 42) * alpha).toInt()
             contactStrokePaint.alpha = (220 * alpha).toInt()
             canvas.drawCircle(x, y, radius, contactFillPaint)
             canvas.drawCircle(x, y, radius, contactStrokePaint)
+            if (touchpadPressed) {
+                contactStrokePaint.alpha = (105 * alpha).toInt()
+                canvas.drawCircle(x, y, radius + 6f * density, contactStrokePaint)
+            }
             canvas.drawCircle(x, y, 3.5f * density, contactFillPaint.apply {
                 this.alpha = (210 * alpha).toInt()
             })

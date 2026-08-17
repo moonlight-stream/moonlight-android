@@ -1420,7 +1420,7 @@
     <string name="title_checkbox_screen_ds5_touchpad">使用屏幕作为 DS5 触控板</string>
     <string name="summary_checkbox_screen_ds5_touchpad">模拟 DualSense 手柄，并将屏幕触摸发送到其触控板</string>
     <string name="ds5_touchpad_active_title">DS5 触控板已激活</string>
-    <string name="ds5_touchpad_active_subtitle">屏幕触摸将发送到 DualSense</string>
+    <string name="ds5_touchpad_active_subtitle">触摸移动 · 用力按压即可点击</string>
     <string name="toast_touch_enabled">触控已开启</string>
     <string name="toast_touch_disabled">触控已关闭</string>
     <string name="toast_cannot_access_controller">无法访问控制器</string>

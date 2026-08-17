@@ -3,66 +3,115 @@ package com.limelight.binding.input.touchpad
 import kotlin.math.max
 
 /**
- * Converts hardware-reported touchscreen pressure into a clickpad button state.
+ * Converts a firm screen press into a clickpad button state.
  *
- * The baseline is calibrated for every gesture. This deliberately avoids treating a constant
- * pressure value (a common touchscreen implementation) as a click. Hysteresis prevents noisy
- * samples around the press threshold from rapidly toggling the button.
+ * Hardware pressure is preferred. Touchscreens that expose a fixed pressure value can still use
+ * normalized contact size, which grows as a fingertip flattens under a firmer press. Both signals
+ * are calibrated for every gesture and use hysteresis to prevent noisy toggles.
  */
 internal class ScreenDs5PressureClickDetector {
-    private var baseline = Float.NaN
-    private var pressed = false
+    private enum class Source { PRESSURE, CONTACT_SIZE, DEEP_PRESS }
 
-    fun begin(pressure: Float, deepPress: Boolean = false): Boolean? {
-        baseline = validPressure(pressure) ?: Float.NaN
+    private var pressureBaseline = Float.NaN
+    private var contactSizeBaseline = Float.NaN
+    private var pressed = false
+    private var pressedSource: Source? = null
+
+    fun begin(pressure: Float, contactSize: Float, deepPress: Boolean = false): Boolean? {
+        pressureBaseline = validSignal(pressure) ?: Float.NaN
+        contactSizeBaseline = validSignal(contactSize) ?: Float.NaN
         pressed = false
-        return update(pressure, deepPress)
+        pressedSource = null
+        return update(pressure, contactSize, deepPress)
     }
 
     /** Returns the new button state only when it changes. */
-    fun update(pressure: Float, deepPress: Boolean = false): Boolean? {
-        val sample = validPressure(pressure)
+    fun update(pressure: Float, contactSize: Float, deepPress: Boolean = false): Boolean? {
+        val pressureSample = validSignal(pressure)
+        val contactSizeSample = validSignal(contactSize)
         if (deepPress && !pressed) {
             pressed = true
+            pressedSource = Source.DEEP_PRESS
             return true
         }
-        if (sample == null || baseline.isNaN()) return null
 
-        // Let a lighter early sample refine the per-gesture resting pressure.
-        if (!pressed && sample < baseline) baseline = sample
+        if (!pressed) {
+            // Let lighter early samples refine the per-gesture resting values.
+            if (pressureSample != null && (pressureBaseline.isNaN() || pressureSample < pressureBaseline)) {
+                pressureBaseline = pressureSample
+            }
+            if (contactSizeSample != null &&
+                (contactSizeBaseline.isNaN() || contactSizeSample < contactSizeBaseline)
+            ) {
+                contactSizeBaseline = contactSizeSample
+            }
 
-        val pressThreshold = max(MIN_ABSOLUTE_PRESSURE, baseline + PRESS_DELTA)
-        val releaseThreshold = max(MIN_ABSOLUTE_PRESSURE - HYSTERESIS, baseline + RELEASE_DELTA)
-        return when {
-            !pressed && sample >= pressThreshold -> {
+            if (pressureSample != null && !pressureBaseline.isNaN() &&
+                pressureSample >= max(MIN_ABSOLUTE_PRESSURE, pressureBaseline + PRESS_DELTA)
+            ) {
                 pressed = true
-                true
+                pressedSource = Source.PRESSURE
+                return true
             }
-            pressed && !deepPress && sample <= releaseThreshold -> {
-                pressed = false
-                false
+            if (contactSizeSample != null && !contactSizeBaseline.isNaN() &&
+                contactSizeSample >= max(
+                    contactSizeBaseline + SIZE_DELTA,
+                    contactSizeBaseline * SIZE_PRESS_RATIO,
+                )
+            ) {
+                pressed = true
+                pressedSource = Source.CONTACT_SIZE
+                return true
             }
-            else -> null
+            return null
         }
-    }
 
-    fun end(): Boolean? {
-        baseline = Float.NaN
-        return if (pressed) {
+        val shouldRelease = when (pressedSource) {
+            Source.PRESSURE -> pressureSample != null &&
+                pressureSample <= max(
+                    MIN_ABSOLUTE_PRESSURE - PRESS_HYSTERESIS,
+                    pressureBaseline + PRESS_RELEASE_DELTA,
+                )
+            Source.CONTACT_SIZE -> contactSizeSample != null &&
+                contactSizeSample <= max(
+                    contactSizeBaseline + SIZE_RELEASE_DELTA,
+                    contactSizeBaseline * SIZE_RELEASE_RATIO,
+                )
+            Source.DEEP_PRESS -> !deepPress && pressureSample == null && contactSizeSample == null
+            null -> false
+        }
+        return if (shouldRelease) {
             pressed = false
+            pressedSource = null
             false
         } else {
             null
         }
     }
 
-    private fun validPressure(value: Float): Float? =
+    fun end(): Boolean? {
+        pressureBaseline = Float.NaN
+        contactSizeBaseline = Float.NaN
+        return if (pressed) {
+            pressed = false
+            pressedSource = null
+            false
+        } else {
+            null
+        }
+    }
+
+    private fun validSignal(value: Float): Float? =
         value.takeIf { it.isFinite() && it > 0f }
 
     private companion object {
         const val MIN_ABSOLUTE_PRESSURE = 0.35f
         const val PRESS_DELTA = 0.15f
-        const val RELEASE_DELTA = 0.07f
-        const val HYSTERESIS = 0.08f
+        const val PRESS_RELEASE_DELTA = 0.07f
+        const val PRESS_HYSTERESIS = 0.08f
+        const val SIZE_DELTA = 0.035f
+        const val SIZE_RELEASE_DELTA = 0.018f
+        const val SIZE_PRESS_RATIO = 1.55f
+        const val SIZE_RELEASE_RATIO = 1.25f
     }
 }

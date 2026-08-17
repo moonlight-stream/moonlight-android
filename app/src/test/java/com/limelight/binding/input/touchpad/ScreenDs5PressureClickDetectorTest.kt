@@ -9,8 +9,8 @@ class ScreenDs5PressureClickDetectorTest {
     fun constantPressureDoesNotClick() {
         val detector = ScreenDs5PressureClickDetector()
 
-        assertNull(detector.begin(1f))
-        assertNull(detector.update(1f))
+        assertNull(detector.begin(1f, 0.08f))
+        assertNull(detector.update(1f, 0.08f))
         assertNull(detector.end())
     }
 
@@ -18,19 +18,30 @@ class ScreenDs5PressureClickDetectorTest {
     fun pressureRiseClicksAndHysteresisReleases() {
         val detector = ScreenDs5PressureClickDetector()
 
-        assertNull(detector.begin(0.18f))
-        assertNull(detector.update(0.34f))
-        assertEquals(true, detector.update(0.36f))
-        assertNull(detector.update(0.30f))
-        assertEquals(false, detector.update(0.24f))
+        assertNull(detector.begin(0.18f, 0.08f))
+        assertNull(detector.update(0.34f, 0.08f))
+        assertEquals(true, detector.update(0.36f, 0.08f))
+        assertNull(detector.update(0.30f, 0.08f))
+        assertEquals(false, detector.update(0.24f, 0.08f))
+    }
+
+    @Test
+    fun contactSizeRiseClicksWhenPressureIsFixed() {
+        val detector = ScreenDs5PressureClickDetector()
+
+        assertNull(detector.begin(1f, 0.06f))
+        assertNull(detector.update(1f, 0.09f))
+        assertEquals(true, detector.update(1f, 0.10f))
+        assertNull(detector.update(1f, 0.08f))
+        assertEquals(false, detector.update(1f, 0.07f))
     }
 
     @Test
     fun deepPressWorksWithoutUsefulPressureAxis() {
         val detector = ScreenDs5PressureClickDetector()
 
-        assertNull(detector.begin(1f))
-        assertEquals(true, detector.update(1f, deepPress = true))
+        assertNull(detector.begin(1f, 0.08f))
+        assertEquals(true, detector.update(1f, 0.08f, deepPress = true))
         assertEquals(false, detector.end())
     }
 
@@ -38,8 +49,8 @@ class ScreenDs5PressureClickDetectorTest {
     fun endingGestureAlwaysReleasesPressedButton() {
         val detector = ScreenDs5PressureClickDetector()
 
-        detector.begin(0.2f)
-        assertEquals(true, detector.update(0.5f))
+        detector.begin(0.2f, 0.08f)
+        assertEquals(true, detector.update(0.5f, 0.08f))
         assertEquals(false, detector.end())
         assertNull(detector.end())
     }

@@ -1687,7 +1687,7 @@ Tap again to replace it.</string>
     <string name="title_checkbox_screen_ds5_touchpad">Screen as DS5 touchpad</string>
     <string name="summary_checkbox_screen_ds5_touchpad">Emulate a DualSense controller and send screen touches to its touchpad</string>
     <string name="ds5_touchpad_active_title">DS5 touchpad active</string>
-    <string name="ds5_touchpad_active_subtitle">Screen touches are sent to DualSense</string>
+    <string name="ds5_touchpad_active_subtitle">Touch to move · Firm press to click</string>
     <string name="toast_touch_enabled">Touch enabled</string>
     <string name="toast_touch_disabled">Touch disabled</string>
     <string name="toast_cannot_access_controller">Cannot access controller</string>

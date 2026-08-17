@@ -1109,6 +1109,7 @@ class TouchInputHandler(private val game: Game) {
                 screenDs5PressurePointerId = event.getPointerId(event.actionIndex)
                 screenDs5PressureClickDetector.begin(
                     event.getPressure(event.actionIndex),
+                    event.getSize(event.actionIndex),
                     event.isDeepPress(),
                 )
             }
@@ -1142,6 +1143,7 @@ class TouchInputHandler(private val game: Game) {
         if (pointerIndex < 0) return screenDs5PressureClickDetector.end()
         return screenDs5PressureClickDetector.update(
             event.getPressure(pointerIndex),
+            event.getSize(pointerIndex),
             event.isDeepPress(),
         )
     }

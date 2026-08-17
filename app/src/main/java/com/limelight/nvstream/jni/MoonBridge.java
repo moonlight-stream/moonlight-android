@@ -145,6 +145,8 @@ public class MoonBridge {
     public static final short LI_CCAP_GYRO            = 0x20;
     public static final short LI_CCAP_BATTERY_STATE   = 0x40;
     public static final short LI_CCAP_RGB_LED         = 0x80;
+    // Foundation Sunshine extension: prefer a DualSense device over DS4 for PS controllers.
+    public static final short LI_CCAP_PREFER_DS5      = 0x100;
 
     public static final byte LI_MOTION_TYPE_ACCEL = 0x01;
     public static final byte LI_MOTION_TYPE_GYRO  = 0x02;

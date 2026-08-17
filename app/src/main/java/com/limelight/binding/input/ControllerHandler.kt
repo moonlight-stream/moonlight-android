@@ -210,7 +210,8 @@ class ControllerHandler(
                 }
             }
 
-            if (PreferenceConfiguration.readPreferences(context).onscreenController) {
+            val preferences = PreferenceConfiguration.readPreferences(context)
+            if (preferences.onscreenController || preferences.screenDs5Touchpad) {
                 LimeLog.info("Counting OSC gamepad")
                 mask = (mask.toInt() or 1).toShort()
             }
@@ -1176,11 +1177,29 @@ class ControllerHandler(
 
     internal fun getActiveControllerMask(): Short {
         return if (prefConfig.multiController) {
-            (currentControllers.toInt() or initialControllers.toInt() or (if (prefConfig.onscreenController or prefConfig.enableCrownFeatures) 1 else 0)).toShort()
+            (currentControllers.toInt() or initialControllers.toInt() or
+                (if (prefConfig.onscreenController || prefConfig.enableCrownFeatures || prefConfig.screenDs5Touchpad) 1 else 0)).toShort()
         } else {
             // Only Player 1 is active with multi-controller disabled
             1
         }
+    }
+
+    /**
+     * Re-declare controller 0 when touchscreen touchpad emulation changes. This is also sent
+     * after the launch-time gamepad mask has reserved player 1, so Sunshine creates a DualSense
+     * with a touchpad instead of its legacy Xbox virtual controller.
+     */
+    fun setScreenDs5TouchpadEnabled(enabled: Boolean): Int {
+        val type = if (enabled) MoonBridge.LI_CTYPE_PS else MoonBridge.LI_CTYPE_XBOX
+        val capabilities = if (enabled) {
+            MoonBridge.LI_CCAP_TOUCHPAD.toInt() or MoonBridge.LI_CCAP_PREFER_DS5.toInt()
+        } else {
+            0
+        }
+        return conn.sendControllerArrivalEvent(
+            0, (getActiveControllerMask().toInt() or 1).toShort(), type, 0, capabilities.toShort()
+        )
     }
 
     internal fun sendControllerInputPacket(originalContext: GenericControllerContext) {

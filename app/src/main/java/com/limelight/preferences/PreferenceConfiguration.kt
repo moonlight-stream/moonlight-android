@@ -157,6 +157,8 @@ class PreferenceConfiguration {
     /** Sync local clipboard images (PNG) with the host. */
     var enableClipboardSyncImage = false
     var touchscreenTrackpad = false
+    /** Use the device touchscreen as the touchpad of a virtual DualSense controller. */
+    var screenDs5Touchpad = false
     var audioConfiguration: MoonBridge.AudioConfiguration = MoonBridge.AUDIO_CONFIGURATION_STEREO
     /** Negotiated audio codec preference — see [MoonBridge.AUDIO_CODEC_OPUS] etc. */
     var audioCodec: Int = MoonBridge.AUDIO_CODEC_OPUS
@@ -607,6 +609,7 @@ class PreferenceConfiguration {
         // ---- Public pref key constants ----
         const val RESOLUTION_PREF_STRING = "list_resolution"
         const val TOUCHSCREEN_TRACKPAD_PREF_STRING = "checkbox_touchscreen_trackpad"
+        const val SCREEN_DS5_TOUCHPAD_PREF_STRING = "checkbox_screen_ds5_touchpad"
         const val ENABLE_NATIVE_MOUSE_POINTER_PREF_STRING = "checkbox_enable_native_mouse_pointer"
         const val NATIVE_MOUSE_MODE_PRESET_PREF_STRING = "list_native_mouse_mode_preset"
         const val ENABLE_ENHANCED_TOUCH_PREF_STRING = "checkbox_enable_enhanced_touch"
@@ -726,6 +729,7 @@ class PreferenceConfiguration {
         const val DEFAULT_AUDIO_VIBRATION_SCENE = 0 // Game/Movie
         private const val DEFAULT_FLIP_FACE_BUTTONS = false
         private const val DEFAULT_TOUCHSCREEN_TRACKPAD = true
+        private const val DEFAULT_SCREEN_DS5_TOUCHPAD = false
         private const val DEFAULT_AUDIO_CONFIG = "2" // Stereo
         private const val DEFAULT_LATENCY_TOAST = false
         private const val DEFAULT_ENABLE_STUN = false
@@ -1342,6 +1346,7 @@ class PreferenceConfiguration {
             config.audioVibrationScene = (prefs.getString(AUDIO_VIBRATION_SCENE_PREF_STRING, DEFAULT_AUDIO_VIBRATION_SCENE.toString()) ?: DEFAULT_AUDIO_VIBRATION_SCENE.toString()).toInt()
             config.flipFaceButtons = prefs.getBoolean(FLIP_FACE_BUTTONS_PREF_STRING, DEFAULT_FLIP_FACE_BUTTONS)
             config.touchscreenTrackpad = prefs.getBoolean(TOUCHSCREEN_TRACKPAD_PREF_STRING, DEFAULT_TOUCHSCREEN_TRACKPAD)
+            config.screenDs5Touchpad = prefs.getBoolean(SCREEN_DS5_TOUCHPAD_PREF_STRING, DEFAULT_SCREEN_DS5_TOUCHPAD)
             config.enableLatencyToast = prefs.getBoolean(LATENCY_TOAST_PREF_STRING, DEFAULT_LATENCY_TOAST)
             config.enableStun = prefs.getBoolean(ENABLE_STUN_PREF_STRING, DEFAULT_ENABLE_STUN)
 

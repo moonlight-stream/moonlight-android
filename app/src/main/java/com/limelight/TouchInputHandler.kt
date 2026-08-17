@@ -440,6 +440,10 @@ class TouchInputHandler(private val game: Game) {
                 lastButtonState = buttonState
             } else {
                 // This case is for fingers
+                if (game.prefConfig.screenDs5Touchpad && trySendScreenDs5TouchpadEvent(view, event)) {
+                    return true
+                }
+
                 if (game.getisTouchOverrideEnabled()) {
                     game.panZoomHandler.handleTouchEvent(event)
                     return true
@@ -1041,6 +1045,33 @@ class TouchInputHandler(private val game: Game) {
                 }
                 return sendTouchEventForPointer(view, event, eventType, actionIndex)
             }
+        }
+    }
+
+    /** Forward touchscreen contacts through controller 0 as DualSense touchpad contacts. */
+    private fun trySendScreenDs5TouchpadEvent(view: View?, event: MotionEvent): Boolean {
+        val eventType = getLiTouchTypeFromEvent(event)
+        if (eventType < 0 || eventType == MoonBridge.LI_TOUCH_EVENT_BUTTON_ONLY) return false
+
+        fun sendPointer(pointerIndex: Int): Boolean {
+            val position = getStreamViewRelativeNormalizedXY(view, event, pointerIndex)
+            // Linux's DS5 backend currently uses pressure to distinguish contact/release.
+            val pressure = when (eventType) {
+                MoonBridge.LI_TOUCH_EVENT_DOWN, MoonBridge.LI_TOUCH_EVENT_MOVE -> 1f
+                else -> 0f
+            }
+            return game.conn?.sendControllerTouchEvent(
+                0, eventType, event.getPointerId(pointerIndex),
+                position[0], position[1], pressure
+            ) != MoonBridge.LI_ERR_UNSUPPORTED
+        }
+
+        return when (event.actionMasked) {
+            MotionEvent.ACTION_MOVE -> (0 until event.pointerCount).all(::sendPointer)
+            MotionEvent.ACTION_CANCEL -> game.conn?.sendControllerTouchEvent(
+                0, MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, 0, 0f, 0f, 0f
+            ) != MoonBridge.LI_ERR_UNSUPPORTED
+            else -> sendPointer(event.actionIndex)
         }
     }
 

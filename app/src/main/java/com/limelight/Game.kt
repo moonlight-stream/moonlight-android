@@ -1705,6 +1705,11 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     override fun connectionStarted() {
         connectionCallbackHandler.connectionStarted()
+        if (prefConfig.screenDs5Touchpad) {
+            // The launch URL reserves controller 0; now give Sunshine its DS5 metadata before
+            // the first virtual-controller packet can create a legacy Xbox device.
+            controllerHandler.setScreenDs5TouchpadEnabled(true)
+        }
         controllerHandler.retryPendingControllerArrivals()
         startClipboardSyncIfEnabled()
     }
@@ -2596,6 +2601,20 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     fun isVirtualControllerVisible(): Boolean =
         virtualController?.elements?.firstOrNull()?.visibility == View.VISIBLE
+
+    fun toggleScreenDs5Touchpad() {
+        val enabled = !prefConfig.screenDs5Touchpad
+        prefConfig.screenDs5Touchpad = enabled
+        defaultPreferences().edit()
+            .putBoolean(PreferenceConfiguration.SCREEN_DS5_TOUCHPAD_PREF_STRING, enabled)
+            .apply()
+        controllerHandler.setScreenDs5TouchpadEnabled(enabled)
+        Toast.makeText(
+            this,
+            if (enabled) R.string.toast_screen_ds5_touchpad_enabled else R.string.toast_screen_ds5_touchpad_disabled,
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 
     fun initializeControllerManager() {
         val manager = controllerManager ?: ControllerManager(streamView.parent as FrameLayout, this)

@@ -205,6 +205,8 @@ class ConnectionCallbackHandler(private val game: Game) {
 
             game.hideSystemUi(1000)
 
+            game.ds5TouchpadFeedbackView?.showActivatedHint()
+
             // 连接一开始就启动保活服务
             val prefs = PreferenceManager.getDefaultSharedPreferences(game)
             val isResumeEnabled = prefs.getBoolean("checkbox_resume_stream", false)

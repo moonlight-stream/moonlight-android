@@ -3,6 +3,7 @@ package com.limelight
 
 import android.graphics.Point
 import android.os.Build
+import android.view.HapticFeedbackConstants
 import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
@@ -1060,19 +1061,38 @@ class TouchInputHandler(private val game: Game) {
                 MoonBridge.LI_TOUCH_EVENT_DOWN, MoonBridge.LI_TOUCH_EVENT_MOVE -> 1f
                 else -> 0f
             }
-            return game.conn?.sendControllerTouchEvent(
+            val result = game.conn?.sendControllerTouchEvent(
                 0, eventType, event.getPointerId(pointerIndex),
                 position[0], position[1], pressure
-            ) != MoonBridge.LI_ERR_UNSUPPORTED
+            ) ?: return false
+            val supported = result != MoonBridge.LI_ERR_UNSUPPORTED
+            if (supported) {
+                game.ds5TouchpadFeedbackView?.updateContact(
+                    eventType,
+                    event.getPointerId(pointerIndex),
+                    position[0],
+                    position[1],
+                )
+            }
+            return supported
         }
 
-        return when (event.actionMasked) {
+        val supported = when (event.actionMasked) {
             MotionEvent.ACTION_MOVE -> (0 until event.pointerCount).all(::sendPointer)
-            MotionEvent.ACTION_CANCEL -> game.conn?.sendControllerTouchEvent(
-                0, MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, 0, 0f, 0f, 0f
-            ) != MoonBridge.LI_ERR_UNSUPPORTED
+            MotionEvent.ACTION_CANCEL -> {
+                val result = game.conn?.sendControllerTouchEvent(
+                    0, MoonBridge.LI_TOUCH_EVENT_CANCEL_ALL, 0, 0f, 0f, 0f
+                ) ?: return false
+                val cancelSupported = result != MoonBridge.LI_ERR_UNSUPPORTED
+                if (cancelSupported) game.ds5TouchpadFeedbackView?.cancelAllContacts()
+                cancelSupported
+            }
             else -> sendPointer(event.actionIndex)
         }
+        if (supported && event.actionMasked == MotionEvent.ACTION_DOWN) {
+            (view ?: game.streamView).performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        }
+        return supported
     }
 
     private fun multiFingerTapChecker(event: MotionEvent) {

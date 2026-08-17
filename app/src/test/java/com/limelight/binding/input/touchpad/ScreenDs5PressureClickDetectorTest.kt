@@ -29,11 +29,11 @@ class ScreenDs5PressureClickDetectorTest {
     fun contactSizeRiseClicksWhenPressureIsFixed() {
         val detector = ScreenDs5PressureClickDetector()
 
-        assertNull(detector.begin(1f, 0.06f))
-        assertNull(detector.update(1f, 0.09f))
-        assertEquals(true, detector.update(1f, 0.10f))
-        assertNull(detector.update(1f, 0.08f))
-        assertEquals(false, detector.update(1f, 0.07f))
+        assertNull(detector.begin(1f, 13f / 255f))
+        assertNull(detector.update(1f, 16f / 255f))
+        assertEquals(true, detector.update(1f, 18f / 255f))
+        assertNull(detector.update(1f, 16f / 255f))
+        assertEquals(false, detector.update(1f, 14f / 255f))
     }
 
     @Test

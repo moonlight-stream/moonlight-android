@@ -109,9 +109,12 @@ internal class ScreenDs5PressureClickDetector {
         const val PRESS_DELTA = 0.15f
         const val PRESS_RELEASE_DELTA = 0.07f
         const val PRESS_HYSTERESIS = 0.08f
-        const val SIZE_DELTA = 0.035f
-        const val SIZE_RELEASE_DELTA = 0.018f
-        const val SIZE_PRESS_RATIO = 1.55f
-        const val SIZE_RELEASE_RATIO = 1.25f
+        // PKJ110 reports roughly 13 -> 19 for a deliberate firm press. Android normalizes this
+        // device despite its kernel declaring a zero max, so ratios are more stable than relying
+        // on an advertised range.
+        const val SIZE_DELTA = 0.015f
+        const val SIZE_RELEASE_DELTA = 0.008f
+        const val SIZE_PRESS_RATIO = 1.30f
+        const val SIZE_RELEASE_RATIO = 1.15f
     }
 }

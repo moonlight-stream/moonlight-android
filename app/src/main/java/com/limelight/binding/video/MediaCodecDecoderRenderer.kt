@@ -1059,7 +1059,7 @@ class MediaCodecDecoderRenderer(
                 val configuringHdr10Plus = hdrProfileSelector.isHdr10PlusProfile(mimeType, profile)
                 hdr10PlusOutputObserver.beginCodecConfiguration(configuringHdr10Plus)
 
-                // Try low latency options from most aggressive to the profile-only baseline.
+                // Try low latency options while omitting Qualcomm output fences for HDR10+.
                 val newFormat = MediaCodecHelper.setDecoderLowLatencyOptions(
                     mediaFormat,
                     selectedDecoderInfo,

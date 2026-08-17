@@ -7,5 +7,7 @@ internal object QualcommLowLatencyPolicy {
     fun shouldEnablePictureOrder(
         tryNumber: Int,
         hdr10PlusModeSelected: Boolean,
-    ): Boolean = tryNumber in 0 until PICTURE_ORDER_TRY_LIMIT && !hdr10PlusModeSelected
+        outputFenceEnabled: Boolean = true,
+    ): Boolean = tryNumber in 0 until PICTURE_ORDER_TRY_LIMIT &&
+        (!hdr10PlusModeSelected || !outputFenceEnabled)
 }

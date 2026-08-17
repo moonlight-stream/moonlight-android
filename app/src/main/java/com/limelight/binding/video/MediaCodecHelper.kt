@@ -340,12 +340,12 @@ object MediaCodecHelper {
         hdr10PlusModeSelected: Boolean,
     ) {
         // https://cs.android.com/android/platform/superproject/+/master:hardware/qcom/sdm845/media/mm-video-v4l2/vidc/vdec/src/omx_vdec_extensions.hpp
-        // On tested SM8750 C2 decoders, picture-order combined with output fences stops
-        // per-buffer HDR10+ metadata from reaching MediaCodec. Omit picture-order whenever
-        // HDR10+ mode is selected, including codec-profile fallback attempts.
+        // Picture order is compatible with HDR10+ once output fencing is disabled.
+        val outputFenceEnabled = !hdr10PlusModeSelected
         if (QualcommLowLatencyPolicy.shouldEnablePictureOrder(
                 tryNumber,
                 hdr10PlusModeSelected,
+                outputFenceEnabled,
             )
         ) {
             videoFormat.setInteger("vendor.qti-ext-dec-picture-order.enable", 1)
@@ -355,8 +355,10 @@ object MediaCodecHelper {
 
             // CONFIRMED WORKING: Snapdragon Elite, SD8 gen 3, SD8 gen 2
             videoFormat.setInteger("vendor.qti-ext-output-sw-fence-enable.value", 1)
-            videoFormat.setInteger("vendor.qti-ext-output-fence.enable", 1)
-            videoFormat.setInteger("vendor.qti-ext-output-fence.fence_type", 1)
+            if (outputFenceEnabled) {
+                videoFormat.setInteger("vendor.qti-ext-output-fence.enable", 1)
+                videoFormat.setInteger("vendor.qti-ext-output-fence.fence_type", 1)
+            }
 
             videoFormat.setInteger("vendor.qti-ext-dec-info-misr.disable", 1)
             videoFormat.setInteger("vendor.qti-ext-dec-instant-decode.enable", 1)

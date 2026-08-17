@@ -4,6 +4,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.limelight.preferences.PreferenceConfiguration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -11,6 +12,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ConfigurationSyncSchemaTest {
+    @Test
+    fun screenDs5TouchpadPreferenceIsPortable() {
+        assertTrue(
+            ConfigurationSyncManager.isPortableDefaultPreferenceKey(
+                PreferenceConfiguration.SCREEN_DS5_TOUCHPAD_PREF_STRING
+            )
+        )
+    }
+
     @Test
     fun schemaV1FixtureHasExpectedSectionsAndTypedValues() {
         validateSchemaFixture(

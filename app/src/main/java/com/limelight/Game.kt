@@ -1705,12 +1705,13 @@ class Game : Activity(), SurfaceHolder.Callback,
 
     override fun connectionStarted() {
         connectionCallbackHandler.connectionStarted()
-        if (prefConfig.screenDs5Touchpad) {
-            // The launch URL reserves controller 0; now give Sunshine its DS5 metadata before
-            // the first virtual-controller packet can create a legacy Xbox device.
-            controllerHandler.setScreenDs5TouchpadEnabled(true)
+        controllerHandler.retryPendingControllerArrivals {
+            if (prefConfig.screenDs5Touchpad) {
+                // Pending owner metadata is decorated first. Only synthesize the default
+                // virtual-controller declaration when no controller owns player 1.
+                controllerHandler.setScreenDs5TouchpadEnabled(true)
+            }
         }
-        controllerHandler.retryPendingControllerArrivals()
         startClipboardSyncIfEnabled()
     }
 

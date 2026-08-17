@@ -1371,6 +1371,7 @@ class PreferenceConfiguration {
                 config.enableNativeMousePointer = true
                 config.enableEnhancedTouch = false
                 config.touchscreenTrackpad = false
+                config.screenDs5Touchpad = false
             }
             config.enableAudioFx = prefs.getBoolean(ENABLE_AUDIO_FX_PREF_STRING, DEFAULT_ENABLE_AUDIO_FX)
             config.enableSpatializer = prefs.getBoolean(ENABLE_SPATIALIZER_PREF_STRING, DEFAULT_ENABLE_SPATIALIZER)

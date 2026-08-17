@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
@@ -1343,19 +1344,21 @@ class GameMenu(
             subtitle = getString(R.string.game_menu_toggle_remote_mouse_summary)
         ))
 
-        normalOptions.add(MenuOption(
-            label = getString(R.string.game_menu_screen_ds5_touchpad),
-            isWithGameFocus = false,
-            runnable = null,
-            iconKey = "game_menu_screen_ds5_touchpad",
-            isShowIcon = true,
-            isKeepDialog = true,
-            subtitle = getString(R.string.game_menu_screen_ds5_touchpad_summary),
-            inlineControl = InlineControl.Toggle(
-                checked = game.prefConfig.screenDs5Touchpad,
-                toggleAction = Runnable { game.toggleScreenDs5Touchpad() }
-            )
-        ))
+        if (game.packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+            normalOptions.add(MenuOption(
+                label = getString(R.string.game_menu_screen_ds5_touchpad),
+                isWithGameFocus = false,
+                runnable = null,
+                iconKey = "game_menu_screen_ds5_touchpad",
+                isShowIcon = true,
+                isKeepDialog = true,
+                subtitle = getString(R.string.game_menu_screen_ds5_touchpad_summary),
+                inlineControl = InlineControl.Toggle(
+                    checked = game.prefConfig.screenDs5Touchpad,
+                    toggleAction = Runnable { game.toggleScreenDs5Touchpad() }
+                )
+            ))
+        }
 
         normalOptions.add(MenuOption(
             label = getString(R.string.game_menu_enable_pan_zoom).trim(),

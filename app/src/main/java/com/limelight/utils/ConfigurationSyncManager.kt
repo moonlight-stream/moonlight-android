@@ -3126,6 +3126,7 @@ class ConfigurationSyncManager(private val context: Context) {
             "checkbox_reverse_resolution",
             "checkbox_resume_stream",
             "checkbox_rotable_screen",
+            "checkbox_screen_ds5_touchpad",
             "checkbox_show_QuickKeyCard",
             "checkbox_show_bitrate_card",
             "checkbox_show_guide_button",

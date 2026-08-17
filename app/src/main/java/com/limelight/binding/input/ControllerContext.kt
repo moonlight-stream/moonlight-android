@@ -360,9 +360,8 @@ class InputDeviceContext(handler: ControllerHandler) : GenericControllerContext(
             }
         }
 
-        val result = handler.conn.sendControllerArrivalEvent(
-            controllerNumber.toByte(), handler.getActiveControllerMask(),
-            reportedType, supportedButtonFlags, capabilities
+        val result = handler.sendControllerArrivalEvent(
+            controllerNumber.toByte(), reportedType, supportedButtonFlags, capabilities
         )
         if (result != 0) {
             return result
@@ -478,9 +477,8 @@ class UsbDeviceContext(handler: ControllerHandler) : GenericControllerContext(ha
 
     override fun sendControllerArrival(): Int {
         val dev = device ?: return -1
-        return handler.conn.sendControllerArrivalEvent(
-            controllerNumber.toByte(), handler.getActiveControllerMask(),
-            dev.type, dev.supportedButtonFlags, dev.capabilities
+        return handler.sendControllerArrivalEvent(
+            controllerNumber.toByte(), dev.type, dev.supportedButtonFlags, dev.capabilities
         )
     }
 }

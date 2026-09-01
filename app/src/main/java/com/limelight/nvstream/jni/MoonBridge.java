@@ -102,6 +102,7 @@ public class MoonBridge {
     public static final byte LI_CTYPE_XBOX     = 0x01;
     public static final byte LI_CTYPE_PS       = 0x02;
     public static final byte LI_CTYPE_NINTENDO = 0x03;
+    public static final byte LI_CTYPE_STEAM    = 0x04;
 
     public static final short LI_CCAP_ANALOG_TRIGGERS = 0x01;
     public static final short LI_CCAP_RUMBLE          = 0x02;
@@ -111,6 +112,7 @@ public class MoonBridge {
     public static final short LI_CCAP_GYRO            = 0x20;
     public static final short LI_CCAP_BATTERY_STATE   = 0x40;
     public static final short LI_CCAP_RGB_LED         = 0x80;
+    public static final short LI_CCAP_DUAL_TOUCHPAD   = 0x100;
 
     public static final byte LI_MOTION_TYPE_ACCEL = 0x01;
     public static final byte LI_MOTION_TYPE_GYRO  = 0x02;
@@ -217,10 +219,10 @@ public class MoonBridge {
 
     public static int bridgeDrSubmitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
                                                int frameNumber, int frameType, char frameHostProcessingLatency,
-                                               long receiveTimeMs, long enqueueTimeMs) {
+                                               long receiveTimeUs, long enqueueTimeUs) {
         if (videoRenderer != null) {
             return videoRenderer.submitDecodeUnit(decodeUnitData, decodeUnitLength,
-                    decodeUnitType, frameNumber, frameType, frameHostProcessingLatency, receiveTimeMs, enqueueTimeMs);
+                    decodeUnitType, frameNumber, frameType, frameHostProcessingLatency, receiveTimeUs, enqueueTimeUs);
         }
         else {
             return DR_OK;

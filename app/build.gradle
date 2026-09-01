@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         minSdk 21
-        targetSdk 34
+        targetSdk 36
 
         versionName "12.1"
         versionCode = 314

@@ -4,11 +4,13 @@ clone_depth: 1
 
 image: Visual Studio 2026
 
+environment:
+  ANDROID_HOME: C:\android-sdk
+  JAVA_HOME: C:\Program Files\Java\jdk25
+
 before_build:
   - 'git submodule update --init --recursive'
-  - 'mklink /D C:\android-sdk "C:\Program Files (x86)\Android\android-sdk"'
-  - 'set ANDROID_HOME=C:\android-sdk'
-  - 'set JAVA_HOME=C:\Program Files\Java\jdk25'
+  - 'move /y "C:\Program Files (x86)\Android\android-sdk" C:\android-sdk'
 
 build_script:
   - gradlew.bat build connectedCheck

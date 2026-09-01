@@ -1,11 +1,11 @@
 #pragma once
 
-typedef int SDL_bool;
-#define SDL_TRUE 1
-#define SDL_FALSE 0
+#include <stdbool.h>
+#include <stdint.h>
 
-typedef unsigned short Uint16;
+typedef uint16_t Uint16;
+typedef uint32_t Uint32;
 
-SDL_bool SDL_IsJoystickXboxOneElite(Uint16 vendor_id, Uint16 product_id);
-SDL_bool SDL_IsJoystickXboxSeriesX(Uint16 vendor_id, Uint16 product_id);
-SDL_bool SDL_IsJoystickDualSenseEdge(Uint16 vendor_id, Uint16 product_id);
+bool SDL_IsJoystickXboxOneElite(Uint16 vendor_id, Uint16 product_id);
+bool SDL_IsJoystickXboxSeriesX(Uint16 vendor_id, Uint16 product_id);
+bool SDL_IsJoystickDualSenseEdge(Uint16 vendor_id, Uint16 product_id);

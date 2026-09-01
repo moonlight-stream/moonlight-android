@@ -225,11 +225,13 @@ Java_com_limelight_nvstream_jni_MoonBridge_guessControllerType(JNIEnv *env, jcla
             switch (arrControllers[i].m_eControllerType) {
                 case k_eControllerType_XBox360Controller:
                 case k_eControllerType_XBoxOneController:
+                case k_eControllerType_XBoxEliteController:
                     return LI_CTYPE_XBOX;
 
                 case k_eControllerType_PS3Controller:
                 case k_eControllerType_PS4Controller:
                 case k_eControllerType_PS5Controller:
+                case k_eControllerType_PS5EdgeController:
                     return LI_CTYPE_PS;
 
                 case k_eControllerType_WiiController:
@@ -238,7 +240,17 @@ Java_com_limelight_nvstream_jni_MoonBridge_guessControllerType(JNIEnv *env, jcla
                 case k_eControllerType_SwitchJoyConRight:
                 case k_eControllerType_SwitchJoyConPair:
                 case k_eControllerType_SwitchInputOnlyController:
+                case k_eControllerType_Switch2ProController:
+                case k_eControllerType_Switch2InputOnlyController:
                     return LI_CTYPE_NINTENDO;
+
+                case k_eControllerType_SteamController:
+                case k_eControllerType_SteamControllerV2:
+                case k_eControllerType_SteamControllerNeptune:
+                case k_eControllerType_SteamControllerTriton:
+                case k_eControllerType_HoriSteamController:
+                case k_eControllerType_UnknownSteamController:
+                    return LI_CTYPE_STEAM;
 
                 default:
                     return LI_CTYPE_UNKNOWN;
@@ -256,6 +268,6 @@ Java_com_limelight_nvstream_jni_MoonBridge_guessControllerHasPaddles(JNIEnv *env
 
 JNIEXPORT jboolean JNICALL
 Java_com_limelight_nvstream_jni_MoonBridge_guessControllerHasShareButton(JNIEnv *env, jclass clazz, jint vendorId, jint productId) {
-    // Xbox Elite and DualSense Edge controllers have paddles
+    // Xbox Series X controllers have a share button
     return SDL_IsJoystickXboxSeriesX(vendorId, productId);
 }

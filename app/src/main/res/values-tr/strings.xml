@@ -173,4 +173,7 @@
     <string name="summary_checkbox_usb_bind_all">Yerel Xbox oyun kumandası desteği mevcut olsa bile desteklenen tüm oyun kumandaları için Moonlight\'ın USB sürücüsünü kullan</string>
     <string name="summary_checkbox_flip_face_buttons">Oyun kumandaları ve ekran kontrolleri için A/B ve X/Y yüz düğmelerini değiştirir</string>
     <string name="summary_checkbox_absolute_mouse_mode">Bu fare hızlandırmanın uzak masaüstü kullanımı için daha doğal davranmasını sağlayabilir, ancak birçok oyunla uyumsuzdur.</string>
+    <string name="perf_overlay_video_enhancement">Video İyileştirme: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Video Süper Çözünürlük</string>
+    <string name="summary_video_sr">Görüntü netliğini artırmak için donanım hızlandırmasından yararlanın</string>
 </resources>

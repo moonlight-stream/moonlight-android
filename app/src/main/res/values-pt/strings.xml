@@ -254,4 +254,7 @@
     <string name="analogscroll_left">Stick analógico esquerdo</string>
     <string name="title_analog_scrolling">Usar um stick analógico para fazer scroll</string>
     <string name="summary_analog_scrolling">Selecciona um stick analógico para fazer scroll quando a emulação de rato está ativada</string>
+    <string name="perf_overlay_video_enhancement">Melhoria de vídeo: (x%1$.2f) SGSR1</string>
+    <string name="title_video_sr">Super-resolução de vídeo</string>
+    <string name="summary_video_sr">Aproveite a aceleração de hardware para melhorar a clareza da imagem</string>
 </resources>

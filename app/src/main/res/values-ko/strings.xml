@@ -278,4 +278,7 @@
     <string name="summary_checkbox_gamepad_motion_fallback">연결된 컨트롤러 또는 기기의 Android 버전에서 컨트롤러 센서가 지원되지 않는 경우 장치에 내장된 모션 센서를 사용합니다.
 \n참고: 이 옵션을 활성화하면 사용 중인 컨트롤러가 호스트에서 PlayStation 컨트롤러로 나타날 수 있습니다.</string>
     <string name="title_checkbox_gamepad_motion_fallback">컨트롤러의 모션 센서 에뮬레이션 지원</string>
+    <string name="perf_overlay_video_enhancement">비디오 향상: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">비디오 초해상도</string>
+    <string name="summary_video_sr">하드웨어 가속을 사용하여 이미지 선명도 향상</string>
 </resources>

@@ -178,4 +178,7 @@
     <string name="audioconf_51surround">Sunet Surround 5.1</string>
     <string name="audioconf_71surround">Sunet Surround 7.1</string>
     <string name="videoformat_hevcalways">Folosește HEVC mereu (se poate bloca)</string>
+    <string name="perf_overlay_video_enhancement">Îmbunătățire video: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Super rezoluție video</string>
+    <string name="summary_video_sr">Utilizați accelerarea hardware pentru a îmbunătăți claritatea imaginii</string>
 </resources>

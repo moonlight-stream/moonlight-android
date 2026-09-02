@@ -254,4 +254,7 @@
     <string name="title_frame_pacing">Скорость вывода/отрисовки кадра</string>
     <string name="pacing_balanced_alt">Сбалансированно с лимитом FPS</string>
     <string name="resolution_480p">480p</string>
+    <string name="perf_overlay_video_enhancement">Улучшение видео: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Супер-разрешение видео</string>
+    <string name="summary_video_sr">Использование аппаратного ускорения для улучшения четкости изображения</string>
 </resources>

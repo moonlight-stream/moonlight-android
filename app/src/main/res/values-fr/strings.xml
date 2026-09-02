@@ -285,4 +285,7 @@
     <string name="title_seekbar_vibrate_fallback_strength">Ajuster l\'intensité de la vibration émulée</string>
     <string name="summary_seekbar_vibrate_fallback_strength">Amplifie ou réduit l\'intensité de la vibration sur votre appareil</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="perf_overlay_video_enhancement">Amélioration vidéo : (x%1$.2f) SGSR1</string>
+    <string name="title_video_sr">Super Résolution Vidéo</string>
+    <string name="summary_video_sr">Utiliser l\'accélération matérielle pour améliorer la clarté de l\'image</string>
 </resources>

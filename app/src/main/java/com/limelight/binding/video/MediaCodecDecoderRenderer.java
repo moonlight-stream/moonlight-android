@@ -35,6 +35,7 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.util.Range;
 import android.view.Choreographer;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 
 public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements Choreographer.FrameCallback {
@@ -75,6 +76,9 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
     private String glRenderer;
     private boolean foreground = true;
     private PerfOverlayListener perfListener;
+
+    private GlesPassthroughBridge glesBridge;
+    private float videoSrUpscaleRatio;
 
     private static final int CR_MAX_TRIES = 10;
     private static final int CR_RECOVERY_TYPE_NONE = 0;
@@ -516,7 +520,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
         LimeLog.info("Configuring with format: "+format);
 
-        videoDecoder.configure(format, renderTarget.getSurface(), null, 0);
+        if (prefs.videoSr) {
+            // SGSR1 Upscaling
+            glesBridge = new GlesPassthroughBridge(this.context);
+            glesBridge.initialize(renderTarget.getSurface(), initialWidth, initialHeight);
+            Surface decoderSurface = glesBridge.getDecoderSurface();
+
+            videoDecoder.configure(format, decoderSurface, null, 0);
+
+            this.videoSrUpscaleRatio = renderTarget.getSurfaceFrame().width() / (float)initialWidth;
+        } else {
+            videoDecoder.configure(format, renderTarget.getSurface(), null, 0);
+
+            this.videoSrUpscaleRatio = 1.0f;
+        }
 
         configuredFormat = format;
 
@@ -563,6 +580,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             if (!configured && videoDecoder != null) {
                 videoDecoder.release();
                 videoDecoder = null;
+            }
+            if (!configured && glesBridge != null) {
+                glesBridge.release();
+                glesBridge = null;
             }
         }
         return configured;
@@ -735,6 +756,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     LimeLog.warning("Trying to restart decoder after CodecException");
                     try {
                         videoDecoder.stop();
+                        if (glesBridge != null) {
+                            glesBridge.release();
+                            glesBridge = null;
+                        }
                         configureAndStartDecoder(configuredFormat);
                         codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
                     } catch (IllegalArgumentException e) {
@@ -758,6 +783,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     LimeLog.warning("Trying to reset decoder after CodecException");
                     try {
                         videoDecoder.reset();
+                        if (glesBridge != null) {
+                            glesBridge.release();
+                            glesBridge = null;
+                        }
                         configureAndStartDecoder(configuredFormat);
                         codecRecoveryType.set(CR_RECOVERY_TYPE_NONE);
                     } catch (IllegalArgumentException e) {
@@ -781,6 +810,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                     videoDecoder.release();
 
                     try {
+                        if (glesBridge != null) {
+                            glesBridge.release();
+                            glesBridge = null;
+                        }
                         int err = initializeDecoder(true);
                         if (err != 0) {
                             throw new IllegalStateException("Decoder reset failed: " + err);
@@ -968,6 +1001,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 try {
                     videoDecoder.releaseOutputBuffer(nextOutputBuffer, frameTimeNanos);
 
+                    if (prefs.videoSr && glesBridge != null) {
+                        glesBridge.renderFrame(frameTimeNanos);
+                    }
+
                     lastRenderedFrameTimeNanos = frameTimeNanos;
                     activeWindowVideoStats.totalFramesRendered++;
                 } catch (IllegalStateException ignored) {
@@ -1049,6 +1086,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                                     // Use a PTS that will cause this frame to be dropped if another comes in within
                                     // the same V-sync period
                                     videoDecoder.releaseOutputBuffer(lastIndex, System.nanoTime());
+                                }
+
+                                if (prefs.videoSr && glesBridge != null) {
+                                    glesBridge.renderFrame(0);
                                 }
 
                                 activeWindowVideoStats.totalFramesRendered++;
@@ -1247,6 +1288,10 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
 
     @Override
     public void cleanup() {
+        if (glesBridge != null) {
+            glesBridge.release();
+            glesBridge = null;
+        }
         videoDecoder.release();
     }
 
@@ -1394,6 +1439,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
                 StringBuilder sb = new StringBuilder();
                 sb.append(context.getString(R.string.perf_overlay_streamdetails, initialWidth + "x" + initialHeight, fps.totalFps)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_decoder, decoder)).append('\n');
+                // Add the video enhancement line if SR is enabled
+                if (prefs.videoSr) {
+                    // Pre-calculated ratio during decoder configuration
+                    sb.append(context.getString(R.string.perf_overlay_video_enhancement, videoSrUpscaleRatio)).append('\n');
+                }
                 sb.append(context.getString(R.string.perf_overlay_incomingfps, fps.receivedFps)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_renderingfps, fps.renderedFps)).append('\n');
                 sb.append(context.getString(R.string.perf_overlay_netdrops,

@@ -272,4 +272,7 @@
     <string name="videoformat_auto">Automatycznie (zalecane)</string>
     <string name="videoformat_av1always">Preferowany AV1 (eksperymentalny)</string>
     <string name="summary_setup_guide">Wyświetl instrukcje, jak skonfigurować komputer do gier do streamowania</string>
+    <string name="perf_overlay_video_enhancement">Ulepszenie wideo: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Super rozdzielczość wideo</string>
+    <string name="summary_video_sr">Wykorzystaj akcelerację sprzętową, aby poprawić klarowność obrazu</string>
 </resources>

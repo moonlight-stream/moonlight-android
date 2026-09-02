@@ -247,4 +247,7 @@
     <string name="title_frame_pacing">Frame pacing videa</string>
     <string name="summary_frame_pacing">Zvolte, jak vyvážit zpoždění videa a jeho plynulost</string>
     <string name="pacing_latency">Preferovat nejnižší zpoždění</string>
+    <string name="perf_overlay_video_enhancement">Vylepšení videa: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Super rozlišení videa</string>
+    <string name="summary_video_sr">Využijte hardwarovou akceleraci ke zvýšení čistoty obrazu</string>
 </resources>

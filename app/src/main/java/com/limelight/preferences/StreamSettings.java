@@ -1,8 +1,10 @@
 package com.limelight.preferences;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ConfigurationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.MediaCodecInfo;
@@ -277,6 +279,21 @@ public class StreamSettings extends Activity {
             addPreferencesFromResource(R.xml.preferences);
             PreferenceScreen screen = getPreferenceScreen();
 
+            // Check for GLES 3.1 support (Required for advanced upscaling features like textureGather)
+            ActivityManager activityManager = (ActivityManager) getActivity().getSystemService(Context.ACTIVITY_SERVICE);
+            ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+            boolean supportsGles31 = configurationInfo.reqGlEsVersion >= 0x30001;
+
+            // Handle Video Super Resolution checkbox
+            CheckBoxPreference videoSrPref = (CheckBoxPreference) findPreference("checkbox_video_sr");
+            if (videoSrPref != null) {
+                if (!supportsGles31) {
+                    // Disable and gray out if GLES 3.1 is not available
+                    videoSrPref.setEnabled(false);
+                    videoSrPref.setSummary(videoSrPref.getSummary() + " (Requires GLES 3.1)");
+                }
+            }
+
             // hide on-screen controls category on non touch screen devices
             if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
                 PreferenceCategory category =
@@ -492,7 +509,7 @@ public class StreamSettings extends Activity {
                             @Override
                             public void run() {
                                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(SettingsFragment.this.getActivity());
-                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1080P);
+                                setValue(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.RES_1440P);
                                 resetBitrateToDefault(prefs, null, null);
                             }
                         });

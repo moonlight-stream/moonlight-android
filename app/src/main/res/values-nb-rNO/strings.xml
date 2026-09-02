@@ -207,4 +207,7 @@
     <string name="resolution_prefix_native_fullscreen">Systemspesifikk fullskjerm</string>
     <string name="perf_overlay_netlatency">Gjennomsnittlig nettverksforsinkelse: %1$d ms (variasjon: %2$d ms)</string>
     <string name="perf_overlay_streamdetails">Videostrøm: %1$s %2$.2f BPS</string>
+    <string name="perf_overlay_video_enhancement">Video-forbedring: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Video Superoppløsning</string>
+    <string name="summary_video_sr">Bruk maskinvareakselerasjon for å forbedre bildeklarheten</string>
 </resources>

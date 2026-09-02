@@ -137,4 +137,7 @@
     <string name="nettest_title_done">ネットワークテスト終了</string>
     <string name="pcview_menu_details">詳細を表示</string>
     <string name="nettest_title_waiting">ネットワーク接続テスト中</string>
+    <string name="perf_overlay_video_enhancement">ビデオ拡張: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">ビデオ超解像</string>
+    <string name="summary_video_sr">ハードウェアアクセラレーションを活用して画像の鮮明さを向上させる</string>
 </resources>

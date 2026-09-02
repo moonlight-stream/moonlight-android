@@ -152,4 +152,7 @@
     <string name="title_checkbox_enable_audiofx">הפעל תמיכה באקולייזר</string>
     <string name="category_input_settings">הגדרות קלט</string>
     <string name="title_checkbox_touchscreen_trackpad">השתמש במסך מגע כמשטח מגע</string>
+    <string name="perf_overlay_video_enhancement">שיפור וידאו: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">סופר-רזולוציה בווידאו</string>
+    <string name="summary_video_sr">השתמש בהאצת חומרה כדי לשפר את בהירות התמונה</string>
 </resources>

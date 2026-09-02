@@ -259,4 +259,7 @@
     <string name="resolution_prefix_native_landscape">(Tájkép)</string>
     <string name="perf_overlay_hostprocessinglatency">Host feldolgozási késleltetés min/max/átlag: %1$.1f/%2$.1f/%3$.1f ms</string>
     <string name="pacing_latency">A legalacsonyabb késleltetés előnyben részesítése</string>
+    <string name="perf_overlay_video_enhancement">Videó javítása: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Videó szuperfelbontás</string>
+    <string name="summary_video_sr">Hardveres gyorsítás használata a kép tisztaságának javítása érdekében</string>
 </resources>

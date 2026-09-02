@@ -275,4 +275,7 @@
     <string name="analogscroll_none">Keine (beide Sticks bewegen die Maus)</string>
     <string name="analogscroll_right">Rechter Analogstick</string>
     <string name="analogscroll_left">Linker Analogstick</string>
+    <string name="perf_overlay_video_enhancement">Video-Verbesserung: (x%1$.2f) SGSR1</string>
+    <string name="title_video_sr">Video-Super-Resolution</string>
+    <string name="summary_video_sr">Hardwarebeschleunigung nutzen, um die Bildklarheit zu verbessern</string>
 </resources>

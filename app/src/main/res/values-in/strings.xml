@@ -211,4 +211,7 @@
     <string name="title_checkbox_enable_pip">Aktifkan mode pengamat Gambar-dalam-Gambar</string>
     <string name="summary_language_list">Bahasa yang digunakan untuk Moonlight</string>
     <string name="summary_checkbox_enable_sops">Izinkan GFE mengubah setelan game untuk streaming yang optimal</string>
+    <string name="perf_overlay_video_enhancement">Peningkatan Video: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Super Resolusi Video</string>
+    <string name="summary_video_sr">Manfaatkan akselerasi perangkat keras untuk meningkatkan kejelasan gambar</string>
 </resources>

@@ -276,4 +276,7 @@
     <string name="summary_checkbox_gamepad_motion_fallback">如果您連線的手把或 Android 版本不支援手把感測器，請使用裝置內建的動態感測器。
 \n注意：啟用此選項可能會導致您的手把在主機被辨識為 PlayStation 控制器。</string>
     <string name="title_checkbox_gamepad_motion_fallback">模擬手把動態感測器支援</string>
+    <string name="perf_overlay_video_enhancement">視訊增強: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">視訊超解析度</string>
+    <string name="summary_video_sr">利用硬體加速提高圖像清晰度</string>
 </resources>

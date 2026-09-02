@@ -287,4 +287,7 @@
     <string name="title_seekbar_vibrate_fallback_strength">Ajustar la intensidad del ruido emulado</string>
     <string name="summary_seekbar_vibrate_fallback_strength">Amplifica o reduce la intensidad de la vibración de tu dispositivo</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="perf_overlay_video_enhancement">Mejora de video: (x%1$.2f) SGSR1</string>
+    <string name="title_video_sr">Súper resolución de vídeo</string>
+    <string name="summary_video_sr">Aproveche la aceleración de hardware para mejorar la claridad de la imagen</string>
 </resources>

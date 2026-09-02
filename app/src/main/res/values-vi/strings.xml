@@ -233,4 +233,7 @@
     <string name="title_checkbox_enable_audiofx">Hỗ trợ bộ cân bằng của hệ thống</string>
     <string name="summary_checkbox_enable_audiofx">Cho phép hiệu ứng âm thanh hoạt động khi stream, nhưng có thể tăng độ trễ âm thanh</string>
     <string name="resolution_prefix_native_portrait">(Dọc)</string>
+    <string name="perf_overlay_video_enhancement">Cải thiện video: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Siêu độ phân giải video</string>
+    <string name="summary_video_sr">Tận dụng tăng tốc phần cứng để cải thiện độ rõ nét của hình ảnh</string>
 </resources>

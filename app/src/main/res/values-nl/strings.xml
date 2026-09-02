@@ -223,4 +223,7 @@
     <string name="applist_menu_tv_channel">Toevoegen aan Kanaal</string>
     <!-- Array strings -->
     <string name="videoformat_hevcalways">Gebruik HEVC altijd (mogelijkheid tot crashes)</string>
+    <string name="perf_overlay_video_enhancement">Video-verbetering: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Video Superresolutie</string>
+    <string name="summary_video_sr">Gebruik hardwareversnelling om de helderheid van het beeld te verbeteren</string>
 </resources>

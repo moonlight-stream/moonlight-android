@@ -283,4 +283,7 @@
     <string name="toast_controller_type_changed">Тип геймпада може бути змінений через емуляцію датчика руху</string>
     <string name="pcview_menu_eol">Закриття сервісів NVIDIA GameStream</string>
     <string name="perf_overlay_hostprocessinglatency">Затримка обробки хостом мін./макс./середня: %1$.1f/%2$.1f/%3$.1f мс</string>
+    <string name="perf_overlay_video_enhancement">Покращення відео: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Супер-роздільна здатність відео</string>
+    <string name="summary_video_sr">Використовуйте апаратне прискорення для покращення чіткості зображення</string>
 </resources>

@@ -284,4 +284,7 @@
     <string name="summary_analog_scrolling">在鼠标模式下选择用哪个摇杆控制鼠标移动</string>
     <string name="summary_seekbar_vibrate_fallback_strength">增强或减弱设备的震动强度</string>
     <string name="analogscroll_none">默认 (两个摇杆都控制鼠标)</string>
+    <string name="perf_overlay_video_enhancement">视频增强: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">视频超分辨率</string>
+    <string name="summary_video_sr">利用硬件加速提高图像清晰度</string>
 </resources>

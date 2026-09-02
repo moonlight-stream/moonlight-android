@@ -212,4 +212,7 @@
 \nΔοκιμάστε να απενεργοποιήσετε τη λειτουργία HDR, να αλλάξετε την ανάλυση ροής ή να αλλάξετε την ανάλυση οθόνης του υπολογιστή φιλοξενίας.</string>
     <string name="pcview_menu_eol">Λήξη Υποστήριξης NVIDA GameStream</string>
     <string name="pair_pairing_help">Εάν ο υπολογιστής οικοδεσπότης χρησιμοποιεί το Sunshine, πλοηγηθείτε στην διαδικτυακή διεπαφή χρήστη του Sunshine για να εισάγετε το PIN.</string>
+    <string name="perf_overlay_video_enhancement">Βελτίωση βίντεο: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Super Resolution Βίντεο</string>
+    <string name="summary_video_sr">Αξιοποιήστε την επιτάχυνση υλικού για να βελτιώσετε την ευκρίνεια της εικόνας</string>
 </resources>

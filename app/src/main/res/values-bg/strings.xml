@@ -140,4 +140,7 @@
     <string name="title_checkbox_touchscreen_trackpad">Използване на сензорния екран като тракпад</string>
     <string name="title_checkbox_multi_controller">Автоматично откриване на наличен контролер</string>
     <string name="summary_checkbox_multi_controller">Премахването на отметката от тази опция принуждава контролер винаги да присъства</string>
+    <string name="perf_overlay_video_enhancement">Подобряване на видеото: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Видео супер резолюция</string>
+    <string name="summary_video_sr">Използвайте хардуерно ускорение за подобряване на яснотата на изображението</string>
 </resources>

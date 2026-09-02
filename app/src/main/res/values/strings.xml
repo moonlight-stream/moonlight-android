@@ -107,6 +107,7 @@
     <string name="poor_connection_msg">Poor connection to PC</string>
     <string name="perf_overlay_streamdetails">Video stream: %1$s %2$.2f FPS</string>
     <string name="perf_overlay_decoder">Decoder: %1$s</string>
+    <string name="perf_overlay_video_enhancement">Video Enhancement: (x%1$.2f) Shader SGSR1</string>
     <string name="perf_overlay_incomingfps">Incoming frame rate from network: %1$.2f FPS</string>
     <string name="perf_overlay_renderingfps">Rendering frame rate: %1$.2f FPS</string>
     <string name="perf_overlay_hostprocessinglatency">Host processing latency min/max/average: %1$.1f/%2$.1f/%3$.1f ms</string>
@@ -294,6 +295,9 @@
     <string name="pacing_balanced">Balanced</string>
     <string name="pacing_balanced_alt">Balanced with FPS limit</string>
     <string name="pacing_smoothness">Prefer smoothest video (may significantly increase latency)</string>
+
+    <string name="title_video_sr">Video Super Resolution</string>
+    <string name="summary_video_sr">Leverage hardware acceleration to improve picture clarity</string>
 
     <string name="title_analog_scrolling">Use an analog stick to scroll</string>
     <string name="summary_analog_scrolling">Select an analog stick to scroll when in mouse emulation mode</string>

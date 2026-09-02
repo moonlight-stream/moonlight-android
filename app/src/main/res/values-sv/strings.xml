@@ -272,4 +272,7 @@
     <string name="analogscroll_right">Höger analogspak</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
     <string name="title_analog_scrolling">Använd en analog spak för att bläddra</string>
+    <string name="perf_overlay_video_enhancement">Videoförbättring: (x%1$.2f) Shader SGSR1</string>
+    <string name="title_video_sr">Video-superupplösning</string>
+    <string name="summary_video_sr">Använd hårdvaruacceleration för att förbättra bildskärpan</string>
 </resources>

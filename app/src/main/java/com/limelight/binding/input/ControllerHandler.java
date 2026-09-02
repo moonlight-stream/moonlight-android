@@ -1,5 +1,6 @@
 package com.limelight.binding.input;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -69,6 +70,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private static final int BATTERY_RECHECK_INTERVAL_MS = 120 * 1000;
 
+    @SuppressLint("InlinedApi")
     private static final Map<Integer, Integer> ANDROID_TO_LI_BUTTON_MAP = Map.ofEntries(
             Map.entry(KeyEvent.KEYCODE_BUTTON_A, ControllerPacket.A_FLAG),
             Map.entry(KeyEvent.KEYCODE_BUTTON_B, ControllerPacket.B_FLAG),
@@ -1088,6 +1090,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     // This must not be called on the main thread due to risk of ANRs!
+    @SuppressLint("InlinedApi")
     private void sendControllerBatteryPacket(InputDeviceContext context) {
         int currentBatteryStatus;
         float currentBatteryCapacity;

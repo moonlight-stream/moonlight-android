@@ -530,7 +530,13 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         inputFormat = videoDecoder.getInputFormat();
         LimeLog.info("Input format: "+inputFormat);
 
-        videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+        // Use crop-to-fit when zoom to fill is enabled, otherwise scale to fit
+        if (prefs != null && prefs.zoomVideo && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+        }
+        else {
+            videoDecoder.setVideoScalingMode(MediaCodec.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+        }
 
         // Start the decoder
         videoDecoder.start();

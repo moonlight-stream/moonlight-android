@@ -486,6 +486,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 new ComputerDetails.AddressTuple(host, port),
                 httpsPort, uniqueId, config,
                 PlatformBinding.getCryptoProvider(this), serverCert);
+
+        // Give StreamView a reference to conn so its InputConnection
+        // can route IME commitText() (voice dictation, swipe typing) to the host
+        streamView.setNvConnection(conn);
+
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 

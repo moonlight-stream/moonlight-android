@@ -2,13 +2,26 @@ package com.limelight.ui;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
+
+import com.limelight.binding.input.StreamInputConnection;
+import com.limelight.nvstream.NvConnection;
 
 public class StreamView extends SurfaceView {
     private double desiredAspectRatio;
     private InputCallbacks inputCallbacks;
+
+    // Connection reference for IME text commit routing
+    private NvConnection nvConn;
+
+    public void setNvConnection(NvConnection conn) {
+        this.nvConn = conn;
+    }
 
     public void setDesiredAspectRatio(double aspectRatio) {
         this.desiredAspectRatio = aspectRatio;
@@ -76,6 +89,18 @@ public class StreamView extends SurfaceView {
         }
 
         return super.onKeyPreIme(keyCode, event);
+    }
+
+    /**
+     * Provide a custom InputConnection so that IME commitText() events
+     * (voice dictation, swipe typing, autocomplete) are routed to the remote host.
+     * Individual key events continue to flow through onKeyPreIme() as before.
+     */
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_NONE;
+        return new StreamInputConnection(this, false, nvConn);
     }
 
     public interface InputCallbacks {

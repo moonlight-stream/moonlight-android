@@ -40,6 +40,11 @@
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_keep_screen_on"
+            android:title="@string/title_checkbox_keep_screen_on"
+            android:summary="@string/summary_checkbox_keep_screen_on"
+            android:defaultValue="true" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">
         <ListPreference

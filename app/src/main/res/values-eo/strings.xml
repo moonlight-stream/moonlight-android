@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="help_loading_title">Helpolegilo</string>
+    <string name="pcview_menu_details">Vidi detalojn</string>
+    <string name="pair_fail">Parigado malsukcesis</string>
+    <string name="title_details">Detaloj</string>
+    <string name="help">Helpo</string>
+    <string name="applist_menu_quit">Forlasi seancon</string>
+    <string name="applist_menu_hide_app">Kaŝi programon</string>
+    <string name="applist_refresh_title">Listo de programoj</string>
+    <string name="applist_menu_details">Vidi detalojn</string>
+    <string name="applist_menu_tv_channel">Aldoni al kanalo</string>
+    <string name="resolution_prefix_native_landscape">(horizontala)</string>
+    <string name="resolution_prefix_native_portrait">(vertikala)</string>
+    <string name="suffix_osc_opacity">%</string>
+    <string name="category_help">Helpo</string>
+    <string name="resolution_360p">360p</string>
+    <string name="resolution_480p">480p</string>
+    <string name="resolution_720p">720p</string>
+    <string name="resolution_4k">4K</string>
+    <string name="videoformat_hevcalways">Preferi HEVC</string>
+    <string name="videoformat_h264always">Preferi H.264</string>
+    <string name="title_language_list">Lingvo</string>
+    <string name="no">Ne</string>
+    <string name="yes">Jes</string>
+    <string name="applist_menu_cancel">Nuligi</string>
+    <string name="applist_refresh_error_title">Eraro</string>
+    <string name="applist_quit_app">Forlasante</string>
+    <string name="resolution_prefix_native">Indiĝena</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="suffix_seekbar_deadzone">%</string>
+    <string name="resolution_1080p">1080p</string>
+    <string name="resolution_1440p">1440p</string>
+    <string name="pcview_menu_app_list">Vidi ĉiujn programojn</string>
+    <string name="pairing">Parigante…</string>
+    <string name="unpairing">Malparigante…</string>
+    <string name="applist_connect_msg">Konektante al komputilo…</string>
+    <string name="pcview_menu_unpair_pc">Malparigi</string>
+</resources>

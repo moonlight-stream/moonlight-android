@@ -43,8 +43,10 @@
     <string name="conn_terminated_title">接続を終了</string>
     <string name="conn_terminated_msg">接続は終了しました</string>
     <!-- General strings -->
-    <string name="ip_hint">コンピュータのIPアドレス</string>
-    <string name="searching_pc">コンピュータを検索中</string>
+    <string name="ip_hint">ホストPCのIPアドレス</string>
+    <string name="searching_pc">ローカルネットワーク上のホストPCを検索中…
+\n
+\nホストPCでSunshineが実行中であるか、GeForce ExperienceのSHIELD設定でGameStreamが有効になっていることを確認してください。</string>
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
     <string name="lost_connection">コンピュータとの接続が失われました</string>
@@ -137,4 +139,49 @@
     <string name="nettest_title_done">ネットワークテスト終了</string>
     <string name="pcview_menu_details">詳細を表示</string>
     <string name="nettest_title_waiting">ネットワーク接続テスト中</string>
+    <string name="nettest_text_blocked">デバイスの設定が Moonlight をブロックしているようです。このネットワークに接続している間ストリーミングが使えないかもしれません。</string>
+    <string name="message_decoding_error">このデバイスのビデオデコーダーが Moonlight と非対応なため Moonlight がクラッシュしました。クラッシュが継続するようでしたらストリームの設定を変更してください。</string>
+    <string name="nettest_text_failure">デバイスの設定が Moonlight をブロックしているようです。このネットワークに接続している間ストリーミングが使えないかもしれません。
+\n
+\n次のネットワークポートがブロックされています:
+\n</string>
+    <string name="title_decoding_error">ビデオデコーダーがクラッシュしました</string>
+    <string name="title_decoding_reset">ビデオ設定リセット</string>
+    <string name="pair_pairing_help">ホーストのコンピューターが Sunshine を使用している場合、Sunshineにピンを入れてください。</string>
+    <string name="pair_already_in_progress">ペアリング中です</string>
+    <string name="video_decoder_init_failed">ビデオデコーダーの初期化に失敗しました。デバイスが選択された解像度またはフレームレートをサポートしていない可能性があります。</string>
+    <string name="no_frame_received_error">ネットワーク接続が不安定です。 ビデオのビットレート設定を下げるか、より高速な接続をお試しください。</string>
+    <string name="error_code_prefix">エラーコード:</string>
+    <string name="perf_overlay_hostprocessinglatency">ホスト処理遅延 最小/最大/平均: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="perf_overlay_netdrops">ネットワーク接続によりドロップしたフレーム: %1$.2f%%</string>
+    <string name="perf_overlay_netlatency">平均ネットワーク遅延: %1$d ミリ秒 (分散: %2$d ミリ秒)</string>
+    <string name="perf_overlay_dectime">平均デコード時間: %1$.2f ms</string>
+    <string name="applist_menu_details">詳細を表示</string>
+    <string name="applist_menu_scut">ショートカットを作成</string>
+    <string name="title_native_res_dialog">ネイティブ解像度に関する警告</string>
+    <string name="perf_overlay_streamdetails">ビデオストリーム: %1$s %2$.2f FPS</string>
+    <string name="unable_to_pin_shortcut">現在のランチャーでは、ピン留めされたショートカットを作成することはできません。</string>
+    <string name="message_decoding_reset">デバイスのビデオデコーダーが選択されたストリーミング設定でクラッシュし続けています。ストリーミング設定はデフォルトにりせっとされました。</string>
+    <string name="error_usb_prohibited">USBへのアクセスはデバイス管理者によって禁止されています。KnoxまたはMDM設定を確認してください。</string>
+    <string name="early_termination_error">ストリームを開始する際に、ホストPCで何か問題が発生しました。
+\n
+\nホストPCでDRM保護されたコンテンツが開いていないことを確認してください。また、ホストPCの再起動を試みることもできます。</string>
+    <string name="frame_conversion_error">ホストPCが致命的なビデオエンコーディングエラーを報告しました。
+\n
+\nHDRモードを無効にするか、ストリーミング解像度を変更するか、ホストPCのディスプレイ解像度を変更してください。</string>
+    <string name="help">ヘルプ</string>
+    <string name="title_details">詳細</string>
+    <string name="poor_connection_msg">PCとの接続不良</string>
+    <string name="perf_overlay_decoder">デコーダー: %1$s</string>
+    <string name="slow_connection_msg">PCへの接続が低速
+\nビットレートを下げてください</string>
+    <string name="perf_overlay_incomingfps">ネットワークからの受信フレームレート: %1$.2f FPS</string>
+    <string name="perf_overlay_renderingfps">レンダリングフレームレート: %1$.2f FPS</string>
+    <string name="text_native_res_dialog">ネイティブ解像度やFPSがストリーミングサーバーによってサポートされていない可能性があります。ホストPCに対して、手動で一致するカスタム表示モードを設定する必要があるでしょう。
+\n
+\nNVIDIAコントロールパネルでカスタム解像度を作成して画面設定に合わせることを選択した場合は、モニターに損傷やPCの不安定性、その他の潜在的な問題の可能性についてNVIDIAの警告を読み、理解したことを確認してください。
+\n
+\nカスタム解像度を作成することに起因する問題について、私たちは責任を負いません。
+\n
+\nモニターが必要な表示設定をサポートしていない場合もあります。その場合は、仮想モニターを設定してみてください。最後に、デバイスまたはホストPCが特定の解像度またはリフレッシュレートでのストリーミングをサポートしていない場合、残念ながら運が悪かったということになります。</string>
 </resources>

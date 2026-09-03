@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="pcview_menu_header_unknown">Recarregando</string>
-    <string name="pcview_menu_unpair_pc">Dessincronize</string>
-    <string name="scut_deleted_pc">PC deletado</string>
-    <string name="scut_not_paired">PC despairado</string>
+    <string name="pcview_menu_unpair_pc">Desincronizar</string>
+    <string name="scut_deleted_pc">PC apagado</string>
+    <string name="scut_not_paired">PC desemparelhado</string>
     <string name="scut_pc_not_found">PC não encontrado</string>
-    <string name="scut_invalid_uuid">O PC provido não é válido</string>
-    <string name="scut_invalid_app_id">O aplicativo provido não é válido</string>
+    <string name="scut_invalid_uuid">O PC fornecido não é válido</string>
+    <string name="scut_invalid_app_id">A aplicação fornecida não é válida</string>
     <string name="help_loading_title">Vizualizador da Ajuda</string>
     <string name="help_loading_msg">Carregando a página de ajuda…</string>
     <string name="pcview_menu_header_online">Online</string>
     <string name="pcview_menu_header_offline">Offline</string>
-    <string name="pcview_menu_app_list">Veja todos aplicativos</string>
-    <string name="pcview_menu_pair_pc">Parear com o PC</string>
+    <string name="pcview_menu_app_list">Veja todas as aplicações</string>
+    <string name="pcview_menu_pair_pc">Emparelhar com o PC</string>
     <string name="pcview_menu_details">Ver Detalhes</string>
     <string name="pair_pairing_title">Pareando</string>
     <string name="pair_fail">Falha no pareamento</string>
     <string name="nettest_title_waiting">Testar Conexão com a Internet</string>
-    <string name="pcview_menu_send_wol">Enviar requisição Wake-On-LAN</string>
-    <string name="pcview_menu_delete_pc">Deletar PC</string>
-    <string name="pcview_menu_test_network">Testar Conexão com a Internet</string>
+    <string name="pcview_menu_send_wol">Enviar pedido Wake-On-LAN</string>
+    <string name="pcview_menu_delete_pc">Apagar PC</string>
+    <string name="pcview_menu_test_network">Testar conexão com a Internet</string>
     <string name="nettest_text_waiting">Moonlight está testando sua conexão com a rede para determinar se o NVIDIA GameStream está bloqueado.
 \n
 \nEste processo pode demorar alguns segundos…</string>
@@ -209,7 +209,7 @@
     <string name="title_video_format">Mudar configurações do HEVC</string>
     <string name="summary_enable_hdr">Transmita HDR quando o jogo e a GPU do PC suportarem. O HDR requer uma GPU da série GTX 1000 ou posterior.</string>
     <string name="title_enable_perf_overlay">Mostrar status de performance durante a transmissão</string>
-    <string name="nettest_title_done">Teste de Internet Completo</string>
+    <string name="nettest_title_done">Teste completo da rede</string>
     <string name="nettest_text_inconclusive">O teste de rede não pôde ser executado porque nenhum dos servidores de teste de conexão do Moonlight estava acessível. Verifique a sua conexão com a Internet ou tente novamente mais tarde.</string>
     <string name="pairing">A parear…</string>
     <string name="pair_pc_offline">Esse computador está offline</string>

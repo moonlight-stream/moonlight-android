@@ -105,7 +105,7 @@
     <string name="applist_refresh_msg">Actualisation des applications…</string>
     <string name="applist_refresh_error_title">Erreur</string>
     <string name="applist_refresh_error_msg">Impossible d\'obtenir la liste des applications</string>
-    <string name="applist_quit_app">Fermeture</string>
+    <string name="applist_quit_app">Fermeture de</string>
     <string name="applist_quit_success">Application fermée avec succès</string>
     <string name="applist_quit_fail">Échec de la fermeture</string>
     <string name="applist_quit_confirmation">Voulez-vous vraiment quitter l\'application en cours d\'exécution \? Toutes les données non enregistrées seront perdues.</string>
@@ -125,7 +125,7 @@
     <string name="title_fps_list">Fréquence d\'images vidéo</string>
     <string name="summary_fps_list">Augmentez pour un flux vidéo plus fluide. Diminuez pour de meilleures performances sur les appareils bas de gamme.</string>
     <string name="title_seekbar_bitrate">Bitrate vidéo</string>
-    <string name="summary_seekbar_bitrate">Augmentez-le pour une meilleure qualité d’image. Diminuez-le pour améliorer les performances sur les connexions plus lentes.</string>
+    <string name="summary_seekbar_bitrate">Augmentez pour une meilleure qualité d’image. Diminuez pour améliorer les performances sur les connexions plus lentes.</string>
     <string name="title_checkbox_stretch_video">Étirer la vidéo en plein écran</string>
     <string name="title_checkbox_disable_warnings">Désactiver les messages d\'avertissement</string>
     <string name="title_checkbox_enable_pip">Activer le mode observateur</string>
@@ -136,7 +136,7 @@
     <string name="category_input_settings">Paramètres d\'entrée</string>
     <string name="title_checkbox_touchscreen_trackpad">Utiliser l\'écran tactile comme trackpad</string>
     <string name="summary_checkbox_touchscreen_trackpad">Si activé, l\'écran tactile agit comme un trackpad. Si désactivé, l\'écran tactile contrôle directement le curseur de la souris.</string>
-    <string name="title_checkbox_multi_controller">Forcer la présence d\'une manette</string>
+    <string name="title_checkbox_multi_controller">Détécter automatiquement la présence de manette</string>
     <string name="summary_checkbox_multi_controller">Décocher cette option force une manette à toujours être présente</string>
     <string name="title_checkbox_vibrate_fallback">Émuler les vibrations de la manette avec l\'appareil</string>
     <string name="summary_checkbox_vibrate_fallback">Fait vibrer votre appareil pour émuler les vibrations de la manette si elle ne le supporte pas</string>
@@ -145,7 +145,7 @@
     <string name="title_checkbox_xb1_driver">Pilote USB pour manette Xbox 360/One</string>
     <string name="summary_checkbox_xb1_driver">Active un pilote USB intégré pour les appareils qui ne prennent pas nativement en charge les manettes Xbox</string>
     <string name="title_checkbox_usb_bind_all">Remplacer le support natif des manettes Xbox</string>
-    <string name="summary_checkbox_usb_bind_all">Utilise le pilote USB de Moonlight pour toutes les manettes prises en charge, même si l\'appareil supporte nativement celles-ci</string>
+    <string name="summary_checkbox_usb_bind_all">Utiliser le pilote USB de Moonlight pour toutes les manettes prises en charge, même si l\'appareil supporte nativement celles-ci</string>
     <string name="title_checkbox_mouse_emulation">Émuler la souris avec la manette</string>
     <string name="summary_checkbox_mouse_emulation">Appuyez longuement sur le bouton Start pour faire basculer la manette en mode souris</string>
     <string name="title_checkbox_mouse_nav_buttons">Activer les boutons de la souris arrière et avant</string>
@@ -176,9 +176,9 @@
     <string name="category_host_settings">Paramètres de l\'hôte</string>
     <string name="title_checkbox_enable_sops">Optimiser les paramètres du jeu</string>
     <string name="summary_checkbox_enable_sops">Autoriser GFE à modifier les paramètres du jeu pour un streaming optimal</string>
-    <string name="title_checkbox_host_audio">Jouer l\'audio sur le PC</string>
-    <string name="summary_checkbox_host_audio">Lire l\'audio sur l\'ordinateur et sur cet appareil</string>
-    <string name="category_advanced_settings">Réglages avancés</string>
+    <string name="title_checkbox_host_audio">Diffuser l\'audio sur le PC</string>
+    <string name="summary_checkbox_host_audio">Diffuser l\'audio sur l\'ordinateur et sur cet appareil</string>
+    <string name="category_advanced_settings">Paramètres avancés</string>
     <string name="title_unlock_fps">Débloquer toutes les fréquences d\'images possibles</string>
     <string name="summary_unlock_fps">Le streaming à 90 ou 120 FPS peut réduire la latence sur les appareils haut de gamme, mais peut entraîner un décalage ou une instabilité sur les appareils qui ne le supporte pas</string>
     <string name="summary_checkbox_disable_warnings">Désactive les messages d\'avertissement sur la connexion pendant le stream</string>
@@ -188,8 +188,8 @@
     <string name="summary_video_format">Les nouveaux codecs peuvent réduire la bande passante vidéo requise si votre appareil les prend en charge. Les codecs séléctionnés peuvent être ignorés si ils ne sont pas prises en charge par le logiciel hôte ou le GPU.</string>
     <string name="title_enable_hdr">Activer le HDR (expérimental)</string>
     <string name="summary_enable_hdr">Streamer en HDR lorsque le jeu et le GPU du PC le prennent en charge. Le HDR nécessite un GPU pouvant encoder en HEVC Main 10.</string>
-    <string name="title_enable_perf_overlay">Afficher les statistiques de peformance lors du stream</string>
-    <string name="summary_enable_perf_overlay">Affiche des informations sur les performances du stream en temps réel pendant le stream</string>
+    <string name="title_enable_perf_overlay">Afficher les statistiques de performance lors du stream</string>
+    <string name="summary_enable_perf_overlay">Affiche des informations sur les performances en temps réel du stream</string>
     <string name="title_enable_post_stream_toast">Afficher la latence moyenne après un stream</string>
     <string name="summary_enable_post_stream_toast">Affiche un message d’information sur la latence après la fin du stream</string>
     <string name="no_video_received_error">Aucune vidéo reçue de l\'hôte.</string>
@@ -226,7 +226,7 @@
     <string name="audioconf_51surround">Son surround 5.1</string>
     <string name="audioconf_71surround">Son surround 7.1</string>
     <string name="videoformat_auto">Automatique (recommandé)</string>
-    <string name="videoformat_hevcalways">Préférer HEVC</string>
+    <string name="videoformat_hevcalways">Préférer le HEVC</string>
     <string name="title_frame_pacing">Frame-pacing vidéo</string>
     <string name="summary_frame_pacing">Spécifiez comment équilibrer latence et fluidité de la vidéo</string>
     <string name="pacing_latency">Préférer une latence plus faible</string>
@@ -252,13 +252,13 @@
     <string name="resolution_prefix_native_landscape">(Paysage)</string>
     <string name="resolution_prefix_native_portrait">(Portrait)</string>
     <string name="title_checkbox_reduce_refresh_rate">Autoriser la réduction du taux de rafraîchissement</string>
-    <string name="summary_checkbox_reduce_refresh_rate">Des taux de rafraîchissement d\'affichage plus bas peuvent économiser de l\'énergie au détriment d\'une latence vidéo plus importante</string>
+    <string name="summary_checkbox_reduce_refresh_rate">Des taux de rafraîchissement plus bas peuvent permettre d\'économiser de l\'énergie au détriement d\'une latence vidéo plus importante</string>
     <string name="summary_checkbox_enable_audiofx">Permet aux effets audio de fonctionner lors du streaming, mais peut augmenter la latence</string>
     <string name="title_checkbox_enable_audiofx">Activer le support de l\'égalisateur système</string>
     <string name="frame_conversion_error">Le PC hôte a signalé une erreur d\'encodage fatale.
 \n
 \nEssayez de désactiver le mode HDR, de changer la résolution du stream ou la résolution de votre PC hôte.</string>
-    <string name="title_full_range">Forcer la vidéo sur toute la gamme de couleurs (expérimental)</string>
+    <string name="title_full_range">Forcer la vidéo en gamme complète (expérimental)</string>
     <string name="summary_full_range">Cela causera une perte de détails dans les zones claires et sombres si votre appareil n\'affiche pas correctement la vidéo avec une gamme de couleurs complète.</string>
     <string name="pcview_menu_eol">NVIDIA GameStream : fin de service</string>
     <string name="pair_pairing_help">Si votre PC hôte utilise Sunshine, accédez à l\'interface web de Sunshine pour saisir le code PIN.</string>
@@ -267,14 +267,13 @@
     <string name="fps_suffix_fps">FPS</string>
     <string name="title_native_fps_dialog">Avertissement sur le FPS natif</string>
     <string name="title_checkbox_gamepad_motion_sensors">Autoriser l\'utilisation des capteurs de mouvement de la manette</string>
-    <string name="videoformat_av1always">Préférer AV1 (expérimental)</string>
-    <string name="videoformat_h264always">Préférer H.264</string>
+    <string name="videoformat_av1always">Préférer l\'AV1 (expérimental)</string>
+    <string name="videoformat_h264always">Préférer le H.264</string>
     <string name="title_checkbox_gamepad_touchpad_as_mouse">Toujours controller la souris avec le pavé tactile</string>
     <string name="summary_checkbox_gamepad_touchpad_as_mouse">Force le pavé tactile de la manette à contrôler la souris de l\'hôte, même quand une manette avec pavé tactile est émulée.</string>
-    <string name="summary_checkbox_gamepad_motion_sensors">Permet aux hôtes pris en charge de demander les données du capteur de mouvement lors de l\'émulation d\'une manette compatible. Désactiver ce paramètre peut réduire légèrement l\'utilisation de la batterie et du réseau si les capteurs de mouvement ne sont pas utilisés en jeu.</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Permet aux hôtes compatibles de demander les données du capteur de mouvement lors de l\'émulation d\'une manette compatible. Désactiver ce paramètre peut réduire légèrement l\'utilisation de la batterie et du réseau si les capteurs de mouvement ne sont pas utilisés en jeu.</string>
     <string name="toast_controller_type_changed">Le type de manette peut être différent dû à l\'émulation du capteur de mouvement</string>
-    <string name="summary_checkbox_gamepad_motion_fallback">Utilise les capteurs de mouvement de votre appareil si la manette connéctée n\'en a pas, ou qu\'ils ne sont pas pris en charge par votre version d\'Android.
-\nRemarque : activer cette option peut faire apparaître votre manette côté hôte comme une manette PlayStation.</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Utilise les capteurs de mouvement de votre appareil si ceux de la manette ne sont pas supportés par celle-ci ou par votre version d\'Android.\nRemarque : activer cette option peut faire apparaître votre manette côté hôte comme une manette PlayStation.</string>
     <string name="title_checkbox_gamepad_motion_fallback">Émuler les capteurs de mouvement de la manette</string>
     <string name="title_analog_scrolling">Utiliser un stick analogique pour faire défiler</string>
     <string name="summary_analog_scrolling">Séléctionner un stick analogique à utiliser pour faire défiler lors de l\'émulation de la souris</string>

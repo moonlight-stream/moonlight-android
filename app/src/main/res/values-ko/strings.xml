@@ -14,7 +14,7 @@
     <string name="pcview_menu_delete_pc">PC 삭제</string>
     <!-- Pair messages -->
     <string name="pairing">페어링 중…</string>
-    <string name="pair_pc_offline">컴퓨터가 오프라인입니다.</string>
+    <string name="pair_pc_offline">컴퓨터가 오프라인입니다</string>
     <string name="pair_pc_ingame">컴퓨터가 아직 게임을 실행중입니다. 페어링 전 게임을 종료하세요.</string>
     <string name="pair_pairing_title">페어링</string>
     <string name="pair_pairing_msg">아래 PIN을 페어링 할 PC에 입력하세요:</string>
@@ -23,7 +23,7 @@
     <string name="pair_already_in_progress">페어링이 이미 진행중입니다</string>
     <!-- WOL messages -->
     <string name="wol_pc_online">컴퓨터가 온라인 상태입니다</string>
-    <string name="wol_no_mac">저장된 MAC 주소가 없기 때문에 PC를 켤 수 없습니다.</string>
+    <string name="wol_no_mac">저장된 MAC 주소가 없기 때문에 PC를 켤 수 없습니다</string>
     <string name="wol_waking_pc">PC를 깨우는 중…</string>
     <string name="wol_waking_msg">PC를 켜는 데에 약간의 시간이 걸립니다. PC가 켜지지 않으면, Wake-On-Lan이 설정되어있는지 확인하세요.</string>
     <string name="wol_fail">Wake-On-LAN 패킷을 보내는 데에 실패했습니다</string>
@@ -50,7 +50,7 @@
     <string name="conn_error_title">연결 오류</string>
     <string name="conn_error_msg">시작 실패</string>
     <string name="conn_terminated_title">연결 종료 됨</string>
-    <string name="conn_terminated_msg">연결이 종료되었습니다</string>
+    <string name="conn_terminated_msg">연결이 종료되었습니다.</string>
     <!-- General strings -->
     <string name="ip_hint">호스트 PC의 IP 주소</string>
     <string name="searching_pc">로컬 네트워크의 호스트 PC를 검색중…
@@ -89,7 +89,7 @@
     <string name="summary_seekbar_bitrate">낮은 비트레이트는 끊김을 줄이고, 높은 비트레이트는 품질을 높입니다.</string>
     <string name="title_checkbox_stretch_video">화면을 늘려 전체화면으로 사용</string>
     <string name="title_checkbox_disable_warnings">경고 메세지 끄기</string>
-    <string name="summary_checkbox_disable_warnings">화면 상의 연결 경고 메세지를 스트리밍 중에 비활성화합니다.</string>
+    <string name="summary_checkbox_disable_warnings">화면 상의 연결 경고 메세지를 스트리밍 중에 비활성화합니다</string>
     <string name="category_audio_settings">오디오 설정</string>
     <string name="title_checkbox_multi_controller">자동 컨트롤러 유무 감지</string>
     <string name="summary_checkbox_multi_controller">이 옵션을 선택 취소하면 컨트롤러가 항상 표시됩니다</string>
@@ -107,9 +107,9 @@
     <string name="summary_checkbox_small_icon_mode">한 화면에서 더 많은 게임을 볼 수 있게 게임을 더 작게 표시합니다</string>
     <string name="category_host_settings">호스트 설정</string>
     <string name="title_checkbox_enable_sops">게임 설정 최적화</string>
-    <string name="summary_checkbox_enable_sops">최적의 스트리밍을 위해 Geforce Experience가 게임 설정을 수정하도록 허용합니다.</string>
+    <string name="summary_checkbox_enable_sops">최적의 스트리밍을 위해 Geforce Experience가 게임 설정을 수정하도록 허용합니다</string>
     <string name="title_checkbox_host_audio">PC에서 소리 재생</string>
-    <string name="summary_checkbox_host_audio">이 장치와 컴퓨터에서 소리를 재생합니다.</string>
+    <string name="summary_checkbox_host_audio">이 장치와 컴퓨터에서 소리를 재생합니다</string>
     <string name="category_advanced_settings">고급 설정</string>
     <string name="title_video_format">코덱 설정 변경</string>
     <string name="summary_video_format">최신 코덱은 장치에서 지원하는 경우 비디오 대역폭 요구 사항을 낮출 수 있습니다. 호스트 소프트웨어 또는 GPU에서 지원하지 않는 경우 코덱 선택을 무시할 수 있습니다.</string>
@@ -191,7 +191,7 @@
     <string name="summary_enable_perf_overlay">스트리밍하는 동안 실시간 스트림 성능 정보 표시</string>
     <string name="summary_enable_hdr">게임 및 PC의 GPU가 HDR을 지원하는 경우 HDR을 활성화합니다. HDR에는 HEVC Main 10 인코딩을 지원하는 GPU가 필요합니다.</string>
     <string name="title_enable_hdr">HDR활성화 (실험용)</string>
-    <string name="summary_disable_frame_drop">일부 장치에서 미세한 끊김 현상을 줄일 수 있지만 지연 시간이 늘어날 수 있습니다.</string>
+    <string name="summary_disable_frame_drop">일부 장치에서 미세한 끊김 현상을 줄일 수 있지만 지연 시간이 늘어날 수 있습니다</string>
     <string name="title_disable_frame_drop">프레임드랍 최적화</string>
     <string name="summary_unlock_fps">90 또는 120FPS로 스트리밍하면 지연 시간이 줄어들 수 있지만 이를 지원할 수 없는 장치에서는 지연 또는 불안정 할 수 있습니다</string>
     <string name="title_unlock_fps">모든 프레임 속도 잠금 해제</string>
@@ -244,7 +244,7 @@
     <string name="pacing_balanced">균형</string>
     <string name="pacing_balanced_alt">FPS 제한과 균형</string>
     <string name="title_checkbox_enable_audiofx">시스템 이퀄라이저 지원 활성화</string>
-    <string name="summary_checkbox_enable_audiofx">스트리밍중 오디오 효과가 작동하도록 하지만 오디오 지연시간이 증가할 수 있습니다.</string>
+    <string name="summary_checkbox_enable_audiofx">스트리밍 중 오디오 효과가 작동하도록 하지만 오디오 지연시간이 증가할 수 있습니다</string>
     <string name="title_checkbox_absolute_mouse_mode">원격 데스크톱 마우스 모드</string>
     <string name="summary_checkbox_absolute_mouse_mode">이 옵션을 활성화하면 마우스가 보다 자연스럽게 동작할 수 있지만 많은 게임과 호환되지 않습니다(특히 FPS에서).</string>
     <string name="fps_60">60 FPS</string>
@@ -256,7 +256,7 @@
     <string name="resolution_prefix_native_landscape">(가로)</string>
     <string name="resolution_prefix_native_portrait">(세로)</string>
     <string name="title_checkbox_reduce_refresh_rate">주사율 감소 허용</string>
-    <string name="summary_checkbox_reduce_refresh_rate">화면 주사율을 낮춰서 영상 지연 시간이 증가하고 전력을 절약할 수 있습니다.</string>
+    <string name="summary_checkbox_reduce_refresh_rate">화면 주사율을 낮춰서 영상 지연 시간이 증가하고 전력을 절약할 수 있습니다</string>
     <string name="frame_conversion_error">호스트 PC에서 치명적인 비디오 인코딩 오류를 보고했습니다.
 \n
 \nHDR 모드를 비활성화하거나 스트리밍 해상도를 변경하거나 호스트 PC의 디스플레이 해상도를 변경해 보십시오.</string>
@@ -278,4 +278,13 @@
     <string name="summary_checkbox_gamepad_motion_fallback">연결된 컨트롤러 또는 기기의 Android 버전에서 컨트롤러 센서가 지원되지 않는 경우 장치에 내장된 모션 센서를 사용합니다.
 \n참고: 이 옵션을 활성화하면 사용 중인 컨트롤러가 호스트에서 PlayStation 컨트롤러로 나타날 수 있습니다.</string>
     <string name="title_checkbox_gamepad_motion_fallback">컨트롤러의 모션 센서 에뮬레이션 지원</string>
+    <string name="error_code_prefix">에러 코드:</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">장치의 진동 강도를 증폭하거나 감소시킵니다</string>
+    <string name="title_analog_scrolling">아날로그 스틱을 사용하여 스크롤</string>
+    <string name="analogscroll_none">없음 (두 스틱 모두 마우스를 움직입니다)</string>
+    <string name="analogscroll_right">우측 아날로그 스틱</string>
+    <string name="analogscroll_left">좌측 아날로그 스틱</string>
+    <string name="title_seekbar_vibrate_fallback_strength">에뮬레이트된 진동 강도 조정</string>
+    <string name="summary_analog_scrolling">마우스 에뮬레이션 모드에서 스크롤할 아날로그 스틱을 선택하세요</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
 </resources>

@@ -251,4 +251,7 @@
     <string name="analogscroll_right">Jobb analóg kar</string>
     <string name="analogscroll_left">Bal analóg kar</string>
     <string name="summary_checkbox_gamepad_motion_fallback">A készüléked beépített mozgásérzékelőinek használata, ha a szenzorokat nem támogatja a csatlakoztatott gamepad vagy az Android-verziód.\nMegjegyzés: Ha ezt bekapcsolod, előfordulhat, hogy a kontrollered PlayStation-kontrollerként jelenik meg a gazdagépen.</string>
+    <string name="local_network_rationale">A Moonlightnak helyi hálózati engedélyre van szüksége a közelben lévő gazdagépekkel való kommunikációhoz</string>
+    <string name="summary_show_guide_button">Útmutató gomb megjelenítése a képernyőn</string>
+    <string name="title_show_guide_button">Útmutató gomb megjelenítése</string>
 </resources>

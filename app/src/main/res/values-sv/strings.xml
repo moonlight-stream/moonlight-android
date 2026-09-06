@@ -272,4 +272,7 @@
     <string name="analogscroll_right">Höger analogspak</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
     <string name="title_analog_scrolling">Använd en analog spak för att bläddra</string>
+    <string name="title_show_guide_button">Visa Guide knapp</string>
+    <string name="summary_show_guide_button">Visa guideknappen på skärmen</string>
+    <string name="local_network_rationale">Moonlight kräver lokala nätverksbehörigheter för att kommunicera med närliggande värdar</string>
 </resources>

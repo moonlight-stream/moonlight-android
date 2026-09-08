@@ -1,6 +1,8 @@
 package com.limelight.grid;
 
 import android.content.Context;
+import android.os.Build;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -64,6 +66,12 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
         else {
             prgView.setVisibility(View.INVISIBLE);
         }
+
+        // Auto-scale text on supported Android versions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            txtView.setAutoSizeTextTypeUniformWithConfiguration(5, 25, 1, TypedValue.COMPLEX_UNIT_SP);
+        }
+        txtView.setMaxLines(1);
 
         txtView.setText(obj.details.name);
         if (obj.details.state == ComputerDetails.State.ONLINE) {

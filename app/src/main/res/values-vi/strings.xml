@@ -118,8 +118,8 @@
     <string name="searching_pc">Đang tìm các PC có GameStream đang chạy…
 \n
 \nHãy chắc chắn là GameStream được bật trong cài đặt GeForce Experience SHIELD.</string>
-    <string name="ip_hint">Địa chỉ IP của PC GeForce</string>
-    <string name="conn_terminated_msg">Kết nối đã bị chấm dứt</string>
+    <string name="ip_hint">Địa chỉ IP của PC máy chủ</string>
+    <string name="conn_terminated_msg">Bạn đã bị ngắt kết nối.</string>
     <string name="conn_terminated_title">Kết nối bị chấm dứt</string>
     <string name="conn_error_msg">Bắt đầu thất bại</string>
     <string name="conn_error_title">Lỗi kết nối</string>
@@ -142,7 +142,7 @@
     <string name="error_usb_prohibited">Quyền truy cập USB bị cấm bởi quản trị viên thiết bị. Hãy kiểm tra cài đặt Knox hoặc MDM.</string>
     <string name="message_decoding_reset">Trình giải mã video của thiết bị vẫn tiếp tục dừng đột ngột tại các cài đặt stream đã chọn. Các cài đặt stream đã được đặt lại về mặc định.</string>
     <string name="title_decoding_reset">Đã đặt lại cài đặt video</string>
-    <string name="message_decoding_error">Moonlight đã bị dừng đột ngột vì một sự không tương thích với trình giải mã video của thiết bị này. Hãy chắc chắn là GeForce Experience được cập nhật lên phiên bản mới nhất trên PC. Hãy thử điều chỉnh cài đặt stream nếu việc dừng đột ngột vẫn tiếp tục.</string>
+    <string name="message_decoding_error">Moonlight đã bị dừng đột ngột vì một sự không tương thích với trình giải mã video của thiết bị này. Hãy thử điều chỉnh cài đặt stream nếu việc dừng đột ngột vẫn tiếp tục.</string>
     <string name="title_decoding_error">Trình giải mã video bị dừng đột ngột</string>
     <string name="error_404">GFE đã trả lời bằng lỗi HTTP 404. Hãy chắc chắn rằng PC của bạn đang chạy một GPU được hỗ trợ. Việc sử dụng phần mềm máy tính từ xa cũng có thể gây ra lỗi này. Hãy thử khởi động lại máy hoặc cài đặt lại GFE.</string>
     <string name="error_unknown_host">Xử lý máy chủ thất bại</string>
@@ -163,7 +163,7 @@
     <string name="wol_fail">Gửi các gói Wake-On-LAN thất bại</string>
     <string name="wol_waking_msg">PC của bạn có thể sẽ mất một vài giây để thức giấc. Nếu nó không thức giấc, hãy chắc chắn là nó được thiết lập đúng cho Wake-On-LAN.</string>
     <string name="wol_waking_pc">Đang đánh thức PC…</string>
-    <string name="wol_no_mac">Không thể đánh thức PC vì GFE đã không gửi một địa chỉ MAC</string>
+    <string name="wol_no_mac">Không thể đánh thức PC vì không có địa chỉ MAC được lưu</string>
     <string name="wol_pc_online">Máy tính đang trực tuyến</string>
     <string name="pair_already_in_progress">Việc ghép đôi đang được thực hiện rồi</string>
     <string name="pair_fail">Ghép đôi thất bại</string>
@@ -233,4 +233,14 @@
     <string name="title_checkbox_enable_audiofx">Hỗ trợ bộ cân bằng của hệ thống</string>
     <string name="summary_checkbox_enable_audiofx">Cho phép hiệu ứng âm thanh hoạt động khi stream, nhưng có thể tăng độ trễ âm thanh</string>
     <string name="resolution_prefix_native_portrait">(Dọc)</string>
+    <string name="pcview_menu_eol">Ngừng dịch vụ NVIDIA GameStream</string>
+    <string name="pair_pairing_help">Nếu PC máy chủ của bạn đang sử dụng Sunshine, truy cập vào giao diện web của Sunshine để nhập mã PIN.</string>
+    <string name="error_code_prefix">Mã lỗi:</string>
+    <string name="perf_overlay_hostprocessinglatency">Độ trễ xử lý máy chủ tối thiểu/tối đa/trung bình: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="category_gamepad_settings">Cài Đặt Gamepad</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_checkbox_gamepad_touchpad_as_mouse">Luôn điều khiển chuột bằng touchpad</string>
+    <string name="title_checkbox_absolute_mouse_mode">Chế độ chuột máy từ xa</string>
+    <string name="title_checkbox_reduce_refresh_rate">Cho phép giảm tần số quét</string>
 </resources>

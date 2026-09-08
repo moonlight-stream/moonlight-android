@@ -272,4 +272,7 @@
     <string name="title_analog_scrolling">Gebruik een analoge stick om te scrollen</string>
     <string name="summary_analog_scrolling">Selecteer een analoge stick om te scrollen in de muis-emulatiemodus</string>
     <string name="analogscroll_none">Geen (beide sticks bewegen de muis)</string>
+    <string name="title_show_guide_button">Toon Guide-knop</string>
+    <string name="summary_show_guide_button">Toon de guide-knop op het scherm</string>
+    <string name="local_network_rationale">Moonlight heeft toestemming voor het lokale netwerk nodig om te communiceren met hosts in de buurt</string>
 </resources>

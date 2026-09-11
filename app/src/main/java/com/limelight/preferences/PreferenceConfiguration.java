@@ -135,7 +135,7 @@ public class PreferenceConfiguration {
     public boolean showGuideButton;
     public boolean enableHdr;
     public boolean enablePip;
-    public boolean enablePerfOverlay;
+    public volatile boolean enablePerfOverlay;
     public boolean enableLatencyToast;
     public boolean bindAllUsb;
     public boolean mouseEmulation;

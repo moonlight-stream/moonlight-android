@@ -40,6 +40,7 @@ import com.limelight.utils.UiHelper;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.PictureInPictureParams;
 import android.app.Service;
 import android.content.ComponentName;
@@ -121,6 +122,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
     private boolean connected = false;
+    private AlertDialog streamMenu;
+    private boolean closingStream;
     private boolean autoEnterPip = false;
     private boolean surfaceCreated = false;
     private boolean attemptedConnection = false;
@@ -1068,9 +1071,97 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         super.onPause();
     }
 
+    // Game opts out of predictive Back in the manifest, so both system Back
+    // buttons and gestures are delivered here, including on Android 13+.
+    @Override
+    public void onBackPressed() {
+        if (isFinishing() || closingStream || streamMenu != null) {
+            return;
+        }
+
+        final boolean restoreInputGrab = grabbedInput;
+        setInputGrabState(false);
+        suppressPipRefCount++;
+        updatePipAutoEnter();
+
+        streamMenu = new AlertDialog.Builder(this)
+                .setTitle(R.string.stream_menu_title)
+                .setItems(new CharSequence[] {
+                        getString(R.string.stream_menu_close),
+                        getString(R.string.stream_menu_disconnect),
+                        getString(prefConfig.enablePerfOverlay
+                                ? R.string.stream_menu_hide_performance
+                                : R.string.stream_menu_show_performance)
+                }, (dialog, which) -> {
+                    if (which == 0) {
+                        closeStream();
+                    } else if (which == 1) {
+                        finish();
+                    } else {
+                        prefConfig.enablePerfOverlay = !prefConfig.enablePerfOverlay;
+                        performanceOverlayView.setVisibility(
+                                prefConfig.enablePerfOverlay && !isHidingOverlays
+                                        ? View.VISIBLE : View.GONE);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .create();
+        streamMenu.setOnDismissListener(dialog -> {
+            streamMenu = null;
+            suppressPipRefCount--;
+            updatePipAutoEnter();
+            if (!isFinishing() && !closingStream && connected) {
+                setInputGrabState(restoreInputGrab);
+                hideSystemUi(50);
+            }
+        });
+        streamMenu.show();
+        streamMenu.getWindow().setBackgroundDrawableResource(R.drawable.iris_glass_dark_panel);
+    }
+
+    private void closeStream() {
+        if (!connected) {
+            finish();
+            return;
+        }
+
+        closingStream = true;
+        // Host shutdown is expected to terminate the connection.
+        displayedFailureDialog = true;
+        suppressPipRefCount++;
+        updatePipAutoEnter();
+        spinner = SpinnerDialog.displayDialog(this, getString(R.string.stream_menu_close),
+                getString(R.string.applist_quit_app) + " " + appName + "…", false);
+        new Thread(() -> {
+            String error = null;
+            try {
+                if (!conn.quitApp()) {
+                    error = getString(R.string.applist_quit_fail) + " " + appName;
+                }
+            } catch (java.io.IOException | org.xmlpull.v1.XmlPullParserException e) {
+                error = getString(R.string.applist_quit_fail) + " " + appName + ": " + e.getMessage();
+            }
+            final String quitError = error;
+            runOnUiThread(() -> {
+                if (quitError != null) {
+                    Toast.makeText(getApplicationContext(), quitError, Toast.LENGTH_LONG).show();
+                }
+                finish();
+            });
+        }, "Quit streamed app").start();
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
+
+        if (streamMenu != null) {
+            // Do not recapture input while the activity is stopping.
+            streamMenu.setOnDismissListener(null);
+            streamMenu.dismiss();
+            streamMenu = null;
+            suppressPipRefCount--;
+        }
 
         SpinnerDialog.closeDialogs(this);
         Dialog.closeDialogs();
@@ -2412,7 +2503,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 h.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        setInputGrabState(true);
+                        if (connected && !isFinishing() && !closingStream && streamMenu == null) {
+                            setInputGrabState(true);
+                        }
                     }
                 }, 500);
 

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="stream_menu_title">Stream menu</string>
+    <string name="stream_menu_close">Close stream</string>
+    <string name="stream_menu_disconnect">Disconnect</string>
+    <string name="stream_menu_show_performance">Show performance overlay</string>
+    <string name="stream_menu_hide_performance">Hide performance overlay</string>
     <!-- Shortcut strings -->
     <string name="scut_deleted_pc">PC deleted</string>
     <string name="scut_not_paired">PC not paired</string>

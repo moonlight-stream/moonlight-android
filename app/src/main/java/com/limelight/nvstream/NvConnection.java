@@ -86,6 +86,11 @@ public class NvConnection {
         return new SecureRandom().nextInt();
     }
 
+    public boolean quitApp() throws IOException, XmlPullParserException {
+        return new NvHTTP(context.serverAddress, context.httpsPort, uniqueId,
+                context.serverCert, cryptoProvider).quitApp();
+    }
+
     public void stop() {
         // Interrupt any pending connection. This is thread-safe.
         MoonBridge.interruptConnection();

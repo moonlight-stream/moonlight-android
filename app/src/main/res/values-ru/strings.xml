@@ -280,4 +280,6 @@
     <string name="analogscroll_left">Левый аналоговый джойстик</string>
     <string name="pcview_menu_eol">NVIDIA GameStream обслуживание окончено</string>
     <string name="local_network_rationale">Для связи с ближайшими хостами Moonlight требует наличия прав доступа к локальной сети</string>
+    <string name="summary_show_guide_button">Показывать кнопку Guide на экране</string>
+    <string name="title_show_guide_button">Показывать кнопку Guide</string>
 </resources>

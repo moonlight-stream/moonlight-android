@@ -1,0 +1,9 @@
+- Updated target API to Android 16
+- Added support for keyboard capture on Android 16.1 and later
+- Added mappings for newer keycodes (like F13-F24)
+- Fixed crashes and ANRs when using gamepads with RGB LEDs
+- Fixed '+' key on the virtual keyboard
+- Fixed crash on Meta Quest
+- Improved Xbox controller support using the built-in USB driver
+- Updated dependencies to the latest versions
+- Updated translations

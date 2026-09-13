@@ -50,4 +50,19 @@
         android:preferKeepClear="true"
         android:visibility="gone" />
 
+    <ImageButton
+        android:id="@+id/keyboardToggleButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="bottom|right"
+        android:padding="10dp"
+        android:src="@drawable/ic_keyboard"
+        android:background="@drawable/bg_keyboard_toggle_button"
+        android:contentDescription="@string/title_checkbox_show_keyboard_button"
+        android:preferKeepClear="true"
+        android:visibility="gone" />
+
 </merge>

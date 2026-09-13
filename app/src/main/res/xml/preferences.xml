@@ -144,6 +144,13 @@
             android:title="@string/title_checkbox_absolute_mouse_mode"
             android:summary="@string/summary_checkbox_absolute_mouse_mode"
             android:defaultValue="false" />
+        <ListPreference
+            android:key="host_keyboard_layout"
+            android:title="@string/title_host_keyboard_layout"
+            android:summary="@string/summary_host_keyboard_layout"
+            android:entries="@array/host_keyboard_layout_names"
+            android:entryValues="@array/host_keyboard_layout_values"
+            android:defaultValue="auto" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
         android:key="category_onscreen_controls">

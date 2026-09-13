@@ -303,4 +303,6 @@
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
     <string name="analogscroll_left">Left analog stick</string>
+    <string name="title_host_keyboard_layout">Host keyboard layout</string>
+    <string name="summary_host_keyboard_layout">Layout of the PC keyboard. Characters from the on-screen keyboard are sent as the matching keys of this layout. Current: %s</string>
 </resources>

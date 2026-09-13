@@ -284,4 +284,6 @@
     <string name="title_seekbar_vibrate_fallback_strength">Ajuster l\'intensité de la vibration émulée</string>
     <string name="summary_seekbar_vibrate_fallback_strength">Amplifie ou réduit l\'intensité de la vibration sur votre appareil</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_host_keyboard_layout">Disposition du clavier du PC</string>
+    <string name="summary_host_keyboard_layout">Disposition du clavier du PC. Les caractères du clavier tactile sont envoyés sur les touches correspondantes de cette disposition. Actuelle : %s</string>
 </resources>

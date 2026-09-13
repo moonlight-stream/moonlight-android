@@ -286,4 +286,6 @@
     <string name="summary_checkbox_gamepad_motion_fallback">Verwendet die integrierten Bewegungssensoren Ihres Geräts, wenn Gamepad-Sensoren von Ihrem angeschlossenen Gamepad oder Ihrer Android-Version nicht unterstützt werden.
 \nHinweis: Die Aktivierung dieser Option kann dazu führen, dass Ihr Gamepad auf dem Host als PlayStation-Controller angezeigt wird.</string>
     <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
+    <string name="title_host_keyboard_layout">Tastaturlayout des Hosts</string>
+    <string name="summary_host_keyboard_layout">Layout der PC-Tastatur. Zeichen der Bildschirmtastatur werden als passende Tasten dieses Layouts gesendet. Aktuell: %s</string>
 </resources>

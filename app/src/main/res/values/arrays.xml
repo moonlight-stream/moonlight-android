@@ -137,4 +137,36 @@
         <item>right</item>
         <item>left</item>
     </string-array>
+
+    <!-- Disposition du clavier du PC hôte (généré depuis XKB, voir HostKeyboardLayouts) -->
+    <string-array name="host_keyboard_layout_names">
+        <item>Automatique (d\'après la langue du téléphone)</item>
+        <item>QWERTY (États-Unis)</item>
+        <item>QWERTY (Royaume-Uni)</item>
+        <item>AZERTY (France)</item>
+        <item>AZERTY (France, latin9)</item>
+        <item>QWERTZ (Allemagne)</item>
+        <item>AZERTY (Belgique)</item>
+        <item>QWERTZ (Suisse romande)</item>
+        <item>QWERTZ (Suisse alémanique)</item>
+        <item>QWERTY (Espagne)</item>
+        <item>QWERTY (Italie)</item>
+        <item>QWERTY (Portugal)</item>
+        <item>QWERTY (Pays-Bas)</item>
+    </string-array>
+    <string-array name="host_keyboard_layout_values" translatable="false">
+        <item>auto</item>
+        <item>us</item>
+        <item>gb</item>
+        <item>fr</item>
+        <item>fr_latin9</item>
+        <item>de</item>
+        <item>be</item>
+        <item>ch_fr</item>
+        <item>ch_de</item>
+        <item>es</item>
+        <item>it</item>
+        <item>pt</item>
+        <item>nl</item>
+    </string-array>
 </resources>

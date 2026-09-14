@@ -35,6 +35,7 @@ public class PreferenceConfiguration {
     private static final String DISABLE_TOASTS_PREF_STRING = "checkbox_disable_warnings";
     private static final String HOST_AUDIO_PREF_STRING = "checkbox_host_audio";
     private static final String DEADZONE_PREF_STRING = "seekbar_deadzone";
+    private static final String GYROASSIST_PREF_STRING = "gyro_sensitivity";
     private static final String OSC_OPACITY_PREF_STRING = "seekbar_osc_opacity";
     private static final String LANGUAGE_PREF_STRING = "list_languages";
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
@@ -76,6 +77,7 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_DISABLE_TOASTS = false;
     private static final boolean DEFAULT_HOST_AUDIO = false;
     private static final int DEFAULT_DEADZONE = 7;
+    private static final int DEFAULT_GYROASSIST = 10;
     private static final int DEFAULT_OPACITY = 90;
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
@@ -126,6 +128,7 @@ public class PreferenceConfiguration {
     public int bitrate;
     public FormatOption videoFormat;
     public int deadzonePercentage;
+    public float gyroSensitivity;
     public int oscOpacity;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
@@ -565,6 +568,7 @@ public class PreferenceConfiguration {
         config.analogStickForScrolling = getAnalogStickForScrollingValue(context);
 
         config.deadzonePercentage = prefs.getInt(DEADZONE_PREF_STRING, DEFAULT_DEADZONE);
+        config.gyroSensitivity = prefs.getInt(GYROASSIST_PREF_STRING, DEFAULT_GYROASSIST);
 
         config.oscOpacity = prefs.getInt(OSC_OPACITY_PREF_STRING, DEFAULT_OPACITY);
 

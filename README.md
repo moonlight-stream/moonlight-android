@@ -18,6 +18,18 @@ You can follow development on our [Discord server](https://moonlight-stream.org/
 * [F-Droid](https://f-droid.org/packages/com.limelight)
 * [APK](https://github.com/moonlight-stream/moonlight-android/releases)
 
+## Nightly builds
+| Name                    | Status                            | File                                                |
+|-------------------------|-----------------------------------|-----------------------------------------------------|
+| app nonRoot debug       | [![Build Status][Build]][Actions] | [![moonlight-android][Download]][app nonRoot debug] |
+| app Root debug          | [![Build Status][Build]][Actions] | [![moonlight-android][Download]][app root debug]    |
+
+[Actions]: https://github.com/moonlight-stream/moonlight-android/actions/workflows/build.yml
+[Build]: https://github.com/moonlight-stream/moonlight-android/actions/workflows/build.yml/badge.svg
+[Download]: https://img.shields.io/badge/Download-blue
+[app nonRoot debug]: https://github.com/moonlight-stream/moonlight-android/releases/download/Pre-release/app-nonRoot-debug.zip
+[app root debug]: https://github.com/moonlight-stream/moonlight-android/releases/download/Pre-release/app-root-debug.zip
+
 ## Building
 * Install Android Studio and the Android NDK
 * Run ‘git submodule update --init --recursive’ from within moonlight-android/
@@ -26,9 +38,9 @@ You can follow development on our [Discord server](https://moonlight-stream.org/
 
 ## Authors
 
-* [Cameron Gutman](https://github.com/cgutman)  
-* [Diego Waxemberg](https://github.com/dwaxemberg)  
-* [Aaron Neyer](https://github.com/Aaronneyer)  
+* [Cameron Gutman](https://github.com/cgutman)
+* [Diego Waxemberg](https://github.com/dwaxemberg)
+* [Aaron Neyer](https://github.com/Aaronneyer)
 * [Andrew Hennessy](https://github.com/yetanothername)
 
 Moonlight is the work of students at [Case Western](http://case.edu) and was

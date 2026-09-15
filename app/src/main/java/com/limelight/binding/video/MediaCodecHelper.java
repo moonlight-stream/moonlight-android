@@ -50,6 +50,7 @@ public class MediaCodecHelper {
 
     private static boolean isLowEndSnapdragon = false;
     private static boolean isAdreno620 = false;
+    private static boolean isAmlogicRfiSafe = false;
     private static boolean initialized = false;
 
     static {
@@ -328,18 +329,13 @@ public class MediaCodecHelper {
             // do this for Fire TV devices.
             whitelistedHevcDecoders.add("omx.amlogic");
 
-            // Fire TV 3 seems to produce random artifacts on HEVC streams after packet loss.
-            // Enabling RFI turns these artifacts into full decoder output hangs, so let's not enable
-            // that for Fire OS 6 Amlogic devices. We will leave HEVC enabled because that's the only
-            // way these devices can hit 4K. Hopefully this is just a problem with the BSP used in
-            // the Fire OS 6 Amlogic devices, so we will leave this enabled for Fire OS 7+.
-            //
-            // Apart from a few TV models, the main Amlogic-based Fire TV devices are the Fire TV
-            // Cubes and Fire TV 3. This check will exclude the Fire TV 3 and Fire TV Cube 1, but
-            // allow the newer Fire TV Cubes to use HEVC RFI.
+            // Amlogic HEVC decoders are known to produce random artifacts and decoder hangs
+            // when HEVC RFI is enabled and packet loss occurs on many Android TV devices.
+            // However, Fire TV Cubes on Fire OS 7+ (Android 8+) have been confirmed working
+            // with HEVC RFI, so we'll enable it for those devices only.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                refFrameInvalidationHevcPrefixes.add("omx.amlogic");
-                refFrameInvalidationHevcPrefixes.add("c2.amlogic");
+                isAmlogicRfiSafe = true;
+                LimeLog.info("Enabling Amlogic HEVC RFI on Fire OS 7+ device");
             }
         }
 
@@ -684,8 +680,20 @@ public class MediaCodecHelper {
         // buffering frames.
         if (decoderSupportsAndroidRLowLatency(decoderInfo, "video/hevc") ||
                 decoderSupportsKnownVendorLowLatencyOption(decoderInfo.getName())) {
-            LimeLog.info("Enabling HEVC RFI based on low latency option support");
-            return true;
+            if (!isDecoderInList(amlogicDecoderPrefixes, decoderInfo.getName())) {
+                LimeLog.info("Enabling HEVC RFI based on low latency option support");
+                return true;
+            } else if (isAmlogicRfiSafe) {
+                // This Amlogic device has been identified as safe for HEVC RFI
+                // (e.g., Amazon Fire TV devices on Fire OS 7+).
+                LimeLog.info("Enabling HEVC RFI on confirmed-safe Amlogic device");
+                return true;
+            } else {
+                // Amlogic HEVC decoders commonly produce artifacts and hangs when
+                // HEVC RFI is used after packet loss. Devices like the Onn TV 4K Plus
+                // and Chromecast 4K are affected despite advertising low latency support.
+                LimeLog.info("Not enabling HEVC RFI on unconfirmed Amlogic decoder: " + decoderInfo.getName());
+            }
         }
 
         return isDecoderInList(refFrameInvalidationHevcPrefixes, decoderInfo.getName());

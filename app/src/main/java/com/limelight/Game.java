@@ -1845,18 +1845,41 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // dealing with a stylus without hover support, our position might be
                 // significantly different than before.
                 if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
-                    // Send the deltas straight from the motion event
-                    short deltaX = (short)inputCaptureProvider.getRelativeAxisX(event);
-                    short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
+                    float rawX = inputCaptureProvider.getRelativeAxisX(event);
+                    float rawY = inputCaptureProvider.getRelativeAxisY(event);
 
-                    if (deltaX != 0 || deltaY != 0) {
-                        if (prefConfig.absoluteMouseMode) {
-                            // NB: view may be null, but we can unconditionally use streamView because we don't need to adjust
-                            // relative axis deltas for the position of the streamView within the parent's coordinate system.
-                            conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)streamView.getWidth(), (short)streamView.getHeight());
+                    // Some keyboard trackpads (e.g. Samsung Galaxy Tab S11 Ultra Pro Keyboard)
+                    // report AXIS_RELATIVE_X/Y rotated 90° clockwise: the driver sends physical-Y
+                    // as AXIS_RELATIVE_X and physical-X as AXIS_RELATIVE_Y. Correcting means
+                    // reading Y as X and negating the new Y.
+                    if (prefConfig.rotateTouchpadAxes && eventSource == InputDevice.SOURCE_TOUCHPAD) {
+                        float tmp = rawX;
+                        rawX = rawY;
+                        rawY = -tmp;
+                    }
+
+                    // Samsung keyboard trackpads send two-finger scroll as ACTION_MOVE with
+                    // getPointerCount() == 2, using the same REL_X/REL_Y axes as cursor movement
+                    // rather than ACTION_SCROLL with AXIS_VSCROLL/HSCROLL.
+                    if (eventSource == InputDevice.SOURCE_TOUCHPAD && event.getPointerCount() == 2) {
+                        if (rawX != 0 || rawY != 0) {
+                            int scrollDir = prefConfig.naturalScroll ? 1 : -1;
+                            conn.sendMouseHighResScroll((short)(rawY * 10 * scrollDir));
+                            conn.sendMouseHighResHScroll((short)(-rawX * 10 * scrollDir));
                         }
-                        else {
-                            conn.sendMouseMove(deltaX, deltaY);
+                    } else {
+                        short deltaX = (short) rawX;
+                        short deltaY = (short) rawY;
+
+                        if (deltaX != 0 || deltaY != 0) {
+                            if (prefConfig.absoluteMouseMode) {
+                                // NB: view may be null, but we can unconditionally use streamView because we don't need to adjust
+                                // relative axis deltas for the position of the streamView within the parent's coordinate system.
+                                conn.sendMouseMoveAsMousePosition(deltaX, deltaY, (short)streamView.getWidth(), (short)streamView.getHeight());
+                            }
+                            else {
+                                conn.sendMouseMove(deltaX, deltaY);
+                            }
                         }
                     }
                 }
@@ -1897,8 +1920,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) {
                     // Send the vertical scroll packet
-                    conn.sendMouseHighResScroll((short)(event.getAxisValue(MotionEvent.AXIS_VSCROLL) * 120));
-                    conn.sendMouseHighResHScroll((short)(event.getAxisValue(MotionEvent.AXIS_HSCROLL) * 120));
+                    int scrollDir = prefConfig.naturalScroll ? -1 : 1;
+                    conn.sendMouseHighResScroll((short)(event.getAxisValue(MotionEvent.AXIS_VSCROLL) * 120 * scrollDir));
+                    conn.sendMouseHighResHScroll((short)(event.getAxisValue(MotionEvent.AXIS_HSCROLL) * 120 * scrollDir));
                 }
 
                 if ((changedButtons & MotionEvent.BUTTON_PRIMARY) != 0) {

@@ -211,6 +211,8 @@
     <string name="summary_only_l3r3">Hide all virtual buttons except L3 and R3</string>
     <string name="title_show_guide_button">Show Guide Button</string>
     <string name="summary_show_guide_button">Show the guide button on screen</string>
+    <string name="title_show_toggle_controller_button">Show Toggle Button</string>
+    <string name="summary_show_toggle_controller_button">Show the toggle button for the on-screen controls</string>
     <string name="title_reset_osc">Clear saved on-screen controls layout</string>
     <string name="summary_reset_osc">Resets all on-screen controls to their default size and position</string>
     <string name="dialog_title_reset_osc">Reset Layout</string>

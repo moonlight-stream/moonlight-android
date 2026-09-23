@@ -40,6 +40,43 @@
             android:key="checkbox_stretch_video"
             android:title="@string/title_checkbox_stretch_video"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_enable_sbs_vr"
+            android:title="Enable SBS VR mode"
+            android:summary="Launch streams in side-by-side phone VR mode. This duplicates the mono stream into both eyes with lens distortion."
+            android:defaultValue="false" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_vr_zoom"
+            android:dependency="checkbox_enable_sbs_vr"
+            android:defaultValue="50"
+            android:max="100"
+            seekbar:min="0"
+            seekbar:step="1"
+            android:summary="Adjust the SBS VR image size"
+            android:text=""
+            android:title="SBS VR size" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_sbs_vr_distortion"
+            android:dependency="checkbox_enable_sbs_vr"
+            android:defaultValue="81"
+            android:max="500"
+            seekbar:min="0"
+            seekbar:step="1"
+            android:summary="Adjust lens distortion for the SBS VR shader"
+            android:text=""
+            android:title="SBS VR distortion" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_vr_wrap"
+            android:dependency="checkbox_enable_sbs_vr"
+            android:title="SBS VR wrap sides"
+            android:summary="When disabled, pixels outside the warped image are clipped to black."
+            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="checkbox_sbs_vr_single_view"
+            android:dependency="checkbox_enable_sbs_vr"
+            android:title="SBS VR single view debug"
+            android:summary="Show a single debug view instead of duplicated left/right eyes."
+            android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">
         <ListPreference

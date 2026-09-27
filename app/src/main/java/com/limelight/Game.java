@@ -13,6 +13,7 @@ import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.binding.input.virtual_controller.VirtualController;
+import com.limelight.customcontrols.CustomControlOverlay;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
@@ -97,6 +98,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
     private long threeFingerDownTime = 0;
+    private long fourFingerDownTime = 0;
 
     private static final int REFERENCE_HORIZ_RES = 1280;
     private static final int REFERENCE_VERT_RES = 720;
@@ -112,6 +114,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
     private VirtualController virtualController;
+    private CustomControlOverlay customControlOverlay;
 
     private PreferenceConfiguration prefConfig;
     private SharedPreferences tombstonePrefs;
@@ -513,6 +516,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             virtualController.show();
         }
 
+        // Create the custom controls overlay
+        FrameLayout gameRoot = (FrameLayout) streamView.getParent();
+        customControlOverlay = new CustomControlOverlay(this);
+        gameRoot.addView(customControlOverlay, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+        customControlOverlay.initFloatingButton(gameRoot);
+
         if (prefConfig.usbDriver) {
             // Start the USB driver
             bindService(new Intent(this, UsbDriverService.class),
@@ -595,6 +606,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     virtualController.hide();
                 }
 
+                if (customControlOverlay != null) {
+                    customControlOverlay.hideControls();
+                }
+
                 performanceOverlayView.setVisibility(View.GONE);
                 notificationOverlayView.setVisibility(View.GONE);
 
@@ -611,6 +626,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 if (virtualController != null) {
                     virtualController.show();
+                }
+
+                if (customControlOverlay != null) {
+                    customControlOverlay.showControls();
                 }
 
                 if (prefConfig.enablePerfOverlay) {
@@ -1084,6 +1103,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (virtualController != null) {
             virtualController.hide();
+        }
+
+        if (customControlOverlay != null) {
+            customControlOverlay.hideControls();
+            customControlOverlay.detach();
         }
 
         if (conn != null) {
@@ -2017,7 +2041,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 int eventX = (int)(event.getX(actionIndex) + xOffset);
                 int eventY = (int)(event.getY(actionIndex) + yOffset);
 
-                // Special handling for 3 finger gesture
+                // Special handling for 3/4 finger gestures
                 if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
                         event.getPointerCount() == 3) {
                     // Three fingers down
@@ -2029,6 +2053,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         aTouchContext.cancelTouch();
                     }
 
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
+                        event.getPointerCount() == 4) {
+                    // Four fingers down — record for edit mode toggle
+                    fourFingerDownTime = event.getEventTime();
+                    for (TouchContext aTouchContext : touchContextMap) {
+                        aTouchContext.cancelTouch();
+                    }
                     return true;
                 }
 
@@ -2063,6 +2096,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         if (event.getEventTime() - threeFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
                             // This is a 3 finger tap to bring up the keyboard
                             toggleKeyboard();
+                            return true;
+                        }
+                        if (fourFingerDownTime != 0 &&
+                                event.getEventTime() - fourFingerDownTime < THREE_FINGER_TAP_THRESHOLD) {
+                            // 4-finger tap = toggle controls edit mode
+                            fourFingerDownTime = 0;
+                            if (customControlOverlay != null) {
+                                customControlOverlay.showControls();
+                                if (customControlOverlay.isEditMode()) customControlOverlay.exitEditMode(); else customControlOverlay.enterEditMode();
+                            }
                             return true;
                         }
                     }
@@ -2433,6 +2476,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Update GameManager state to indicate we're in game
                 UiHelper.notifyStreamConnected(Game.this);
+
+                // Activate the custom controls overlay
+                if (customControlOverlay != null) {
+                    customControlOverlay.attach(conn, controllerHandler);
+                    customControlOverlay.loadSavedLayout();
+                    customControlOverlay.showControls();
+                }
 
                 hideSystemUi(1000);
             }

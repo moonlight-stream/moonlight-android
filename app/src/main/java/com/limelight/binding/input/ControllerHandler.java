@@ -206,6 +206,16 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // most likely case.
         defaultContext.ignoreBack = true;
 
+        // The on-screen controller has no physical InputDevice, so no
+        // InputDeviceContext is ever created for it. Bind the device's
+        // built-in motion sensors to the default context (which backs OSC
+        // input) when the user opted into motion sensor fallback. This
+        // mirrors the fallback applied to sensor-less physical gamepads
+        // in assignControllerNumberIfNeeded().
+        if (prefConfig.onscreenController && prefConfig.gamepadMotionSensorsFallbackToDevice) {
+            defaultContext.sensorManager = deviceSensorManager;
+        }
+
         // Get the initially attached set of gamepads. As each gamepad receives
         // its initial InputEvent, we will move these from this set onto the
         // currentControllers set which will allow them to properly unplug
@@ -276,6 +286,13 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // Stop new device contexts from being created or used
         stopped = true;
 
+        // Unregister sensor listeners (physical gamepads and the virtual
+        // on-screen controller). destroy() only clears mouse emulation, so
+        // without this the SensorManager keeps a reference to our listeners
+        // (and through them the Activity) and keeps firing motion events
+        // into a dead connection after the stream ends.
+        disableSensors();
+
         // Unregister our input device callbacks
         inputManager.unregisterInputDeviceListener(this);
 
@@ -306,6 +323,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
             deviceContext.disableSensors();
         }
+
+        // Also cover the virtual on-screen controller backed by defaultContext
+        defaultContext.disableSensors();
     }
 
     public void enableSensors() {
@@ -317,6 +337,9 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
             deviceContext.enableSensors();
         }
+
+        // Also cover the virtual on-screen controller backed by defaultContext
+        defaultContext.enableSensors();
     }
 
     private static boolean hasJoystickAxes(InputDevice device) {
@@ -1082,6 +1105,61 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // Only Player 1 is active with multi-controller disabled
             return 1;
         }
+    }
+
+    // Reports the virtual on-screen controller (backed by defaultContext) to the
+    // host. Without this, controller 0 only exists as a mask bit from the RTSP
+    // handshake when zero physical gamepads are attached, so the host never
+    // learns its type/capabilities and never requests motion sensor data.
+    public void sendVirtualControllerArrival() {
+        if (stopped || !prefConfig.onscreenController) {
+            return;
+        }
+
+        // A physical gamepad owning controller 0 reports itself on first input,
+        // which takes precedence over the virtual controller.
+        for (int i = 0; i < inputDeviceContexts.size(); i++) {
+            if (inputDeviceContexts.valueAt(i).controllerNumber == 0) {
+                return;
+            }
+        }
+
+        short capabilities = 0;
+        if (defaultContext.sensorManager != null) {
+            if (defaultContext.sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
+                capabilities |= MoonBridge.LI_CCAP_ACCEL;
+            }
+            if (defaultContext.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
+                capabilities |= MoonBridge.LI_CCAP_GYRO;
+            }
+        }
+
+        if (capabilities == 0) {
+            // Nothing motion-capable to offer. A bare arrival would only make
+            // the host emulate a DualShock 4 with missing features.
+            return;
+        }
+
+        // The on-screen controller has analog triggers
+        capabilities |= MoonBridge.LI_CCAP_ANALOG_TRIGGERS;
+
+        int supportedButtonFlags =
+                ControllerPacket.A_FLAG | ControllerPacket.B_FLAG |
+                ControllerPacket.X_FLAG | ControllerPacket.Y_FLAG |
+                ControllerPacket.UP_FLAG | ControllerPacket.DOWN_FLAG |
+                ControllerPacket.LEFT_FLAG | ControllerPacket.RIGHT_FLAG |
+                ControllerPacket.LB_FLAG | ControllerPacket.RB_FLAG |
+                ControllerPacket.LS_CLK_FLAG | ControllerPacket.RS_CLK_FLAG |
+                ControllerPacket.PLAY_FLAG | ControllerPacket.BACK_FLAG |
+                ControllerPacket.SPECIAL_BUTTON_FLAG | ControllerPacket.MISC_FLAG;
+
+        // Same deal as sensor-emulating physical pads: the host sees an
+        // unknown-type motion-capable controller and emulates a DualShock 4.
+        Toast.makeText(activityContext, activityContext.getResources().getText(R.string.toast_controller_type_changed), Toast.LENGTH_LONG).show();
+        defaultContext.needsClickpadEmulation = true;
+
+        conn.sendControllerArrivalEvent((byte) 0, getActiveControllerMask(),
+                MoonBridge.LI_CTYPE_UNKNOWN, supportedButtonFlags, capabilities);
     }
 
     private static boolean areBatteryCapacitiesEqual(float first, float second) {
@@ -2244,61 +2322,79 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         // Report rate is restricted to <= 200 Hz without the HIGH_SAMPLING_RATE_SENSORS permission
         reportRateHz = (short) Math.min(200, reportRateHz);
 
+        boolean controllerFound = false;
         for (int i = 0; i < inputDeviceContexts.size(); i++) {
             InputDeviceContext deviceContext = inputDeviceContexts.valueAt(i);
 
             if (deviceContext.controllerNumber == controllerNumber) {
-                // Store the desired report rate even if we don't have sensors. In some cases,
-                // input devices can be reconfigured at runtime which results in a change where
-                // sensors disappear and reappear. By storing the desired report rate, we can
-                // reapply the desired motion sensor configuration after they reappear.
-                switch (motionType) {
-                    case MoonBridge.LI_MOTION_TYPE_ACCEL:
-                        deviceContext.accelReportRateHz = reportRateHz;
-                        break;
-                    case MoonBridge.LI_MOTION_TYPE_GYRO:
-                        deviceContext.gyroReportRateHz = reportRateHz;
-                        break;
+                if (applyMotionEventState(deviceContext, controllerNumber, motionType, reportRateHz)) {
+                    controllerFound = true;
+                    break;
                 }
-
-                backgroundThreadHandler.removeCallbacks(deviceContext.enableSensorRunnable);
-
-                SensorManager sm = deviceContext.sensorManager;
-                if (sm == null) {
-                    continue;
-                }
-
-                switch (motionType) {
-                    case MoonBridge.LI_MOTION_TYPE_ACCEL:
-                        if (deviceContext.accelListener != null) {
-                            sm.unregisterListener(deviceContext.accelListener);
-                            deviceContext.accelListener = null;
-                        }
-
-                        // Enable the accelerometer if requested
-                        Sensor accelSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-                        if (reportRateHz != 0 && accelSensor != null) {
-                            deviceContext.accelListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
-                            sm.registerListener(deviceContext.accelListener, accelSensor, 1000000 / reportRateHz);
-                        }
-                        break;
-                    case MoonBridge.LI_MOTION_TYPE_GYRO:
-                        if (deviceContext.gyroListener != null) {
-                            sm.unregisterListener(deviceContext.gyroListener);
-                            deviceContext.gyroListener = null;
-                        }
-
-                        // Enable the gyroscope if requested
-                        Sensor gyroSensor = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-                        if (reportRateHz != 0 && gyroSensor != null) {
-                            deviceContext.gyroListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
-                            sm.registerListener(deviceContext.gyroListener, gyroSensor, 1000000 / reportRateHz);
-                        }
-                        break;
-                }
-                break;
             }
         }
+
+        if (!controllerFound && defaultContext.controllerNumber == controllerNumber) {
+            // No physical gamepad owns this controller number. Fall through to the
+            // virtual on-screen controller (backed by defaultContext) so motion
+            // requests also work with zero physical gamepads attached.
+            applyMotionEventState(defaultContext, controllerNumber, motionType, reportRateHz);
+        }
+    }
+
+    // Applies a host motion sensor state change to the given context.
+    // Returns true if the context was able to own the request (has a
+    // SensorManager), false otherwise so the caller can keep looking.
+    private boolean applyMotionEventState(InputDeviceContext context, short controllerNumber, byte motionType, short reportRateHz) {
+        // Store the desired report rate even if we don't have sensors. In some cases,
+        // input devices can be reconfigured at runtime which results in a change where
+        // sensors disappear and reappear. By storing the desired report rate, we can
+        // reapply the desired motion sensor configuration after they reappear.
+        switch (motionType) {
+            case MoonBridge.LI_MOTION_TYPE_ACCEL:
+                context.accelReportRateHz = reportRateHz;
+                break;
+            case MoonBridge.LI_MOTION_TYPE_GYRO:
+                context.gyroReportRateHz = reportRateHz;
+                break;
+        }
+
+        backgroundThreadHandler.removeCallbacks(context.enableSensorRunnable);
+
+        SensorManager sm = context.sensorManager;
+        if (sm == null) {
+            return false;
+        }
+
+        switch (motionType) {
+            case MoonBridge.LI_MOTION_TYPE_ACCEL:
+                if (context.accelListener != null) {
+                    sm.unregisterListener(context.accelListener);
+                    context.accelListener = null;
+                }
+
+                // Enable the accelerometer if requested
+                Sensor accelSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+                if (reportRateHz != 0 && accelSensor != null) {
+                    context.accelListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
+                    sm.registerListener(context.accelListener, accelSensor, 1000000 / reportRateHz);
+                }
+                break;
+            case MoonBridge.LI_MOTION_TYPE_GYRO:
+                if (context.gyroListener != null) {
+                    sm.unregisterListener(context.gyroListener);
+                    context.gyroListener = null;
+                }
+
+                // Enable the gyroscope if requested
+                Sensor gyroSensor = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+                if (reportRateHz != 0 && gyroSensor != null) {
+                    context.gyroListener = createSensorListener(controllerNumber, motionType, sm == deviceSensorManager);
+                    sm.registerListener(context.gyroListener, gyroSensor, 1000000 / reportRateHz);
+                }
+                break;
+        }
+        return true;
     }
 
     public void handleSetControllerLED(short controllerNumber, byte r, byte g, byte b) {

@@ -2431,6 +2431,14 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 // Keep the display on
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+                // Report the virtual on-screen controller (if enabled) now that
+                // the control stream is up. With no physical gamepad attached,
+                // nothing else would ever send an arrival for controller 0, so
+                // the host would never request motion sensor data.
+                if (controllerHandler != null) {
+                    controllerHandler.sendVirtualControllerArrival();
+                }
+
                 // Update GameManager state to indicate we're in game
                 UiHelper.notifyStreamConnected(Game.this);
 

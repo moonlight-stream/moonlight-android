@@ -286,4 +286,7 @@
     <string name="summary_checkbox_gamepad_motion_fallback">Verwendet die integrierten Bewegungssensoren Ihres Geräts, wenn Gamepad-Sensoren von Ihrem angeschlossenen Gamepad oder Ihrer Android-Version nicht unterstützt werden.
 \nHinweis: Die Aktivierung dieser Option kann dazu führen, dass Ihr Gamepad auf dem Host als PlayStation-Controller angezeigt wird.</string>
     <string name="pcview_menu_eol">NVIDIA GameStream End-of-Service</string>
+    <string name="title_show_guide_button">Schaltfläche „Anleitung“ anzeigen</string>
+    <string name="summary_show_guide_button">Die Schaltfläche „Anleitung“ auf dem Bildschirm anzeigen</string>
+    <string name="local_network_rationale">Moonlight benötigt Berechtigungen für das lokale Netzwerk, um mit Hosts in der Nähe zu kommunizieren</string>
 </resources>

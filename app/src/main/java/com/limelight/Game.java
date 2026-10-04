@@ -536,6 +536,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private void setPreferredOrientationForCurrentDisplay() {
+        // Foldables can report a landscape display backed by a portrait-oriented surface. Forcing
+        // USER_LANDSCAPE in that state can rotate and letterbox the stream surface unnecessarily.
+        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_HINGE_ANGLE)) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
+            return;
+        }
+
         Display display = getWindowManager().getDefaultDisplay();
 
         // For semi-square displays, we use more complex logic to determine which orientation to use (if any)

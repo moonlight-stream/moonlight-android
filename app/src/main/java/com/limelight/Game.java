@@ -1499,6 +1499,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void toggleKeyboard() {
+        if (!prefConfig.enableOnscreenKeyboard) {
+            LimeLog.info("Ignoring keyboard toggle request because the on-screen keyboard is disabled");
+            return;
+        }
+
         LimeLog.info("Toggling keyboard overlay");
         InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.toggleSoftInput(0, 0);
@@ -2018,7 +2023,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 int eventY = (int)(event.getY(actionIndex) + yOffset);
 
                 // Special handling for 3 finger gesture
-                if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
+                if (prefConfig.enableOnscreenKeyboard &&
+                        event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN &&
                         event.getPointerCount() == 3) {
                     // Three fingers down
                     threeFingerDownTime = event.getEventTime();

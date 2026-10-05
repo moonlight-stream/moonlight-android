@@ -284,4 +284,7 @@
     <string name="title_seekbar_vibrate_fallback_strength">Ajuster l\'intensité de la vibration émulée</string>
     <string name="summary_seekbar_vibrate_fallback_strength">Amplifie ou réduit l\'intensité de la vibration sur votre appareil</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_show_guide_button">Afficher le bouton Guide</string>
+    <string name="summary_show_guide_button">Afficher le bouton Guide à l\'écran</string>
+    <string name="local_network_rationale">Moonlight a besoin de la permission d\'accéder au réseau local pour communiquer avec les hôtes du réseau</string>
 </resources>

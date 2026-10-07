@@ -159,6 +159,12 @@
     <string name="resolution_prefix_native_fullscreen">Native Full-Screen</string>
     <string name="resolution_prefix_native_landscape">(Landscape)</string>
     <string name="resolution_prefix_native_portrait">(Portrait)</string>
+    <string name="resolution_prefix_custom">Custom</string>
+    <string name="resolution_custom_option">Custom…</string>
+    <string name="title_custom_res_dialog">Custom Resolution</string>
+    <string name="hint_custom_res_width">Width</string>
+    <string name="hint_custom_res_height">Height</string>
+    <string name="error_custom_res_invalid">Width and height must be between %1$d and %2$d pixels</string>
     <string name="fps_suffix_fps">FPS</string>
     <string name="title_native_fps_dialog">Native FPS Warning</string>
 

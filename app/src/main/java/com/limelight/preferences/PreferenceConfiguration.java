@@ -122,6 +122,11 @@ public class PreferenceConfiguration {
     public static final String RES_4K = "3840x2160";
     public static final String RES_NATIVE = "Native";
 
+    // Placeholder list entry that opens the custom resolution dialog. It is never persisted.
+    public static final String RES_CUSTOM = "custom";
+    public static final int CUSTOM_RES_MIN_DIMENSION = 256;
+    public static final int CUSTOM_RES_MAX_DIMENSION = 8192;
+
     public int width, height, fps;
     public int bitrate;
     public FormatOption videoFormat;
@@ -180,6 +185,11 @@ public class PreferenceConfiguration {
         return true;
     }
 
+    public static boolean isValidCustomResolution(int width, int height) {
+        return width >= CUSTOM_RES_MIN_DIMENSION && width <= CUSTOM_RES_MAX_DIMENSION &&
+                height >= CUSTOM_RES_MIN_DIMENSION && height <= CUSTOM_RES_MAX_DIMENSION;
+    }
+
     // If we have a screen that has semi-square dimensions, we may want to change our behavior
     // to allow any orientation and vertical+horizontal resolutions.
     public static boolean isSquarishScreen(int width, int height) {
@@ -230,11 +240,11 @@ public class PreferenceConfiguration {
         }
     }
 
-    private static int getWidthFromResolutionString(String resString) {
+    static int getWidthFromResolutionString(String resString) {
         return Integer.parseInt(resString.split("x")[0]);
     }
 
-    private static int getHeightFromResolutionString(String resString) {
+    static int getHeightFromResolutionString(String resString) {
         return Integer.parseInt(resString.split("x")[1]);
     }
 

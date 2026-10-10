@@ -272,4 +272,6 @@
 \nNot: Bu seçeneğin etkinleştirilmesi, oyun kumandanızın ana bilgisayarda PlayStation denetleyicisi olarak görünmesine neden olabilir.</string>
     <string name="title_enable_perf_overlay">Akış sırasında performans istatistiklerini göster</string>
     <string name="summary_enable_perf_overlay">Akış sırasında gerçek zamanlı akış performansı bilgilerini görüntüleyin</string>
+    <string name="title_host_keyboard_layout">Ana bilgisayar klavye düzeni</string>
+    <string name="summary_host_keyboard_layout">PC klavye düzeni. Ekran klavyesindeki karakterler bu düzene uygun tuşlar olarak gönderilir. Geçerli: %s</string>
 </resources>

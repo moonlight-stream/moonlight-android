@@ -2,13 +2,34 @@ package com.limelight.ui;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.text.InputType;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.SurfaceView;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethodManager;
+
+import com.limelight.binding.input.StreamInputConnection;
+import com.limelight.nvstream.NvConnection;
 
 public class StreamView extends SurfaceView {
     private double desiredAspectRatio;
     private InputCallbacks inputCallbacks;
+    private NvConnection nvConn;
+    private StreamInputConnection activeInputConnection;
+
+    public void setNvConnection(NvConnection conn) {
+        this.nvConn = conn;
+        if (activeInputConnection != null) {
+            activeInputConnection.setNvConnection(conn);
+        }
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null) {
+            inputMethodManager.restartInput(this);
+        }
+    }
 
     public void setDesiredAspectRatio(double aspectRatio) {
         this.desiredAspectRatio = aspectRatio;
@@ -32,6 +53,19 @@ public class StreamView extends SurfaceView {
 
     public StreamView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+    @Override
+    public boolean onCheckIsTextEditor() {
+        return true;
+    }
+
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_ACTION_NONE;
+        activeInputConnection = new StreamInputConnection(this, false, nvConn);
+        return activeInputConnection;
     }
 
     @Override

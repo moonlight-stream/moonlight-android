@@ -3,6 +3,7 @@ package com.limelight;
 
 import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.audio.AndroidAudioRenderer;
+import com.limelight.binding.input.HostKeyboardLayouts;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
 import com.limelight.binding.input.capture.InputCaptureManager;
@@ -61,6 +62,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Rational;
+import android.util.SparseArray;
 import android.view.Display;
 import android.view.InputDevice;
 import android.view.KeyCharacterMap;
@@ -112,6 +114,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
     private VirtualController virtualController;
+
+    // Touches envoyées via la conversion de disposition, pour les relâcher au key up.
+    private final SparseArray<Integer> mappedKeys = new SparseArray<>();
 
     private PreferenceConfiguration prefConfig;
     private SharedPreferences tombstonePrefs;
@@ -486,6 +491,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 new ComputerDetails.AddressTuple(host, port),
                 httpsPort, uniqueId, config,
                 PlatformBinding.getCryptoProvider(this), serverCert);
+        streamView.setNvConnection(conn);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
@@ -1315,6 +1321,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return modifier;
     }
 
+    // Les événements du clavier logiciel (Gboard, etc.) arrivent avec un identifiant
+    // de périphérique virtuel, contrairement aux vrais claviers Bluetooth/USB.
+    // Seuls ces événements passent par la table AZERTY ; les vrais claviers gardent
+    // le comportement d'origine (KeyboardTranslator).
+    private static boolean isSoftwareKeyboardEvent(KeyEvent event) {
+        return event.getDeviceId() == KeyCharacterMap.VIRTUAL_KEYBOARD
+                || (event.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0
+                || event.getDevice() == null;
+    }
+
     private byte getModifierState() {
         return (byte) modifierFlags;
     }
@@ -1369,6 +1385,37 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Pass through keyboard input if we're not grabbing
             if (!grabbedInput) {
                 return false;
+            }
+
+            // Disposition clavier de l'hôte : envoyer la position physique du
+            // caractère voulu sur le clavier du PC (Maj/AltGr si nécessaire).
+            // Seuls les claviers logiciels sont concernés ; les vrais claviers
+            // Bluetooth/USB gardent le comportement d'origine.
+            int hostLayout = prefConfig.hostKeyboardLayout;
+            if (HostKeyboardLayouts.needsMapping(hostLayout) && isSoftwareKeyboardEvent(event)
+                    && !event.isCtrlPressed() && !event.isAltPressed()
+                    && !event.isMetaPressed()) {
+                if (event.getKeyCode() == KeyEvent.KEYCODE_SHIFT_LEFT ||
+                        event.getKeyCode() == KeyEvent.KEYCODE_SHIFT_RIGHT) {
+                    // Shift est géré par la table : on ne l'envoie pas tel quel.
+                    return true;
+                }
+
+                int unicodeChar = event.getUnicodeChar();
+                if ((unicodeChar & KeyCharacterMap.COMBINING_ACCENT) == 0
+                        && (unicodeChar & KeyCharacterMap.COMBINING_ACCENT_MASK) != 0) {
+                    int mapped = HostKeyboardLayouts.map(hostLayout, unicodeChar);
+                    if (mapped != 0) {
+                        // Eat repeat down events; the host auto-repeats the key.
+                        if (event.getRepeatCount() > 0) {
+                            return true;
+                        }
+
+                        sendMappedKeyEvent(mapped, false);
+                        mappedKeys.put(event.getKeyCode(), mapped);
+                        return true;
+                    }
+                }
             }
 
             // We'll send it as a raw key event if we have a key mapping, otherwise we'll send it
@@ -1450,6 +1497,22 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
+            // Release the virtual key sent on key down for the selected host layout.
+            if (HostKeyboardLayouts.needsMapping(prefConfig.hostKeyboardLayout)) {
+                Integer pending = mappedKeys.get(event.getKeyCode());
+                if (pending != null) {
+                    mappedKeys.remove(event.getKeyCode());
+                    sendMappedKeyUp(pending);
+                    return true;
+                }
+                if (isSoftwareKeyboardEvent(event) &&
+                        (event.getKeyCode() == KeyEvent.KEYCODE_SHIFT_LEFT ||
+                        event.getKeyCode() == KeyEvent.KEYCODE_SHIFT_RIGHT) &&
+                        !event.isCtrlPressed() && !event.isAltPressed() && !event.isMetaPressed()) {
+                    return true;
+                }
+            }
+
             short translated = keyboardTranslator.translate(event.getKeyCode(), event.getDeviceId());
             if (translated == 0) {
                 // If we sent this event as UTF-8 on key down, also report that it was handled
@@ -1483,8 +1546,73 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             return false;
         }
 
-        conn.sendUtf8Text(event.getCharacters());
+        String characters = event.getCharacters();
+
+        // Disposition du clavier de l'hôte : taper chaque caractère via la
+        // touche correspondante du clavier du PC.
+        int hostLayout = prefConfig.hostKeyboardLayout;
+        if (HostKeyboardLayouts.needsMapping(hostLayout) && characters.length() > 0) {
+            boolean allMapped = true;
+            for (int i = 0; i < characters.length(); i++) {
+                if (HostKeyboardLayouts.map(hostLayout, characters.charAt(i)) == 0) {
+                    allMapped = false;
+                    break;
+                }
+            }
+            if (allMapped) {
+                for (int i = 0; i < characters.length(); i++) {
+                    sendMappedKeyEvent(HostKeyboardLayouts.map(hostLayout, characters.charAt(i)), true);
+                }
+                return true;
+            }
+        }
+
+        conn.sendUtf8Text(characters);
         return true;
+    }
+
+    /**
+     * Envoie un événement clavier à partir d'un caractère mappé
+     * ((code VK << 8) | modificateurs).
+     *
+     * @param pressAndRelease true pour envoyer appui + relâchement (texte tapé
+     *                        d'un coup), false pour n'envoyer que l'appui.
+     */
+    private void sendMappedKeyEvent(int mapped, boolean pressAndRelease) {
+        if (mapped == 0) {
+            return;
+        }
+
+        short keyCode = (short) ((mapped >> 8) & 0xFF);
+        byte modifiers = (byte) ((mapped & HostKeyboardLayouts.MOD_SHIFT) != 0
+                ? KeyboardPacket.MODIFIER_SHIFT : 0);
+        boolean altGr = (mapped & HostKeyboardLayouts.MOD_ALTGR) != 0;
+
+        if (altGr) {
+            conn.sendKeyboardInput(HostKeyboardLayouts.VK_RIGHT_ALT,
+                    KeyboardPacket.KEY_DOWN, (byte) 0, (byte) 0);
+        }
+        conn.sendKeyboardInput(keyCode, KeyboardPacket.KEY_DOWN, modifiers, (byte) 0);
+        if (pressAndRelease) {
+            conn.sendKeyboardInput(keyCode, KeyboardPacket.KEY_UP, modifiers, (byte) 0);
+        }
+        if (pressAndRelease && altGr) {
+            conn.sendKeyboardInput(HostKeyboardLayouts.VK_RIGHT_ALT,
+                    KeyboardPacket.KEY_UP, (byte) 0, (byte) 0);
+        }
+    }
+
+    private void sendMappedKeyUp(int mapped) {
+        short keyCode = (short) ((mapped >> 8) & 0xFF);
+        byte modifiers = (byte) ((mapped & HostKeyboardLayouts.MOD_SHIFT) != 0
+                ? KeyboardPacket.MODIFIER_SHIFT : 0);
+        boolean altGr = (mapped & HostKeyboardLayouts.MOD_ALTGR) != 0;
+
+        conn.sendKeyboardInput(keyCode, KeyboardPacket.KEY_UP, modifiers, (byte) 0);
+        if (altGr) {
+            conn.sendKeyboardInput(HostKeyboardLayouts.VK_RIGHT_ALT,
+                    KeyboardPacket.KEY_UP, (byte) 0, (byte) 0);
+        }
     }
 
     private TouchContext getTouchContext(int actionIndex)

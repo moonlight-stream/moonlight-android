@@ -137,4 +137,38 @@
         <item>right</item>
         <item>left</item>
     </string-array>
+
+    <!-- Host PC keyboard layouts; mapping sources are documented in HostKeyboardLayouts. -->
+    <string-array name="host_keyboard_layout_names">
+        <item>Automatic (based on phone language)</item>
+        <item>QWERTY (United States)</item>
+        <item>QWERTY (United Kingdom)</item>
+        <item>AZERTY (France)</item>
+        <item>AZERTY (France, Latin-9)</item>
+        <item>QWERTZ (Germany)</item>
+        <item>AZERTY (Belgium)</item>
+        <item>QWERTZ (Switzerland, French)</item>
+        <item>QWERTZ (Switzerland, German)</item>
+        <item>QWERTY (Spain)</item>
+        <item>QWERTY (Italy)</item>
+        <item>QWERTY (Portugal)</item>
+        <item>QWERTY (Netherlands)</item>
+        <item>Turkish Q (Türkiye)</item>
+    </string-array>
+    <string-array name="host_keyboard_layout_values" translatable="false">
+        <item>auto</item>
+        <item>us</item>
+        <item>gb</item>
+        <item>fr</item>
+        <item>fr_latin9</item>
+        <item>de</item>
+        <item>be</item>
+        <item>ch_fr</item>
+        <item>ch_de</item>
+        <item>es</item>
+        <item>it</item>
+        <item>pt</item>
+        <item>nl</item>
+        <item>tr</item>
+    </string-array>
 </resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="host_keyboard_layout_names">
+        <item>Otomatik (telefon diline göre)</item>
+        <item>QWERTY (ABD)</item>
+        <item>QWERTY (Birleşik Krallık)</item>
+        <item>AZERTY (Fransa)</item>
+        <item>AZERTY (Fransa, Latin-9)</item>
+        <item>QWERTZ (Almanya)</item>
+        <item>AZERTY (Belçika)</item>
+        <item>QWERTZ (İsviçre, Fransızca)</item>
+        <item>QWERTZ (İsviçre, Almanca)</item>
+        <item>QWERTY (İspanya)</item>
+        <item>QWERTY (İtalya)</item>
+        <item>QWERTY (Portekiz)</item>
+        <item>QWERTY (Hollanda)</item>
+        <item>Türkçe Q (Türkiye)</item>
+    </string-array>
+</resources>

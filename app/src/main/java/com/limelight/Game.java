@@ -116,7 +116,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private VirtualController virtualController;
 
     // Touches envoyées via la conversion de disposition, pour les relâcher au key up.
-    private final SparseArray<Short> mappedKeys = new SparseArray<>();
+    private final SparseArray<Integer> mappedKeys = new SparseArray<>();
 
     private PreferenceConfiguration prefConfig;
     private SharedPreferences tombstonePrefs;
@@ -491,6 +491,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 new ComputerDetails.AddressTuple(host, port),
                 httpsPort, uniqueId, config,
                 PlatformBinding.getCryptoProvider(this), serverCert);
+        streamView.setNvConnection(conn);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
@@ -1411,7 +1412,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                         }
 
                         sendMappedKeyEvent(mapped, false);
-                        mappedKeys.put(event.getKeyCode(), (short) ((mapped >> 8) & 0xFF));
+                        mappedKeys.put(event.getKeyCode(), mapped);
                         return true;
                     }
                 }
@@ -1496,12 +1497,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 return false;
             }
 
-            // Hôte AZERTY : relâcher le code VK qui a été envoyé au key down.
+            // Release the virtual key sent on key down for the selected host layout.
             if (HostKeyboardLayouts.needsMapping(prefConfig.hostKeyboardLayout)) {
-                Short pending = mappedKeys.get(event.getKeyCode());
+                Integer pending = mappedKeys.get(event.getKeyCode());
                 if (pending != null) {
                     mappedKeys.remove(event.getKeyCode());
-                    conn.sendKeyboardInput(pending, KeyboardPacket.KEY_UP, (byte) 0, (byte) 0);
+                    sendMappedKeyUp(pending);
                     return true;
                 }
                 if (isSoftwareKeyboardEvent(event) &&
@@ -1595,6 +1596,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (pressAndRelease) {
             conn.sendKeyboardInput(keyCode, KeyboardPacket.KEY_UP, modifiers, (byte) 0);
         }
+        if (pressAndRelease && altGr) {
+            conn.sendKeyboardInput(HostKeyboardLayouts.VK_RIGHT_ALT,
+                    KeyboardPacket.KEY_UP, (byte) 0, (byte) 0);
+        }
+    }
+
+    private void sendMappedKeyUp(int mapped) {
+        short keyCode = (short) ((mapped >> 8) & 0xFF);
+        byte modifiers = (byte) ((mapped & HostKeyboardLayouts.MOD_SHIFT) != 0
+                ? KeyboardPacket.MODIFIER_SHIFT : 0);
+        boolean altGr = (mapped & HostKeyboardLayouts.MOD_ALTGR) != 0;
+
+        conn.sendKeyboardInput(keyCode, KeyboardPacket.KEY_UP, modifiers, (byte) 0);
         if (altGr) {
             conn.sendKeyboardInput(HostKeyboardLayouts.VK_RIGHT_ALT,
                     KeyboardPacket.KEY_UP, (byte) 0, (byte) 0);

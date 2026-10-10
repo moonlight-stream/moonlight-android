@@ -6,9 +6,8 @@ package com.limelight.binding.input;
  * pour qu'un caractère tapé sur le clavier logiciel Android arrive correct,
  * il faut l'envoyer sur la touche où il se trouve dans la disposition du PC.
  *
- * Les tables sont générées depuis les données XKB de Linux (xkb-data), la
- * même source que la disposition réellement utilisée par le PC. Pour ajouter
- * une disposition, il suffit de régénérer ce fichier.
+ * Les dispositions existantes sont générées depuis les données XKB de Linux.
+ * Turkish Q est dérivée de KBDTUQ.DLL avec VkKeyScanExW.
  *
  * Chaque caractère est encodé : (code VK &lt;&lt; 8) | modificateurs (Maj / AltGr).
  */
@@ -25,6 +24,7 @@ public final class HostKeyboardLayouts {
     public static final int LAYOUT_IT        = 9;
     public static final int LAYOUT_PT        = 10;
     public static final int LAYOUT_NL        = 11;
+    public static final int LAYOUT_TR        = 12;
 
     /** La touche nécessite Maj sur l'hôte. */
     public static final int MOD_SHIFT = 1;
@@ -62,6 +62,7 @@ public final class HostKeyboardLayouts {
             case "it":        return LAYOUT_IT;
             case "pt":        return LAYOUT_PT;
             case "nl":        return LAYOUT_NL;
+            case "tr":        return LAYOUT_TR;
             default:          return LAYOUT_US;
         }
     }
@@ -75,6 +76,7 @@ public final class HostKeyboardLayouts {
             case "fr": return LAYOUT_FR_LATIN9;
             case "de": return LAYOUT_DE;
             case "nl": return LAYOUT_NL;
+            case "tr": return LAYOUT_TR;
             case "be": return LAYOUT_BE;
             case "es": return LAYOUT_ES;
             case "it": return LAYOUT_IT;
@@ -104,6 +106,7 @@ public final class HostKeyboardLayouts {
             case LAYOUT_IT:        return mapIt(unicodeChar);
             case LAYOUT_PT:        return mapPt(unicodeChar);
             case LAYOUT_NL:        return mapNl(unicodeChar);
+            case LAYOUT_TR:        return mapTr(unicodeChar);
             default:               return 0;
         }
     }
@@ -1551,6 +1554,125 @@ public final class HostKeyboardLayouts {
                 return 0;
         }
     }
+    /**
+     * Windows Turkish Q (KBDTUQ.DLL), mapped with VkKeyScanExW.
+     */
+    private static int mapTr(int unicodeChar) {
+        switch (unicodeChar) {
+            case ' ': return pack(0x20, 0);
+            case '!': return pack(0x31, 1);
+            case '"': return pack(0xC0, 0);
+            case '#': return pack(0x33, 2);
+            case '$': return pack(0x34, 2);
+            case '%': return pack(0x35, 1);
+            case '&': return pack(0x36, 1);
+            case '\'': return pack(0x32, 1);
+            case '(': return pack(0x38, 1);
+            case ')': return pack(0x39, 1);
+            case '*': return pack(0xDF, 0);
+            case '+': return pack(0x34, 1);
+            case ',': return pack(0xBC, 0);
+            case '-': return pack(0xBD, 0);
+            case '.': return pack(0xBE, 0);
+            case '/': return pack(0x37, 1);
+            case '0': return pack(0x30, 0);
+            case '1': return pack(0x31, 0);
+            case '2': return pack(0x32, 0);
+            case '3': return pack(0x33, 0);
+            case '4': return pack(0x34, 0);
+            case '5': return pack(0x35, 0);
+            case '6': return pack(0x36, 0);
+            case '7': return pack(0x37, 0);
+            case '8': return pack(0x38, 0);
+            case '9': return pack(0x39, 0);
+            case ':': return pack(0xBE, 1);
+            case ';': return pack(0xBC, 1);
+            case '<': return pack(0xC0, 2);
+            case '=': return pack(0x30, 1);
+            case '>': return pack(0x31, 2);
+            case '?': return pack(0xDF, 1);
+            case '@': return pack(0x51, 2);
+            case 'A': return pack(0x41, 1);
+            case 'B': return pack(0x42, 1);
+            case 'C': return pack(0x43, 1);
+            case 'D': return pack(0x44, 1);
+            case 'E': return pack(0x45, 1);
+            case 'F': return pack(0x46, 1);
+            case 'G': return pack(0x47, 1);
+            case 'H': return pack(0x48, 1);
+            case 'I': return pack(0x49, 1);
+            case 'J': return pack(0x4A, 1);
+            case 'K': return pack(0x4B, 1);
+            case 'L': return pack(0x4C, 1);
+            case 'M': return pack(0x4D, 1);
+            case 'N': return pack(0x4E, 1);
+            case 'O': return pack(0x4F, 1);
+            case 'P': return pack(0x50, 1);
+            case 'Q': return pack(0x51, 1);
+            case 'R': return pack(0x52, 1);
+            case 'S': return pack(0x53, 1);
+            case 'T': return pack(0x54, 1);
+            case 'U': return pack(0x55, 1);
+            case 'V': return pack(0x56, 1);
+            case 'W': return pack(0x57, 1);
+            case 'X': return pack(0x58, 1);
+            case 'Y': return pack(0x59, 1);
+            case 'Z': return pack(0x5A, 1);
+            case '[': return pack(0x38, 2);
+            case '\\': return pack(0xDF, 2);
+            case ']': return pack(0x39, 2);
+            case '^': return pack(0x33, 1);
+            case '_': return pack(0xBD, 1);
+            case '`': return pack(0xBC, 2);
+            case 'a': return pack(0x41, 0);
+            case 'b': return pack(0x42, 0);
+            case 'c': return pack(0x43, 0);
+            case 'd': return pack(0x44, 0);
+            case 'e': return pack(0x45, 0);
+            case 'f': return pack(0x46, 0);
+            case 'g': return pack(0x47, 0);
+            case 'h': return pack(0x48, 0);
+            case 'i': return pack(0x49, 2);
+            case 'j': return pack(0x4A, 0);
+            case 'k': return pack(0x4B, 0);
+            case 'l': return pack(0x4C, 0);
+            case 'm': return pack(0x4D, 0);
+            case 'n': return pack(0x4E, 0);
+            case 'o': return pack(0x4F, 0);
+            case 'p': return pack(0x50, 0);
+            case 'q': return pack(0x51, 0);
+            case 'r': return pack(0x52, 0);
+            case 's': return pack(0x53, 0);
+            case 't': return pack(0x54, 0);
+            case 'u': return pack(0x55, 0);
+            case 'v': return pack(0x56, 0);
+            case 'w': return pack(0x57, 0);
+            case 'x': return pack(0x58, 0);
+            case 'y': return pack(0x59, 0);
+            case 'z': return pack(0x5A, 0);
+            case '{': return pack(0x37, 2);
+            case '|': return pack(0xE2, 2);
+            case '}': return pack(0x30, 2);
+            case '~': return pack(0xDD, 2);
+            case '\u00E7': return pack(0xDC, 0);
+            case '\u00C7': return pack(0xDC, 1);
+            case '\u015F': return pack(0xBA, 0);
+            case '\u015E': return pack(0xBA, 1);
+            case '\u011F': return pack(0xDB, 0);
+            case '\u011E': return pack(0xDB, 1);
+            case '\u00F6': return pack(0xBF, 0);
+            case '\u00D6': return pack(0xBF, 1);
+            case '\u00FC': return pack(0xDD, 0);
+            case '\u00DC': return pack(0xDD, 1);
+            case '\u0131': return pack(0x49, 0);
+            case '\u0130': return pack(0x49, 3);
+            case '\u20BA': return pack(0x54, 2);
+            case '\u20AC': return pack(0x45, 2);
+            default:
+                return 0;
+        }
+    }
+
     private static int mapNl(int unicodeChar) {
         switch (unicodeChar) {
             case '!': return pack(0x31, 1);

@@ -285,4 +285,7 @@
     <string name="title_seekbar_vibrate_fallback_strength">Ajustar la intensidad del ruido emulado</string>
     <string name="summary_seekbar_vibrate_fallback_strength">Amplifica o reduce la intensidad de la vibración de tu dispositivo</string>
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_show_guide_button">Mostrar botón Guía</string>
+    <string name="summary_show_guide_button">Muestra el botón Guía en la pantalla</string>
+    <string name="local_network_rationale">Moonlight requiere permisos de red local para comunicarse con los equipos cercanos</string>
 </resources>

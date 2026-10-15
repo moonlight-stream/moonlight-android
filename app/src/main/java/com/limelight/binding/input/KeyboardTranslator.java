@@ -23,16 +23,11 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
     private static final short KEY_PREFIX = (short) 0x80;
     
     public static final int VK_0 = 48;
-    public static final int VK_9 = 57;
     public static final int VK_A = 65;
-    public static final int VK_Z = 90;
     public static final int VK_NUMPAD0 = 96;
-    public static final int VK_BACK_SLASH = 92;
     public static final int VK_CAPS_LOCK = 20;
     public static final int VK_CLEAR = 12;
-    public static final int VK_COMMA = 44;
     public static final int VK_BACK_SPACE = 8;
-    public static final int VK_EQUALS = 61;
     public static final int VK_ESCAPE = 27;
     public static final int VK_F1 = 112;
     public static final int VK_F13 = 0x7C;
@@ -41,20 +36,15 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
     public static final int VK_NUM_LOCK = 144;
     public static final int VK_PAGE_UP = 33;
     public static final int VK_PAGE_DOWN = 34;
-    public static final int VK_PLUS = 521;
-    public static final int VK_CLOSE_BRACKET = 93;
     public static final int VK_SCROLL_LOCK = 145;
-    public static final int VK_SEMICOLON = 59;
-    public static final int VK_SLASH = 47;
     public static final int VK_SPACE = 32;
-    public static final int VK_PRINTSCREEN = 154;
+    public static final int VK_SNAPSHOT = 0x2C;
     public static final int VK_TAB = 9;
     public static final int VK_LEFT = 37;
     public static final int VK_RIGHT = 39;
     public static final int VK_UP = 38;
     public static final int VK_DOWN = 40;
     public static final int VK_BACK_QUOTE = 192;
-    public static final int VK_QUOTE = 222;
     public static final int VK_PAUSE = 19;
 
     private static class KeyboardMapping {
@@ -300,8 +290,9 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
                 break;
                 
             case KeyEvent.KEYCODE_SYSRQ:
-                // Android defines this as SysRq/PrntScrn
-                translated = VK_PRINTSCREEN;
+            case KeyEvent.KEYCODE_SCREENSHOT:
+                // Android defines SYSRQ as SysRq/PrntScrn
+                translated = VK_SNAPSHOT;
                 break;
                 
             case KeyEvent.KEYCODE_TAB:
@@ -358,10 +349,6 @@ public class KeyboardTranslator implements InputManager.InputDeviceListener {
 
             case KeyEvent.KEYCODE_PRINT:
                 translated = 0x2A;
-                break;
-
-            case KeyEvent.KEYCODE_SCREENSHOT:
-                translated = 0x2C;
                 break;
 
             default:

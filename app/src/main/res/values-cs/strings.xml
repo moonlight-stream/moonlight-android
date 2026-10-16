@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="conn_establishing_title">Připojování</string>
+    <string name="conn_establishing_title">Vytvoření spojení</string>
     <string name="conn_metered">Varování: Vaše aktivní připojení je měřené!</string>
     <string name="conn_error_msg">Spouštění se nezdařilo</string>
     <string name="conn_client_latency_hw">zpoždění hardwarového dekodéru:</string>
     <string name="conn_terminated_title">Spojení ukončeno</string>
     <string name="resolution_prefix_native_fullscreen">Nativní celá obrazovka</string>
     <string name="summary_checkbox_enable_audiofx">Umožňuje fungování zvukových efektů během streamování, ale může zvýšit zpoždění zvuku</string>
-    <string name="early_termination_error">Na hostitelském PC se něco pokazilo při spouštění streamu.
-\n
-\nUjistěte se, že na hostitelském počítači neběží žádný obsah chráněný DRM. Můžete také zkusit restartovat hostitelský PC.
-\n
-\nPokud problém přetrvává, zkuste přeinstalovat ovladače GPU a GeForce Experience.</string>
+    <string name="early_termination_error">Při spuštění streamu došlo k chybě na vašem hostitelském počítači.\n\nUjistěte se, že na hostitelském počítači nemáte otevřený žádný obsah chráněný technologií DRM. Můžete také zkusit restartovat hostitelský počítač.</string>
     <string name="wol_waking_pc">Probouzení PC…</string>
     <string name="nettest_text_success">Vypadá to, že vaše síť Moonlight neblokuje. Pokud máte i tak potíže s připojením, zkontrolujte nastavení firewallu vašeho PC.
 \n
 \nPokud se pokoušíte streamovat po internetu, nainstalujte si na svůj počítač Moonlight Internet Hosting Tool a spusťte přiložený program Internet Streaming Tester pro kontrolu vašeho připojení k Internetu.</string>
     <string name="error_unknown_host">Nezdařilo se zjistit hostitele</string>
-    <string name="nettest_text_waiting">Moonlight testuje vaše síťové připojení, aby zjistil, jestli je NVIDIA GameStream zablokován.
-\n
-\nTo může chvilku zabrat…</string>
+    <string name="nettest_text_waiting">Moonlight právě testuje vaše síťové připojení, aby zjistil, zda nejsou blokovány nějaké potřebné porty.\n\nTo může trvat několik sekund…</string>
     <string name="nettest_title_waiting">Testování připojení k síti</string>
     <string name="pairing">Párování…</string>
     <string name="pair_pc_offline">Počítač je offline</string>
@@ -32,7 +26,7 @@
     <string name="error_404">GFE vrátilo HTTP chybu 404. Ujistěte se, že vaše PC má podporované GPU. Tato chyba může být způsobena i použitím softwaru pro vzdálenou plochu. Zkuste restartovat počítač, nebo přeinstalujte GFE.</string>
     <string name="title_decoding_error">Dekodér videa spadnul</string>
     <string name="error_usb_prohibited">Správce zařízení neumožňuje přístup k USB. Zkontrolujte nastavení Knoxu nebo MDM.</string>
-    <string name="message_decoding_error">Moonlight spadnul kvůli nekompatibilnímu video dekodéru na tomto zařízení. Ujistěte se, že je GeForce Experience na vašem PC aktualizováno na nejnovější verzi. Zkuste upravit nastavení streamování, pokud aplikace padá opakovaně.</string>
+    <string name="message_decoding_error">Moonlight se zhroutil kvůli nekompatibilitě s videodekodérem tohoto zařízení. Pokud se aplikace bude i nadále zhroutit, zkuste upravit nastavení streamování.</string>
     <string name="message_decoding_reset">Video dekodér vašeho zařízení při současných nastaveních streamování padá. Vaše nastavení streamování byla resetována na výchozí.</string>
     <string name="video_decoder_init_failed">Nezdařilo se spustit video dekodér. Vaše zařízení nemusí podporovat zvolené rozlišení nebo snímkovou frekvenci.</string>
     <string name="no_video_received_error">Od hostitele nebylo přijato žádné video.</string>
@@ -59,8 +53,8 @@
     <string name="title_checkbox_vibrate_fallback">Emulovat podporu vibrací</string>
     <string name="title_seekbar_deadzone">Upravit deadzone analogových páček</string>
     <string name="check_ports_msg">Zkontrolujte svůj firewall a pravidla přesměrování pro tyto porty:</string>
-    <string name="conn_terminated_msg">Spojení bylo ukončeno</string>
-    <string name="ip_hint">IP adresa GeForce PC</string>
+    <string name="conn_terminated_msg">Spojení bylo přerušeno.</string>
+    <string name="ip_hint">IP adresa hostitelského počítače</string>
     <string name="conn_hardware_latency">Průměrné zpoždění hardwarového dekodéru:</string>
     <string name="conn_client_latency">Průměrné zpoždění při dekódování snímků:</string>
     <string name="perf_overlay_netlatency">Průměrné zpoždění sítě: %1$d ms (odchylka: %2$d ms)</string>
@@ -140,10 +134,10 @@
     <string name="pair_fail">Párování selhalo</string>
     <string name="pair_already_in_progress">Párování již probíhá</string>
     <string name="wol_pc_online">Počítač je online</string>
-    <string name="wol_no_mac">Nezdařilo se probudit PC, protože GFE nezaslalo MAC adresu</string>
+    <string name="wol_no_mac">Nelze probudit počítač, protože není uložena žádná MAC adresa</string>
     <string name="title_decoding_reset">Reset nastavení videa</string>
     <string name="unable_to_pin_shortcut">Váš současný launcher neumožňuje vytváření zástupců.</string>
-    <string name="conn_establishing_msg">Připojování</string>
+    <string name="conn_establishing_msg">Navazuji spojení</string>
     <string name="conn_starting">Spouštění</string>
     <string name="conn_error_title">Chyba připojení</string>
     <string name="frame_conversion_error">Hostitelský počítač hlásí fatální chybu enkódování videa.
@@ -239,12 +233,41 @@
     <string name="category_host_settings">Nastavení hostitele</string>
     <string name="title_checkbox_enable_sops">Optimalizovat herní nastavení</string>
     <string name="summary_disable_frame_drop">Může na některých zařízeních snížit mikrozádrhy, ale může zvýšit zpoždění</string>
-    <string name="title_video_format">Změnit nastavení HEVC</string>
-    <string name="summary_video_format">HEVC sníží datový přenos, ale vyžaduje novější zařízení</string>
+    <string name="title_video_format">Změnit nastavení kodeků</string>
+    <string name="summary_video_format">Novější kodeky mohou snížit požadavky na šířku pásma pro video, pokud je vaše zařízení podporuje. Výběr kodeků může být ignorován, pokud je hostitelský software nebo grafický procesor nepodporuje.</string>
     <string name="title_enable_hdr">Povolit HDR (experimentální)</string>
-    <string name="summary_enable_hdr">Streamovat v HDR, pokud jej hra a GPU počítače podporují. HDR vyžaduje GPU GTX 1000 nebo novější.</string>
-    <string name="videoformat_hevcalways">Vždy použít HEVC (může padat)</string>
+    <string name="summary_enable_hdr">Streamujte v HDR, pokud to hra a grafická karta počítače podporují. Pro HDR je nutná grafická karta s podporou kódování HEVC Main 10.</string>
+    <string name="videoformat_hevcalways">Upřednostnit HEVC</string>
     <string name="title_frame_pacing">Frame pacing videa</string>
     <string name="summary_frame_pacing">Zvolte, jak vyvážit zpoždění videa a jeho plynulost</string>
     <string name="pacing_latency">Preferovat nejnižší zpoždění</string>
+    <string name="pcview_menu_eol">Ukončení služby NVIDIA GameStream</string>
+    <string name="pair_pairing_help">Pokud na vašem hostitelském počítači běží Sunshine, přejděte do webového uživatelského rozhraní Sunshine a zadejte PIN.</string>
+    <string name="error_code_prefix">Chybový kód:</string>
+    <string name="perf_overlay_hostprocessinglatency">Latence zpracování hostitele – min./max./průměr: %1$.1f/%2$.1f/%3$.1f ms</string>
+    <string name="fps_suffix_fps">FPS</string>
+    <string name="title_native_fps_dialog">Upozornění na nativní FPS</string>
+    <string name="category_gamepad_settings">Nastavení gamepadu</string>
+    <string name="title_seekbar_vibrate_fallback_strength">Nastavení intenzity emulovaných vibrací</string>
+    <string name="summary_seekbar_vibrate_fallback_strength">Zvyšte nebo snižte intenzitu vibrací na svém zařízení</string>
+    <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
+    <string name="title_checkbox_gamepad_touchpad_as_mouse">Vždy ovládat myš pomocí touchpadu</string>
+    <string name="summary_checkbox_gamepad_touchpad_as_mouse">Vynutí ovládání hostitelské myši pomocí touchpadu gamepadu, a to i v případě, že je gamepad emulován pomocí touchpadu.</string>
+    <string name="title_checkbox_gamepad_motion_sensors">Povolit použití pohybových senzorů gamepadu</string>
+    <string name="summary_checkbox_gamepad_motion_sensors">Umožňuje podporovaným hostitelům vyžádat si data z pohybových senzorů při emulaci gamepadu s pohybovými senzory. Vypnutí této funkce může mírně snížit spotřebu energie a zatížení sítě, pokud se pohybové senzory ve hře nepoužívají.</string>
+    <string name="title_checkbox_gamepad_motion_fallback">Emulovat podporu pohybového senzoru gamepadu</string>
+    <string name="summary_checkbox_gamepad_motion_fallback">Pokud připojený gamepad nebo vaše verze systému Android nepodporují senzory gamepadu, využijí se vestavěné snímače pohybu vašeho zařízení.\nPoznámka: Zapnutí této možnosti může způsobit, že se váš gamepad na hostitelském zařízení zobrazí jako ovladač PlayStation.</string>
+    <string name="title_show_guide_button">Zobrazit tlačítko „Průvodce“</string>
+    <string name="summary_show_guide_button">Zobrazit tlačítko průvodce na obrazovce</string>
+    <string name="title_full_range">Vynutit video v plném rozsahu (experimentální)</string>
+    <string name="summary_full_range">Pokud vaše zařízení nedokáže správně zobrazit videoobsah s plným dynamickým rozsahem, dojde tím ke ztrátě detailů ve světlých i tmavých oblastech.</string>
+    <string name="toast_controller_type_changed">Typ gamepadu se může změnit v důsledku emulace pohybového senzoru</string>
+    <string name="local_network_rationale">Moonlight potřebuje oprávnění k přístupu k místní síti, aby mohl komunikovat s okolními hostiteli</string>
+    <string name="videoformat_av1always">Upřednostnit AV1 (experimentální)</string>
+    <string name="videoformat_h264always">Upřednostnit H.264</string>
+    <string name="title_analog_scrolling">K posouvání použít analogovou páčku</string>
+    <string name="summary_analog_scrolling">Vybrat analogovou páčku pro posouvání v režimu emulace myši</string>
+    <string name="analogscroll_none">Žádné (myš se ovládá oběma joysticky)</string>
+    <string name="analogscroll_right">Pravá analogová páčka</string>
+    <string name="analogscroll_left">Levá analogová páčka</string>
 </resources>

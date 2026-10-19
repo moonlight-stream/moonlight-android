@@ -194,6 +194,9 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             else if (Xbox360WirelessDongle.canClaimDevice(device)) {
                 controller = new Xbox360WirelessDongle(device, connection, nextDeviceId++, this);
             }
+            else if (SteamTritonController.canClaimDevice(device)) {
+                controller = new SteamTritonController(device, connection, nextDeviceId++, this);
+            }
             else {
                 // Unreachable
                 return;
@@ -222,6 +225,27 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             if (inputDev.getVendorId() == device.getVendorId() &&
                     inputDev.getProductId() == device.getProductId()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isRecognizedGamepadDevice(UsbDevice device) {
+        // Like isRecognizedInputDevice(), but only matches input devices that actually act as
+        // a gamepad. Some controllers (like the Steam Controller) also enumerate as a keyboard
+        // and mouse with the same VID and PID, which must not stop us from claiming them.
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice inputDev = InputDevice.getDevice(id);
+            if (inputDev == null) {
+                // Device was removed while looping
+                continue;
+            }
+
+            if (inputDev.getVendorId() == device.getVendorId() &&
+                    inputDev.getProductId() == device.getProductId() &&
+                    (inputDev.getSources() & (InputDevice.SOURCE_GAMEPAD | InputDevice.SOURCE_JOYSTICK)) != 0) {
                 return true;
             }
         }
@@ -278,7 +302,10 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         return ((!kernelSupportsXboxOne() || !isRecognizedInputDevice(device) || claimAllAvailable) && XboxOneController.canClaimDevice(device)) ||
                 ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device)) ||
                 // We must not call isRecognizedInputDevice() because wireless controllers don't share the same product ID as the dongle
-                ((!kernelSupportsXbox360W() || claimAllAvailable) && Xbox360WirelessDongle.canClaimDevice(device));
+                ((!kernelSupportsXbox360W() || claimAllAvailable) && Xbox360WirelessDongle.canClaimDevice(device)) ||
+                // The 2026 Steam Controller starts out as a keyboard and mouse, so we only defer
+                // to the system if it has already been exposed as a real gamepad.
+                ((!isRecognizedGamepadDevice(device) || claimAllAvailable) && SteamTritonController.canClaimDevice(device));
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")

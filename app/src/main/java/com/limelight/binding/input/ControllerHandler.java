@@ -37,6 +37,7 @@ import android.widget.Toast;
 import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.input.driver.AbstractController;
+import com.limelight.binding.input.driver.SteamTritonController;
 import com.limelight.binding.input.driver.UsbDriverListener;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.nvstream.NvConnection;
@@ -390,8 +391,12 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                 for (UsbDevice dev : usbManager.getDeviceList().values()) {
                     // We explicitly check not to claim devices that appear as InputDevices
                     // otherwise we will double count them.
+                    // The Steam Controller enumerates as a keyboard and mouse before our driver
+                    // takes it out of lizard mode, so isRecognizedInputDevice() can't be used for it.
+                    // shouldClaimDevice() already checks for a real gamepad InputDevice there.
                     if (UsbDriverService.shouldClaimDevice(dev, false) &&
-                            !UsbDriverService.isRecognizedInputDevice(dev)) {
+                            (SteamTritonController.canClaimDevice(dev) ||
+                                    !UsbDriverService.isRecognizedInputDevice(dev))) {
                         LimeLog.info("Counting UsbDevice: "+dev.getDeviceName());
                         mask |= 1 << count++;
                     }

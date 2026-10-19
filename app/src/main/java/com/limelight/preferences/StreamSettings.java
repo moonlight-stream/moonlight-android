@@ -1,5 +1,6 @@
 package com.limelight.preferences;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -26,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
+import android.widget.Toast;
 
 import com.limelight.LimeLog;
 import com.limelight.PcView;
@@ -122,6 +124,8 @@ public class StreamSettings extends Activity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
+        private static final int REQUEST_BLUETOOTH_CONNECT = 1;
+
         private int nativeResolutionStartIndex = Integer.MAX_VALUE;
         private boolean nativeFramerateShown = false;
 
@@ -271,6 +275,19 @@ public class StreamSettings extends Activity {
         }
 
         @Override
+        public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+            if (requestCode == REQUEST_BLUETOOTH_CONNECT &&
+                    (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED)) {
+                // Without permission the option can't work, so turn it back off
+                Preference pref = findPreference("checkbox_steam_ble_controller");
+                if (pref instanceof CheckBoxPreference) {
+                    ((CheckBoxPreference) pref).setChecked(false);
+                }
+                Toast.makeText(getActivity(), R.string.toast_bluetooth_permission_denied, Toast.LENGTH_LONG).show();
+            }
+        }
+
+        @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
@@ -315,6 +332,28 @@ public class StreamSettings extends Activity {
                         (PreferenceCategory) findPreference("category_gamepad_settings");
                 category.removePreference(findPreference("checkbox_usb_bind_all"));
                 category.removePreference(findPreference("checkbox_usb_driver"));
+            }
+
+            // Hide the Steam Controller Bluetooth option on devices without Bluetooth LE. Otherwise,
+            // ask for permission to connect to Bluetooth devices when it's turned on.
+            Preference steamBlePref = findPreference("checkbox_steam_ble_controller");
+            if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                PreferenceCategory category =
+                        (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(steamBlePref);
+            }
+            else {
+                steamBlePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        if ((Boolean) newValue && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                                getActivity().checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(new String[] {Manifest.permission.BLUETOOTH_CONNECT},
+                                    REQUEST_BLUETOOTH_CONNECT);
+                        }
+                        return true;
+                    }
+                });
             }
 
             // Remove PiP mode on devices pre-Oreo, where the feature is not available (some low RAM devices),

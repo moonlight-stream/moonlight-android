@@ -3,6 +3,7 @@ package com.limelight.binding.input.driver;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -37,6 +38,11 @@ public class UsbDriverService extends Service implements UsbDriverListener {
     private final UsbDriverBinder binder = new UsbDriverBinder();
 
     private final ArrayList<AbstractController> controllers = new ArrayList<>();
+
+    // Bluetooth controllers can come and go while staying registered here, so they are kept
+    // apart from the USB controllers, which are dropped from the list when removed.
+    private final ArrayList<SteamTritonBleController> bleControllers = new ArrayList<>();
+    private boolean receiverRegistered;
 
     private UsbDriverListener listener;
     private UsbDriverStateListener stateListener;
@@ -316,22 +322,41 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
         started = true;
 
-        // Register for USB attach broadcasts and permission completions
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(ACTION_USB_PERMISSION);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED);
-        }
-        else {
-            registerReceiver(receiver, filter);
+        if (prefConfig.usbDriver) {
+            // Register for USB attach broadcasts and permission completions
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+            filter.addAction(ACTION_USB_PERMISSION);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED);
+            }
+            else {
+                registerReceiver(receiver, filter);
+            }
+            receiverRegistered = true;
+
+            // Enumerate existing devices
+            for (UsbDevice dev : usbManager.getDeviceList().values()) {
+                if (shouldClaimDevice(dev, prefConfig.bindAllUsb)) {
+                    // Start the process of claiming this device
+                    handleUsbDeviceState(dev);
+                }
+            }
         }
 
-        // Enumerate existing devices
-        for (UsbDevice dev : usbManager.getDeviceList().values()) {
-            if (shouldClaimDevice(dev, prefConfig.bindAllUsb)) {
-                // Start the process of claiming this device
-                handleUsbDeviceState(dev);
+        if (prefConfig.steamBleController) {
+            startSteamBleControllers();
+        }
+    }
+
+    private void startSteamBleControllers() {
+        // Controllers have to be paired in the system settings first. This also checks for
+        // Bluetooth LE support, that Bluetooth is on, and that we have permission to use it.
+        for (BluetoothDevice dev : SteamTritonBleController.getBondedControllers(this)) {
+            SteamTritonBleController controller =
+                    new SteamTritonBleController(this, dev, nextDeviceId++, this);
+            if (controller.start()) {
+                bleControllers.add(controller);
             }
         }
     }
@@ -344,12 +369,19 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         started = false;
 
         // Stop the attachment receiver
-        unregisterReceiver(receiver);
+        if (receiverRegistered) {
+            receiverRegistered = false;
+            unregisterReceiver(receiver);
+        }
 
         // Stop all controllers
         while (controllers.size() > 0) {
             // Stop and remove the controller
             controllers.remove(0).stop();
+        }
+
+        while (bleControllers.size() > 0) {
+            bleControllers.remove(0).stop();
         }
     }
 

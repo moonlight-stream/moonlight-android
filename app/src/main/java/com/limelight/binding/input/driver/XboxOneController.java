@@ -3,6 +3,7 @@ package com.limelight.binding.input.driver;
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbInterface;
 
 import com.limelight.LimeLog;
 import com.limelight.nvstream.input.ControllerPacket;
@@ -162,6 +163,19 @@ public class XboxOneController extends AbstractXboxController {
 
     @Override
     protected boolean doInit() {
+        // Select alt setting 0 on the audio interface, as the Linux xpad driver does
+        // (https://github.com/torvalds/linux/commit/cf5950187319). Without this, some
+        // PowerA Xbox Series X|S wired controllers report the Guide button as stuck down.
+        for (int i = 0; i < device.getInterfaceCount(); i++) {
+            UsbInterface iface = device.getInterface(i);
+            if (iface.getId() == 1 && iface.getAlternateSetting() == 0) {
+                if (!connection.setInterface(iface)) {
+                    LimeLog.warning("Unable to disable audio interface");
+                }
+                break;
+            }
+        }
+
         // Send all applicable init packets
         for (InitPacket pkt : INIT_PKTS) {
             if (pkt.vendorId != 0 && device.getVendorId() != pkt.vendorId) {

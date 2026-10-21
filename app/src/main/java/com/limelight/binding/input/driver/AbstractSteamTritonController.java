@@ -4,6 +4,11 @@ import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Shared protocol handling for the 2026 Steam Controller (Valve codename "Triton"), regardless of
  * whether it is connected over USB or Bluetooth LE.
@@ -84,6 +89,17 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         }
     }
 
+    // The "..." button is sent as a Guide + A chord, played out like a person pressing it by hand:
+    // Guide goes down first, A is tapped once Guide has been seen, and they are released in
+    // reverse. Sending both at the same instant makes Steam treat the A as a plain "select".
+    private static final long CHORD_GUIDE_LEAD_MS = 200;
+    private static final long CHORD_A_HOLD_MS = 120;
+    private static final long CHORD_GUIDE_TAIL_MS = 60;
+
+    private ScheduledExecutorService chordExecutor; // Guarded by stateLock
+    private boolean chordRunning, chordGuide, chordA, qamWasDown;
+    private int lastButtons;
+
     // The right pad is the primary mouse, so its click is a left click
     private final Pad rightPad = new Pad(MouseButtonPacket.BUTTON_LEFT);
     private final Pad leftPad = new Pad(MouseButtonPacket.BUTTON_RIGHT);
@@ -148,7 +164,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         // Layout: ID, sequence number, 32-bit buttons, then 16-bit little endian axes
         int buttons = unsignShort(data, 2) | (unsignShort(data, 4) << 16);
 
-        setButtonFlag(ControllerPacket.A_FLAG, buttons & (BTN_A | BTN_QAM));
+        setButtonFlag(ControllerPacket.A_FLAG, buttons & BTN_A);
         setButtonFlag(ControllerPacket.B_FLAG, buttons & BTN_B);
         setButtonFlag(ControllerPacket.X_FLAG, buttons & BTN_X);
         setButtonFlag(ControllerPacket.Y_FLAG, buttons & BTN_Y);
@@ -165,9 +181,17 @@ public abstract class AbstractSteamTritonController extends AbstractController {
 
         // Hosts treat the "misc" button as the Guide button on Xbox-style controllers, so the
         // "..." (quick access) button can't be sent as misc without also opening the Steam menu.
-        // Steam opens its quick access menu with Guide + A on standard gamepads, so send that
+        // Steam opens its quick access menu with Guide + A on standard gamepads, so play that
         // chord for it instead.
-        setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, buttons & (BTN_STEAM | BTN_QAM));
+        setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, buttons & BTN_STEAM);
+
+        lastButtons = buttons;
+        boolean qamDown = (buttons & BTN_QAM) != 0;
+        if (qamDown && !qamWasDown && !chordRunning && added && !stopped) {
+            startQamChord();
+        }
+        qamWasDown = qamDown;
+        applyChordFlags();
 
         setButtonFlag(ControllerPacket.UP_FLAG, buttons & BTN_DPAD_UP);
         setButtonFlag(ControllerPacket.DOWN_FLAG, buttons & BTN_DPAD_DOWN);
@@ -238,11 +262,97 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         }
     }
 
-    /**
-     * Lets go of any mouse button held by a trackpad click. Call this when the controller goes away.
-     */
-    protected void releaseMouseButtons() {
+    // Overlays the "..." chord on top of whatever the real Guide and A buttons are doing
+    private void applyChordFlags() {
+        if (chordGuide) {
+            buttonFlags |= ControllerPacket.SPECIAL_BUTTON_FLAG;
+        }
+        else {
+            setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, lastButtons & BTN_STEAM);
+        }
+
+        if (chordA) {
+            buttonFlags |= ControllerPacket.A_FLAG;
+        }
+        else {
+            setButtonFlag(ControllerPacket.A_FLAG, lastButtons & BTN_A);
+        }
+    }
+
+    // Must be called with stateLock held
+    private void startQamChord() {
+        chordRunning = true;
+        chordGuide = true;
+        scheduleChordStep(1, CHORD_GUIDE_LEAD_MS);
+    }
+
+    // Must be called with stateLock held
+    private void scheduleChordStep(final int step, long delayMs) {
+        if (chordExecutor == null) {
+            chordExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+                @Override
+                public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r, "SteamTritonChord");
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
+        }
+
+        chordExecutor.schedule(new Runnable() {
+            @Override
+            public void run() {
+                runChordStep(step);
+            }
+        }, delayMs, TimeUnit.MILLISECONDS);
+    }
+
+    private void runChordStep(int step) {
         synchronized (stateLock) {
+            if (!chordRunning || stopped) {
+                return;
+            }
+
+            long nextDelayMs = -1;
+            if (step == 1) {
+                chordA = true; // Guide has been down for a while, now tap A
+                nextDelayMs = CHORD_A_HOLD_MS;
+            }
+            else if (step == 2) {
+                chordA = false; // Release A first
+                nextDelayMs = CHORD_GUIDE_TAIL_MS;
+            }
+            else {
+                chordGuide = false; // Then Guide
+                chordRunning = false;
+            }
+
+            applyChordFlags();
+            if (added) {
+                reportInput();
+            }
+
+            if (nextDelayMs >= 0) {
+                scheduleChordStep(step + 1, nextDelayMs);
+            }
+        }
+    }
+
+    /**
+     * Lets go of any mouse button held by a trackpad click and cancels a "..." chord in progress.
+     * Call this when the controller goes away.
+     */
+    protected void releaseHeldInput() {
+        synchronized (stateLock) {
+            chordRunning = false;
+            chordGuide = false;
+            chordA = false;
+            qamWasDown = false;
+            if (chordExecutor != null) {
+                chordExecutor.shutdownNow();
+                chordExecutor = null;
+            }
+
             for (Pad pad : new Pad[] { rightPad, leftPad }) {
                 if (pad.clicking) {
                     pad.clicking = false;

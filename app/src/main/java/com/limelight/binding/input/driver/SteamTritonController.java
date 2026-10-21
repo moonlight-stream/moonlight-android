@@ -291,6 +291,8 @@ public class SteamTritonController extends AbstractSteamTritonController {
         }
         sendRumble(0, 0);
 
+        releaseMouseButtons();
+
         stopped = true;
 
         for (Thread t : threads) {

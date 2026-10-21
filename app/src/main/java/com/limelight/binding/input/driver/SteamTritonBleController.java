@@ -199,6 +199,8 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
     }
 
     private void handleDisconnected() {
+        releaseMouseButtons();
+
         notificationsRequested = false;
         notificationAttempts = 0;
         writePending = false;
@@ -529,6 +531,8 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
         rumbleLow = 0;
         rumbleHigh = 0;
         sendRumble(0, 0, true);
+
+        releaseMouseButtons();
 
         boolean wasAdded = added;
         stopped = true;

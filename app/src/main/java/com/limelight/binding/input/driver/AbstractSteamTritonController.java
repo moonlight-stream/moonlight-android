@@ -1,6 +1,7 @@
 package com.limelight.binding.input.driver;
 
 import com.limelight.nvstream.input.ControllerPacket;
+import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
 
 /**
@@ -54,6 +55,38 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     private static final int BTN_L = 0x00080000;
     private static final int BTN_RIGHT_PAD_CLICK = 0x00400000;
     private static final int BTN_LEFT_PAD_CLICK = 0x04000000;
+    private static final int BTN_RIGHT_PAD_TOUCH = 0x00200000;
+    private static final int BTN_LEFT_PAD_TOUCH = 0x02000000;
+
+    // Trackpads are reported after the sticks: X and Y (signed, up is positive), then pressure
+    private static final int LEFT_PAD_X_OFFSET = 18;
+    private static final int LEFT_PAD_Y_OFFSET = 20;
+    private static final int RIGHT_PAD_X_OFFSET = 24;
+    private static final int RIGHT_PAD_Y_OFFSET = 26;
+    private static final int PAD_REPORT_MIN_SIZE = 28; // Through the right pad Y axis
+
+    // Mouse pixels per raw trackpad unit. A full swipe across a pad covers 65536 units.
+    private static final float PAD_SENSITIVITY = 0.03f;
+
+    /**
+     * Tracks one trackpad, which acts like a laptop trackpad: sliding a finger moves the mouse
+     * and clicking the pad presses a mouse button.
+     */
+    private static class Pad {
+        final byte mouseButton;
+        boolean touching;
+        boolean clicking;
+        int lastX, lastY;
+        float remainderX, remainderY;
+
+        Pad(byte mouseButton) {
+            this.mouseButton = mouseButton;
+        }
+    }
+
+    // The right pad is the primary mouse, so its click is a left click
+    private final Pad rightPad = new Pad(MouseButtonPacket.BUTTON_LEFT);
+    private final Pad leftPad = new Pad(MouseButtonPacket.BUTTON_RIGHT);
 
     protected final Object stateLock = new Object();
 
@@ -73,8 +106,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
                         ControllerPacket.LS_CLK_FLAG | ControllerPacket.RS_CLK_FLAG |
                         ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.SPECIAL_BUTTON_FLAG |
                         ControllerPacket.PADDLE1_FLAG | ControllerPacket.PADDLE2_FLAG |
-                        ControllerPacket.PADDLE3_FLAG | ControllerPacket.PADDLE4_FLAG |
-                        ControllerPacket.TOUCHPAD_FLAG;
+                        ControllerPacket.PADDLE3_FLAG | ControllerPacket.PADDLE4_FLAG;
     }
 
     /**
@@ -147,7 +179,15 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         setButtonFlag(ControllerPacket.PADDLE3_FLAG, buttons & BTN_R5);
         setButtonFlag(ControllerPacket.PADDLE4_FLAG, buttons & BTN_L5);
 
-        setButtonFlag(ControllerPacket.TOUCHPAD_FLAG, buttons & (BTN_LEFT_PAD_CLICK | BTN_RIGHT_PAD_CLICK));
+        // The trackpads drive the mouse instead of the gamepad. Hosts have no use for them as
+        // gamepad buttons on most virtual controllers.
+        if (length >= PAD_REPORT_MIN_SIZE) {
+            boolean live = added && !stopped;
+            updatePad(rightPad, (buttons & BTN_RIGHT_PAD_TOUCH) != 0, (buttons & BTN_RIGHT_PAD_CLICK) != 0,
+                    signShort(data, RIGHT_PAD_X_OFFSET), signShort(data, RIGHT_PAD_Y_OFFSET), live);
+            updatePad(leftPad, (buttons & BTN_LEFT_PAD_TOUCH) != 0, (buttons & BTN_LEFT_PAD_CLICK) != 0,
+                    signShort(data, LEFT_PAD_X_OFFSET), signShort(data, LEFT_PAD_Y_OFFSET), live);
+        }
 
         // Triggers are non-negative 15-bit values
         leftTrigger = Math.max(0.0f, normalizeAxis(signShort(data, 6)));
@@ -161,6 +201,58 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         rightStickY = normalizeAxis(-signShort(data, 16));
 
         return true;
+    }
+
+    private void updatePad(Pad pad, boolean touch, boolean click, int x, int y, boolean live) {
+        if (touch && pad.touching) {
+            // Raw Y is positive going up, but mouse Y is positive going down
+            float dx = (x - pad.lastX) * PAD_SENSITIVITY + pad.remainderX;
+            float dy = -(y - pad.lastY) * PAD_SENSITIVITY + pad.remainderY;
+            int moveX = (int) dx;
+            int moveY = (int) dy;
+
+            // Keep the fractions so slow movements still add up
+            pad.remainderX = dx - moveX;
+            pad.remainderY = dy - moveY;
+
+            if (live && (moveX != 0 || moveY != 0)) {
+                reportMouseMove((short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, moveX)),
+                        (short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, moveY)));
+            }
+        }
+        else {
+            // A new touch only sets where we start from, so the cursor doesn't jump
+            pad.remainderX = 0;
+            pad.remainderY = 0;
+        }
+
+        pad.touching = touch;
+        pad.lastX = x;
+        pad.lastY = y;
+
+        if (click != pad.clicking) {
+            pad.clicking = click;
+            if (live) {
+                reportMouseButton(pad.mouseButton, click);
+            }
+        }
+    }
+
+    /**
+     * Lets go of any mouse button held by a trackpad click. Call this when the controller goes away.
+     */
+    protected void releaseMouseButtons() {
+        synchronized (stateLock) {
+            for (Pad pad : new Pad[] { rightPad, leftPad }) {
+                if (pad.clicking) {
+                    pad.clicking = false;
+                    reportMouseButton(pad.mouseButton, false);
+                }
+                pad.touching = false;
+                pad.remainderX = 0;
+                pad.remainderY = 0;
+            }
+        }
     }
 
     /**

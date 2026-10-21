@@ -53,6 +53,14 @@ public abstract class AbstractController {
                 rightStickX, rightStickY, leftTrigger, rightTrigger);
     }
 
+    protected void reportMouseMove(short deltaX, short deltaY) {
+        listener.reportMouseMove(deltaX, deltaY);
+    }
+
+    protected void reportMouseButton(byte mouseButton, boolean pressed) {
+        listener.reportMouseButton(mouseButton, pressed);
+    }
+
     public abstract boolean start();
     public abstract void stop();
 

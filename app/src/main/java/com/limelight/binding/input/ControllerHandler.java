@@ -2847,6 +2847,29 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     @Override
+    public void reportMouseMove(short deltaX, short deltaY) {
+        if (stopped) {
+            return;
+        }
+
+        conn.sendMouseMove(deltaX, deltaY);
+    }
+
+    @Override
+    public void reportMouseButton(byte mouseButton, boolean pressed) {
+        if (stopped) {
+            return;
+        }
+
+        if (pressed) {
+            conn.sendMouseButtonDown(mouseButton);
+        }
+        else {
+            conn.sendMouseButtonUp(mouseButton);
+        }
+    }
+
+    @Override
     public void deviceRemoved(AbstractController controller) {
         UsbDeviceContext context = usbDeviceContexts.get(controller.getControllerId());
         if (context != null) {

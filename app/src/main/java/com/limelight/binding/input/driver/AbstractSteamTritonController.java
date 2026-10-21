@@ -22,6 +22,15 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     protected static final int REPORT_ID_RUMBLE = 0x80;
     protected static final int RUMBLE_REPORT_SIZE = 10;
 
+    // Feature report used to take the controller out of "lizard mode", where it emulates a
+    // keyboard and mouse. It reverts on its own after a while, so it has to be resent.
+    protected static final int FEATURE_REPORT_ID = 1;
+    protected static final int FEATURE_REPORT_SIZE = 64;
+    private static final int ID_SET_SETTINGS_VALUES = 0x87;
+    private static final int SETTING_LIZARD_MODE = 9;
+    private static final int LIZARD_MODE_OFF = 0;
+    protected static final long LIZARD_REFRESH_INTERVAL_MS = 3000;
+
     // Button bits in the 32-bit button field
     private static final int BTN_A = 0x00000001;
     private static final int BTN_B = 0x00000002;
@@ -148,6 +157,20 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         rightStickY = normalizeAxis(-signShort(data, 16));
 
         return true;
+    }
+
+    /**
+     * Builds the feature report that turns off lizard mode, including the leading report ID byte.
+     */
+    protected static byte[] buildLizardModeOffReport() {
+        byte[] report = new byte[FEATURE_REPORT_SIZE];
+        report[0] = FEATURE_REPORT_ID;
+        report[1] = (byte) ID_SET_SETTINGS_VALUES; // Message type
+        report[2] = 3;                              // Payload length (one 3-byte setting)
+        report[3] = (byte) SETTING_LIZARD_MODE;     // Setting number
+        report[4] = (byte) LIZARD_MODE_OFF;         // Setting value (little endian)
+        report[5] = 0;
+        return report;
     }
 
     /**

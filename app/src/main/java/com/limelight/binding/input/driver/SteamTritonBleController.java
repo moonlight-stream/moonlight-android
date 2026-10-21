@@ -52,6 +52,9 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
     private static final UUID INPUT_CHARACTERISTIC_UUID = UUID.fromString("100F6C7A-1735-4313-B402-38567131E5F3");
     private static final UUID CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
+    // Feature reports (such as the one that turns off lizard mode) are written here
+    private static final UUID REPORT_CHARACTERISTIC_UUID = UUID.fromString("100F6C34-1735-4313-B402-38567131E5F3");
+
     // Output report N is written to the characteristic whose UUID is 100F6C(N + 0x35)-...
     private static final Pattern OUTPUT_CHARACTERISTIC_PATTERN =
             Pattern.compile("^100F6C([0-9A-F]{2})-1735-4313-B402-38567131E5F3$");
@@ -70,12 +73,14 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
     // The controller stops rumbling after ~50 ms without a new command, so we resend while active.
     private static final long RUMBLE_REFRESH_INTERVAL_MS = 40;
     private static final long WRITE_TIMEOUT_MS = 500;
+    private static final long LIZARD_WRITE_RETRY_MS = 100;
 
     private final Context context;
     private final BluetoothDevice device;
 
     private final Map<Integer, BluetoothGattCharacteristic> outputCharacteristics = new ConcurrentHashMap<>();
     private volatile BluetoothGattCharacteristic inputCharacteristic;
+    private volatile BluetoothGattCharacteristic reportCharacteristic;
     private volatile BluetoothGatt gatt;
 
     private HandlerThread handlerThread;
@@ -198,7 +203,9 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
         notificationAttempts = 0;
         writePending = false;
         inputCharacteristic = null;
+        reportCharacteristic = null;
         outputCharacteristics.clear();
+        handler.removeCallbacks(lizardModeRunnable);
 
         if (added) {
             added = false;
@@ -211,6 +218,39 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
         @Override
         public void run() {
             enableNotifications();
+        }
+    };
+
+    // Turns off lizard mode and keeps it off. Without this the controller also acts as a
+    // keyboard and mouse, which Android would forward to the host alongside the gamepad input.
+    private final Runnable lizardModeRunnable = new Runnable() {
+        @Override
+        public void run() {
+            BluetoothGatt g = gatt;
+            BluetoothGattCharacteristic characteristic = reportCharacteristic;
+            if (stopped || g == null || characteristic == null) {
+                return;
+            }
+
+            // Writes are one at a time, so try again shortly if one is still on its way
+            long now = SystemClock.uptimeMillis();
+            if (writePending && now - lastWriteTime < WRITE_TIMEOUT_MS) {
+                handler.postDelayed(this, LIZARD_WRITE_RETRY_MS);
+                return;
+            }
+
+            // The characteristic takes the report without its leading ID byte
+            byte[] report = buildLizardModeOffReport();
+            byte[] payload = Arrays.copyOfRange(report, 1, report.length);
+
+            writePending = true;
+            lastWriteTime = now;
+            if (!writeCharacteristic(g, characteristic, payload)) {
+                writePending = false;
+                LimeLog.warning("Unable to turn off Steam Controller lizard mode");
+            }
+
+            handler.postDelayed(this, LIZARD_REFRESH_INTERVAL_MS);
         }
     };
 
@@ -344,11 +384,16 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
             }
 
             outputCharacteristics.clear();
+            reportCharacteristic = null;
             BluetoothGattCharacteristic input = null;
             for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
                 UUID uuid = characteristic.getUuid();
                 if (INPUT_CHARACTERISTIC_UUID.equals(uuid)) {
                     input = characteristic;
+                    continue;
+                }
+                if (REPORT_CHARACTERISTIC_UUID.equals(uuid)) {
+                    reportCharacteristic = characteristic;
                     continue;
                 }
 
@@ -397,6 +442,10 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
                 scheduleNotificationRetry();
                 return;
             }
+
+            // Switch the controller out of keyboard and mouse mode, and keep it out
+            handler.removeCallbacks(lizardModeRunnable);
+            handler.post(lizardModeRunnable);
 
             if (!added) {
                 // Report that we're added _before_ reporting input

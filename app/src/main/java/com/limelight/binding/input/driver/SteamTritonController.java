@@ -36,16 +36,6 @@ public class SteamTritonController extends AbstractSteamTritonController {
     private static final int HID_REPORT_TYPE_FEATURE = 3;
     private static final int HID_SUBCLASS_BOOT = 1; // Boot keyboard/mouse interfaces
 
-    // Feature report protocol
-    private static final int FEATURE_REPORT_ID = 1;
-    private static final int FEATURE_REPORT_SIZE = 64;
-    private static final int ID_SET_SETTINGS_VALUES = 0x87;
-    private static final int SETTING_LIZARD_MODE = 9;
-    private static final int LIZARD_MODE_OFF = 0;
-
-    // The controller reverts to lizard mode on its own after a while, so we refresh the setting.
-    private static final long LIZARD_REFRESH_INTERVAL_MS = 3000;
-
     // The controller stops rumbling after ~50 ms without a new command, so we resend while active.
     private static final long RUMBLE_REFRESH_INTERVAL_MS = 40;
 
@@ -238,13 +228,7 @@ public class SteamTritonController extends AbstractSteamTritonController {
     }
 
     private boolean disableLizardMode(HidStream stream) {
-        byte[] report = new byte[FEATURE_REPORT_SIZE];
-        report[0] = FEATURE_REPORT_ID;
-        report[1] = (byte) ID_SET_SETTINGS_VALUES; // Message type
-        report[2] = 3;                              // Payload length (one 3-byte setting)
-        report[3] = (byte) SETTING_LIZARD_MODE;     // Setting number
-        report[4] = (byte) LIZARD_MODE_OFF;         // Setting value (little endian)
-        report[5] = 0;
+        byte[] report = buildLizardModeOffReport();
 
         int res = connection.controlTransfer(HID_REQ_TYPE_SET, HID_REQ_SET_REPORT,
                 (HID_REPORT_TYPE_FEATURE << 8) | FEATURE_REPORT_ID,

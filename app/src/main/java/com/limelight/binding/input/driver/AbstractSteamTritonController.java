@@ -74,7 +74,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
                         ControllerPacket.BACK_FLAG | ControllerPacket.PLAY_FLAG | ControllerPacket.SPECIAL_BUTTON_FLAG |
                         ControllerPacket.PADDLE1_FLAG | ControllerPacket.PADDLE2_FLAG |
                         ControllerPacket.PADDLE3_FLAG | ControllerPacket.PADDLE4_FLAG |
-                        ControllerPacket.TOUCHPAD_FLAG | ControllerPacket.MISC_FLAG;
+                        ControllerPacket.TOUCHPAD_FLAG;
     }
 
     /**
@@ -116,7 +116,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         // Layout: ID, sequence number, 32-bit buttons, then 16-bit little endian axes
         int buttons = unsignShort(data, 2) | (unsignShort(data, 4) << 16);
 
-        setButtonFlag(ControllerPacket.A_FLAG, buttons & BTN_A);
+        setButtonFlag(ControllerPacket.A_FLAG, buttons & (BTN_A | BTN_QAM));
         setButtonFlag(ControllerPacket.B_FLAG, buttons & BTN_B);
         setButtonFlag(ControllerPacket.X_FLAG, buttons & BTN_X);
         setButtonFlag(ControllerPacket.Y_FLAG, buttons & BTN_Y);
@@ -130,8 +130,12 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         // matching how SDL maps this controller.
         setButtonFlag(ControllerPacket.PLAY_FLAG, buttons & BTN_VIEW);
         setButtonFlag(ControllerPacket.BACK_FLAG, buttons & BTN_MENU);
-        setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, buttons & BTN_STEAM);
-        setButtonFlag(ControllerPacket.MISC_FLAG, buttons & BTN_QAM);
+
+        // Hosts treat the "misc" button as the Guide button on Xbox-style controllers, so the
+        // "..." (quick access) button can't be sent as misc without also opening the Steam menu.
+        // Steam opens its quick access menu with Guide + A on standard gamepads, so send that
+        // chord for it instead.
+        setButtonFlag(ControllerPacket.SPECIAL_BUTTON_FLAG, buttons & (BTN_STEAM | BTN_QAM));
 
         setButtonFlag(ControllerPacket.UP_FLAG, buttons & BTN_DPAD_UP);
         setButtonFlag(ControllerPacket.DOWN_FLAG, buttons & BTN_DPAD_DOWN);

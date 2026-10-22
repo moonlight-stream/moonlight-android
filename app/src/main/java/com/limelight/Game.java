@@ -1324,8 +1324,30 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         return handleKeyDown(event) || super.onKeyDown(keyCode, event);
     }
 
+    private KeyEvent remapCecSelectToEnter(KeyEvent event) {
+        if (event.getSource() == InputDevice.SOURCE_HDMI &&
+                event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER) {
+
+            return new KeyEvent(
+                    event.getDownTime(),
+                    event.getEventTime(),
+                    event.getAction(),
+                    KeyEvent.KEYCODE_ENTER,
+                    event.getRepeatCount(),
+                    event.getMetaState(),
+                    event.getDeviceId(),
+                    event.getScanCode(),
+                    event.getFlags(),
+                    event.getSource()
+            );
+        }
+
+        return event;
+    }   
+
     @Override
     public boolean handleKeyDown(KeyEvent event) {
+        event = remapCecSelectToEnter(event);
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;
@@ -1408,6 +1430,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public boolean handleKeyUp(KeyEvent event) {
+        event = remapCecSelectToEnter(event);
         // Pass-through virtual navigation keys
         if ((event.getFlags() & KeyEvent.FLAG_VIRTUAL_HARD_KEY) != 0) {
             return false;

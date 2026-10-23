@@ -2870,6 +2870,15 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     }
 
     @Override
+    public void reportMouseScroll(short scrollAmount) {
+        if (stopped) {
+            return;
+        }
+
+        conn.sendMouseHighResScroll(scrollAmount);
+    }
+
+    @Override
     public void deviceRemoved(AbstractController controller) {
         UsbDeviceContext context = usbDeviceContexts.get(controller.getControllerId());
         if (context != null) {

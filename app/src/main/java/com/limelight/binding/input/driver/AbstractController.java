@@ -61,6 +61,10 @@ public abstract class AbstractController {
         listener.reportMouseButton(mouseButton, pressed);
     }
 
+    protected void reportMouseScroll(short scrollAmount) {
+        listener.reportMouseScroll(scrollAmount);
+    }
+
     public abstract boolean start();
     public abstract void stop();
 

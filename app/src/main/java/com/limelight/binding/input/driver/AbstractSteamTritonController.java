@@ -73,19 +73,25 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     // Mouse pixels per raw trackpad unit. A full swipe across a pad covers 65536 units.
     private static final float PAD_SENSITIVITY = 0.03f;
 
+    // Scroll units per raw trackpad unit, where 120 units is one wheel notch. A full swipe
+    // up the pad scrolls about 27 notches.
+    private static final float SCROLL_SENSITIVITY = 0.05f;
+
     /**
-     * Tracks one trackpad, which acts like a laptop trackpad: sliding a finger moves the mouse
-     * and clicking the pad presses a mouse button.
+     * Tracks one trackpad. Sliding a finger either moves the mouse like a laptop trackpad or,
+     * for a scroll pad, turns the mouse wheel. Clicking the pad presses a mouse button.
      */
     private static class Pad {
         final byte mouseButton;
+        final boolean scrolls;
         boolean touching;
         boolean clicking;
         int lastX, lastY;
         float remainderX, remainderY;
 
-        Pad(byte mouseButton) {
+        Pad(byte mouseButton, boolean scrolls) {
             this.mouseButton = mouseButton;
+            this.scrolls = scrolls;
         }
     }
 
@@ -100,9 +106,10 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     private boolean chordRunning, chordGuide, chordA, qamWasDown;
     private int lastButtons;
 
-    // The right pad is the primary mouse, so its click is a left click
-    private final Pad rightPad = new Pad(MouseButtonPacket.BUTTON_LEFT);
-    private final Pad leftPad = new Pad(MouseButtonPacket.BUTTON_RIGHT);
+    // The right pad is the primary mouse, so its click is a left click. The left pad is the
+    // scroll wheel, and its click is a right click.
+    private final Pad rightPad = new Pad(MouseButtonPacket.BUTTON_LEFT, false);
+    private final Pad leftPad = new Pad(MouseButtonPacket.BUTTON_RIGHT, true);
 
     protected final Object stateLock = new Object();
 
@@ -228,7 +235,18 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     }
 
     private void updatePad(Pad pad, boolean touch, boolean click, int x, int y, boolean live) {
-        if (touch && pad.touching) {
+        if (touch && pad.touching && pad.scrolls) {
+            // Raw Y is positive going up, and so is scrolling: sliding a finger up scrolls up
+            float scroll = (y - pad.lastY) * SCROLL_SENSITIVITY + pad.remainderY;
+            int amount = (int) scroll;
+            pad.remainderY = scroll - amount;
+            pad.remainderX = 0;
+
+            if (live && amount != 0) {
+                reportMouseScroll((short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, amount)));
+            }
+        }
+        else if (touch && pad.touching) {
             // Raw Y is positive going up, but mouse Y is positive going down
             float dx = (x - pad.lastX) * PAD_SENSITIVITY + pad.remainderX;
             float dy = -(y - pad.lastY) * PAD_SENSITIVITY + pad.remainderY;

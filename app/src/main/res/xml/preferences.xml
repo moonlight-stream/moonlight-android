@@ -64,6 +64,26 @@
             android:summary="@string/summary_seekbar_deadzone"
             android:text="@string/suffix_seekbar_deadzone"
             android:title="@string/title_seekbar_deadzone"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_steam_pad_mouse_speed"
+            android:dialogMessage="@string/summary_seekbar_steam_pad_mouse_speed"
+            seekbar:min="5"
+            seekbar:step="5"
+            android:max="200"
+            android:defaultValue="25"
+            android:summary="@string/summary_seekbar_steam_pad_mouse_speed"
+            android:text="@string/suffix_seekbar_steam_pad_speed"
+            android:title="@string/title_seekbar_steam_pad_mouse_speed"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_steam_pad_scroll_speed"
+            android:dialogMessage="@string/summary_seekbar_steam_pad_scroll_speed"
+            seekbar:min="5"
+            seekbar:step="5"
+            android:max="200"
+            android:defaultValue="50"
+            android:summary="@string/summary_seekbar_steam_pad_scroll_speed"
+            android:text="@string/suffix_seekbar_steam_pad_speed"
+            android:title="@string/title_seekbar_steam_pad_scroll_speed"/>
         <CheckBoxPreference
             android:key="checkbox_multi_controller"
             android:title="@string/title_checkbox_multi_controller"

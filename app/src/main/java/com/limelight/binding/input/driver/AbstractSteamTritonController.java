@@ -70,12 +70,15 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     private static final int RIGHT_PAD_Y_OFFSET = 26;
     private static final int PAD_REPORT_MIN_SIZE = 28; // Through the right pad Y axis
 
-    // Mouse pixels per raw trackpad unit. A full swipe across a pad covers 65536 units.
-    private static final float PAD_SENSITIVITY = 0.03f;
+    // Mouse pixels per raw trackpad unit at 100% speed. A full swipe across a pad covers
+    // 65536 units. The speed settings scale this.
+    private static final float BASE_PAD_SENSITIVITY = 0.03f;
 
-    // Scroll units per raw trackpad unit, where 120 units is one wheel notch. A full swipe
-    // up the pad scrolls about 27 notches.
-    private static final float SCROLL_SENSITIVITY = 0.05f;
+    // Scroll units per raw trackpad unit at 100% speed, where 120 units is one wheel notch
+    private static final float BASE_SCROLL_SENSITIVITY = 0.05f;
+
+    private volatile float padSensitivity = BASE_PAD_SENSITIVITY * 0.25f;
+    private volatile float scrollSensitivity = BASE_SCROLL_SENSITIVITY * 0.5f;
 
     /**
      * Tracks one trackpad. Sliding a finger either moves the mouse like a laptop trackpad or,
@@ -237,7 +240,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     private void updatePad(Pad pad, boolean touch, boolean click, int x, int y, boolean live) {
         if (touch && pad.touching && pad.scrolls) {
             // Raw Y is positive going up, and so is scrolling: sliding a finger up scrolls up
-            float scroll = (y - pad.lastY) * SCROLL_SENSITIVITY + pad.remainderY;
+            float scroll = (y - pad.lastY) * scrollSensitivity + pad.remainderY;
             int amount = (int) scroll;
             pad.remainderY = scroll - amount;
             pad.remainderX = 0;
@@ -248,8 +251,8 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         }
         else if (touch && pad.touching) {
             // Raw Y is positive going up, but mouse Y is positive going down
-            float dx = (x - pad.lastX) * PAD_SENSITIVITY + pad.remainderX;
-            float dy = -(y - pad.lastY) * PAD_SENSITIVITY + pad.remainderY;
+            float dx = (x - pad.lastX) * padSensitivity + pad.remainderX;
+            float dy = -(y - pad.lastY) * padSensitivity + pad.remainderY;
             int moveX = (int) dx;
             int moveY = (int) dy;
 
@@ -278,6 +281,14 @@ public abstract class AbstractSteamTritonController extends AbstractController {
                 reportMouseButton(pad.mouseButton, click);
             }
         }
+    }
+
+    /**
+     * Sets how fast the trackpads move the mouse and scroll, as percentages of the base speed.
+     */
+    public void setTrackpadSpeeds(int mouseSpeedPercent, int scrollSpeedPercent) {
+        padSensitivity = BASE_PAD_SENSITIVITY * Math.max(1, mouseSpeedPercent) / 100.0f;
+        scrollSensitivity = BASE_SCROLL_SENSITIVITY * Math.max(1, scrollSpeedPercent) / 100.0f;
     }
 
     // Overlays the "..." chord on top of whatever the real Guide and A buttons are doing

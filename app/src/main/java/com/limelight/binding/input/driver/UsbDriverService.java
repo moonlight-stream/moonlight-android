@@ -232,6 +232,11 @@ public class UsbDriverService extends Service implements UsbDriverListener {
                 return;
             }
 
+            if (controller instanceof AbstractSteamTritonController) {
+                ((AbstractSteamTritonController) controller).setTrackpadSpeeds(
+                        prefConfig.steamPadMouseSpeed, prefConfig.steamPadScrollSpeed);
+            }
+
             // Start the controller
             if (!controller.start()) {
                 connection.close();
@@ -379,6 +384,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         for (BluetoothDevice dev : SteamTritonBleController.getBondedControllers(this)) {
             SteamTritonBleController controller =
                     new SteamTritonBleController(this, dev, nextDeviceId++, this);
+            controller.setTrackpadSpeeds(prefConfig.steamPadMouseSpeed, prefConfig.steamPadScrollSpeed);
             if (controller.start()) {
                 bleControllers.add(controller);
             }

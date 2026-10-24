@@ -3,6 +3,7 @@ package com.limelight.binding.input.driver;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,6 +39,11 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
     private final ArrayList<AbstractController> controllers = new ArrayList<>();
 
+    // Bluetooth controllers can come and go while staying registered here, so they are kept
+    // apart from the USB controllers, which are dropped from the list when removed.
+    private final ArrayList<SteamTritonBleController> bleControllers = new ArrayList<>();
+    private boolean receiverRegistered;
+
     private UsbDriverListener listener;
     private UsbDriverStateListener stateListener;
     private int nextDeviceId;
@@ -48,6 +54,30 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         // Call through to the client's listener
         if (listener != null) {
             listener.reportControllerState(controllerId, buttonFlags, leftStickX, leftStickY, rightStickX, rightStickY, leftTrigger, rightTrigger);
+        }
+    }
+
+    @Override
+    public void reportMouseMove(short deltaX, short deltaY) {
+        // Call through to the client's listener
+        if (listener != null) {
+            listener.reportMouseMove(deltaX, deltaY);
+        }
+    }
+
+    @Override
+    public void reportMouseButton(byte mouseButton, boolean pressed) {
+        // Call through to the client's listener
+        if (listener != null) {
+            listener.reportMouseButton(mouseButton, pressed);
+        }
+    }
+
+    @Override
+    public void reportMouseScroll(short scrollAmount) {
+        // Call through to the client's listener
+        if (listener != null) {
+            listener.reportMouseScroll(scrollAmount);
         }
     }
 
@@ -194,9 +224,19 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             else if (Xbox360WirelessDongle.canClaimDevice(device)) {
                 controller = new Xbox360WirelessDongle(device, connection, nextDeviceId++, this);
             }
+            else if (SteamTritonController.canClaimDevice(device)) {
+                controller = new SteamTritonController(device, connection, nextDeviceId++, this);
+            }
             else {
                 // Unreachable
                 return;
+            }
+
+            if (controller instanceof AbstractSteamTritonController) {
+                ((AbstractSteamTritonController) controller).setTrackpadSpeeds(
+                        prefConfig.steamPadMouseSpeed, prefConfig.steamPadScrollSpeed);
+                ((AbstractSteamTritonController) controller).setTrackpadHaptics(prefConfig.steamPadHaptics);
+                ((AbstractSteamTritonController) controller).setCursorHaptics(prefConfig.steamPadMoveHaptics);
             }
 
             // Start the controller
@@ -222,6 +262,27 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
             if (inputDev.getVendorId() == device.getVendorId() &&
                     inputDev.getProductId() == device.getProductId()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isRecognizedGamepadDevice(UsbDevice device) {
+        // Like isRecognizedInputDevice(), but only matches input devices that actually act as
+        // a gamepad. Some controllers (like the Steam Controller) also enumerate as a keyboard
+        // and mouse with the same VID and PID, which must not stop us from claiming them.
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice inputDev = InputDevice.getDevice(id);
+            if (inputDev == null) {
+                // Device was removed while looping
+                continue;
+            }
+
+            if (inputDev.getVendorId() == device.getVendorId() &&
+                    inputDev.getProductId() == device.getProductId() &&
+                    (inputDev.getSources() & (InputDevice.SOURCE_GAMEPAD | InputDevice.SOURCE_JOYSTICK)) != 0) {
                 return true;
             }
         }
@@ -278,7 +339,10 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         return ((!kernelSupportsXboxOne() || !isRecognizedInputDevice(device) || claimAllAvailable) && XboxOneController.canClaimDevice(device)) ||
                 ((!isRecognizedInputDevice(device) || claimAllAvailable) && Xbox360Controller.canClaimDevice(device)) ||
                 // We must not call isRecognizedInputDevice() because wireless controllers don't share the same product ID as the dongle
-                ((!kernelSupportsXbox360W() || claimAllAvailable) && Xbox360WirelessDongle.canClaimDevice(device));
+                ((!kernelSupportsXbox360W() || claimAllAvailable) && Xbox360WirelessDongle.canClaimDevice(device)) ||
+                // The 2026 Steam Controller starts out as a keyboard and mouse, so we only defer
+                // to the system if it has already been exposed as a real gamepad.
+                ((!isRecognizedGamepadDevice(device) || claimAllAvailable) && SteamTritonController.canClaimDevice(device));
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -289,22 +353,44 @@ public class UsbDriverService extends Service implements UsbDriverListener {
 
         started = true;
 
-        // Register for USB attach broadcasts and permission completions
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(ACTION_USB_PERMISSION);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED);
-        }
-        else {
-            registerReceiver(receiver, filter);
+        if (prefConfig.usbDriver) {
+            // Register for USB attach broadcasts and permission completions
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+            filter.addAction(ACTION_USB_PERMISSION);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(receiver, filter, RECEIVER_NOT_EXPORTED);
+            }
+            else {
+                registerReceiver(receiver, filter);
+            }
+            receiverRegistered = true;
+
+            // Enumerate existing devices
+            for (UsbDevice dev : usbManager.getDeviceList().values()) {
+                if (shouldClaimDevice(dev, prefConfig.bindAllUsb)) {
+                    // Start the process of claiming this device
+                    handleUsbDeviceState(dev);
+                }
+            }
         }
 
-        // Enumerate existing devices
-        for (UsbDevice dev : usbManager.getDeviceList().values()) {
-            if (shouldClaimDevice(dev, prefConfig.bindAllUsb)) {
-                // Start the process of claiming this device
-                handleUsbDeviceState(dev);
+        if (prefConfig.steamBleController) {
+            startSteamBleControllers();
+        }
+    }
+
+    private void startSteamBleControllers() {
+        // Controllers have to be paired in the system settings first. This also checks for
+        // Bluetooth LE support, that Bluetooth is on, and that we have permission to use it.
+        for (BluetoothDevice dev : SteamTritonBleController.getBondedControllers(this)) {
+            SteamTritonBleController controller =
+                    new SteamTritonBleController(this, dev, nextDeviceId++, this);
+            controller.setTrackpadSpeeds(prefConfig.steamPadMouseSpeed, prefConfig.steamPadScrollSpeed);
+            controller.setTrackpadHaptics(prefConfig.steamPadHaptics);
+            controller.setCursorHaptics(prefConfig.steamPadMoveHaptics);
+            if (controller.start()) {
+                bleControllers.add(controller);
             }
         }
     }
@@ -317,12 +403,19 @@ public class UsbDriverService extends Service implements UsbDriverListener {
         started = false;
 
         // Stop the attachment receiver
-        unregisterReceiver(receiver);
+        if (receiverRegistered) {
+            receiverRegistered = false;
+            unregisterReceiver(receiver);
+        }
 
         // Stop all controllers
         while (controllers.size() > 0) {
             // Stop and remove the controller
             controllers.remove(0).stop();
+        }
+
+        while (bleControllers.size() > 0) {
+            bleControllers.remove(0).stop();
         }
     }
 

@@ -64,6 +64,46 @@
             android:summary="@string/summary_seekbar_deadzone"
             android:text="@string/suffix_seekbar_deadzone"
             android:title="@string/title_seekbar_deadzone"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_steam_pad_mouse_speed"
+            android:dialogMessage="@string/summary_seekbar_steam_pad_mouse_speed"
+            seekbar:min="5"
+            seekbar:step="5"
+            android:max="200"
+            android:defaultValue="25"
+            android:summary="@string/summary_seekbar_steam_pad_mouse_speed"
+            android:text="@string/suffix_seekbar_steam_pad_speed"
+            android:title="@string/title_seekbar_steam_pad_mouse_speed"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_steam_pad_scroll_speed"
+            android:dialogMessage="@string/summary_seekbar_steam_pad_scroll_speed"
+            seekbar:min="5"
+            seekbar:step="5"
+            android:max="200"
+            android:defaultValue="50"
+            android:summary="@string/summary_seekbar_steam_pad_scroll_speed"
+            android:text="@string/suffix_seekbar_steam_pad_speed"
+            android:title="@string/title_seekbar_steam_pad_scroll_speed"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_steam_pad_haptics"
+            android:dialogMessage="@string/summary_seekbar_steam_pad_haptics"
+            seekbar:min="0"
+            seekbar:step="1"
+            android:max="10"
+            android:defaultValue="4"
+            android:summary="@string/summary_seekbar_steam_pad_haptics"
+            android:text="@string/suffix_seekbar_steam_pad_haptics"
+            android:title="@string/title_seekbar_steam_pad_haptics"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_steam_pad_move_haptics"
+            android:dialogMessage="@string/summary_seekbar_steam_pad_move_haptics"
+            seekbar:min="0"
+            seekbar:step="1"
+            android:max="10"
+            android:defaultValue="2"
+            android:summary="@string/summary_seekbar_steam_pad_move_haptics"
+            android:text="@string/suffix_seekbar_steam_pad_haptics"
+            android:title="@string/title_seekbar_steam_pad_move_haptics"/>
         <CheckBoxPreference
             android:key="checkbox_multi_controller"
             android:title="@string/title_checkbox_multi_controller"
@@ -79,6 +119,11 @@
             android:dependency="checkbox_usb_driver"
             android:title="@string/title_checkbox_usb_bind_all"
             android:summary="@string/summary_checkbox_usb_bind_all"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_steam_ble_controller"
+            android:title="@string/title_checkbox_steam_ble_controller"
+            android:summary="@string/summary_checkbox_steam_ble_controller"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="checkbox_mouse_emulation"

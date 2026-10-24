@@ -513,8 +513,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             virtualController.show();
         }
 
-        if (prefConfig.usbDriver) {
-            // Start the USB driver
+        if (prefConfig.usbDriver || prefConfig.steamBleController) {
+            // Start the USB and Bluetooth controller drivers
             bindService(new Intent(this, UsbDriverService.class),
                     usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
         }

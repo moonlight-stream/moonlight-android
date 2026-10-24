@@ -504,8 +504,9 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
     }
 
     @Override
-    protected void sendHaptic(byte[] report) {
-        writeHaptic(report, 0);
+    protected void sendHaptic(byte[] report, boolean important) {
+        // Only important haptics (clicks) are retried if a write is in flight. Ticks are dropped.
+        writeHaptic(report, important ? 0 : HAPTIC_MAX_ATTEMPTS);
     }
 
     private void writeHaptic(final byte[] report, final int attempt) {

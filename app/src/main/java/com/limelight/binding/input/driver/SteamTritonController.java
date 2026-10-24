@@ -246,7 +246,7 @@ public class SteamTritonController extends AbstractSteamTritonController {
     }
 
     @Override
-    protected void sendHaptic(byte[] report) {
+    protected void sendHaptic(byte[] report, boolean important) {
         writeOutputReport(report);
     }
 

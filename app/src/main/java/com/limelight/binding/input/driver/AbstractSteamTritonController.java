@@ -1,5 +1,6 @@
 package com.limelight.binding.input.driver;
 
+import com.limelight.LimeLog;
 import com.limelight.nvstream.input.ControllerPacket;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
@@ -87,7 +88,12 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     private static final int HAPTIC_SIDE_LEFT = 1;
     private static final int SCROLL_NOTCH_UNITS = 120;
 
+    // Moving the cursor with the right pad buzzes lightly every few pixels, so it feels textured
+    private static final float MOVE_TICK_PIXELS = 10;
+    private static final long MOVE_TICK_MIN_INTERVAL_MS = 30;
+
     private volatile int hapticStrength = 4;
+    private volatile int cursorHapticStrength = 2;
 
     private volatile float padSensitivity = BASE_PAD_SENSITIVITY * 0.25f;
     private volatile float scrollSensitivity = BASE_SCROLL_SENSITIVITY * 0.5f;
@@ -101,6 +107,8 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         final boolean scrolls;
         final int hapticSide;
         int notchRemainder;
+        float moveDistance;
+        long lastMoveTick;
         boolean touching;
         boolean clicking;
         int lastX, lastY;
@@ -230,14 +238,6 @@ public abstract class AbstractSteamTritonController extends AbstractController {
 
         // The trackpads drive the mouse instead of the gamepad. Hosts have no use for them as
         // gamepad buttons on most virtual controllers.
-        if (length >= PAD_REPORT_MIN_SIZE) {
-            boolean live = added && !stopped;
-            updatePad(rightPad, (buttons & BTN_RIGHT_PAD_TOUCH) != 0, (buttons & BTN_RIGHT_PAD_CLICK) != 0,
-                    signShort(data, RIGHT_PAD_X_OFFSET), signShort(data, RIGHT_PAD_Y_OFFSET), live);
-            updatePad(leftPad, (buttons & BTN_LEFT_PAD_TOUCH) != 0, (buttons & BTN_LEFT_PAD_CLICK) != 0,
-                    signShort(data, LEFT_PAD_X_OFFSET), signShort(data, LEFT_PAD_Y_OFFSET), live);
-        }
-
         // Triggers are non-negative 15-bit values
         leftTrigger = Math.max(0.0f, normalizeAxis(signShort(data, 6)));
         rightTrigger = Math.max(0.0f, normalizeAxis(signShort(data, 8)));
@@ -248,6 +248,20 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         leftStickY = normalizeAxis(-signShort(data, 12));
         rightStickX = normalizeAxis(signShort(data, 14));
         rightStickY = normalizeAxis(-signShort(data, 16));
+
+        // The gamepad state above is complete, so nothing the trackpads do (mouse, scrolling or
+        // haptics) can be allowed to stop it being reported.
+        if (length >= PAD_REPORT_MIN_SIZE) {
+            try {
+                boolean live = added && !stopped;
+                updatePad(rightPad, (buttons & BTN_RIGHT_PAD_TOUCH) != 0, (buttons & BTN_RIGHT_PAD_CLICK) != 0,
+                        signShort(data, RIGHT_PAD_X_OFFSET), signShort(data, RIGHT_PAD_Y_OFFSET), live);
+                updatePad(leftPad, (buttons & BTN_LEFT_PAD_TOUCH) != 0, (buttons & BTN_LEFT_PAD_CLICK) != 0,
+                        signShort(data, LEFT_PAD_X_OFFSET), signShort(data, LEFT_PAD_Y_OFFSET), live);
+            } catch (RuntimeException e) {
+                LimeLog.warning("Trackpad handling failed: " + e);
+            }
+        }
 
         return true;
     }
@@ -267,7 +281,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
                 pad.notchRemainder += amount;
                 if (Math.abs(pad.notchRemainder) >= SCROLL_NOTCH_UNITS) {
                     pad.notchRemainder %= SCROLL_NOTCH_UNITS;
-                    hapticPulse(pad, Math.max(1, hapticStrength / 3));
+                    hapticPulse(pad, scaledStrength(hapticStrength, 3), false);
                 }
             }
         }
@@ -285,6 +299,15 @@ public abstract class AbstractSteamTritonController extends AbstractController {
             if (live && (moveX != 0 || moveY != 0)) {
                 reportMouseMove((short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, moveX)),
                         (short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, moveY)));
+
+                // Buzz lightly for every few pixels moved, but not faster than the link can take
+                pad.moveDistance += (float) Math.hypot(moveX, moveY);
+                long now = System.currentTimeMillis();
+                if (pad.moveDistance >= MOVE_TICK_PIXELS && now - pad.lastMoveTick >= MOVE_TICK_MIN_INTERVAL_MS) {
+                    pad.moveDistance %= MOVE_TICK_PIXELS;
+                    pad.lastMoveTick = now;
+                    hapticPulse(pad, cursorHapticStrength, false);
+                }
             }
         }
         else {
@@ -292,6 +315,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
             pad.remainderX = 0;
             pad.remainderY = 0;
             pad.notchRemainder = 0;
+            pad.moveDistance = 0;
         }
 
         pad.touching = touch;
@@ -304,7 +328,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
                 reportMouseButton(pad.mouseButton, click);
 
                 // Pressing gives a full click and letting go a lighter one, like a real clickpad
-                hapticPulse(pad, click ? hapticStrength : Math.max(1, hapticStrength / 2));
+                hapticPulse(pad, click ? hapticStrength : scaledStrength(hapticStrength, 2), true);
             }
         }
     }
@@ -324,19 +348,32 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         hapticStrength = Math.max(0, strength);
     }
 
-    private void hapticPulse(Pad pad, int repeatCount) {
-        if (hapticStrength <= 0 || repeatCount <= 0) {
+    /**
+     * Sets how strong the haptics are while moving the cursor with the right pad. 0 turns them off.
+     */
+    public void setCursorHaptics(int strength) {
+        cursorHapticStrength = Math.max(0, strength);
+    }
+
+    // A fraction of a strength setting that is at least one pulse, unless the setting is off
+    private static int scaledStrength(int strength, int divisor) {
+        return strength <= 0 ? 0 : Math.max(1, strength / divisor);
+    }
+
+    // An important pulse (a click) is worth retrying if the link is busy. A tick is just dropped.
+    private void hapticPulse(Pad pad, int repeatCount, boolean important) {
+        if (repeatCount <= 0) {
             return;
         }
 
-        sendHaptic(buildPulseReport(pad.hapticSide, HAPTIC_ON_US, HAPTIC_OFF_US, repeatCount));
+        sendHaptic(buildPulseReport(pad.hapticSide, HAPTIC_ON_US, HAPTIC_OFF_US, repeatCount), important);
     }
 
     /**
      * Writes a haptic output report to the controller, including the leading report ID byte.
      * This is called from the input thread, so it must not block for long.
      */
-    protected abstract void sendHaptic(byte[] report);
+    protected abstract void sendHaptic(byte[] report, boolean important);
 
     // Overlays the "..." chord on top of whatever the real Guide and A buttons are doing
     private void applyChordFlags() {
@@ -438,6 +475,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
                 pad.remainderX = 0;
                 pad.remainderY = 0;
                 pad.notchRemainder = 0;
+                pad.moveDistance = 0;
             }
         }
     }

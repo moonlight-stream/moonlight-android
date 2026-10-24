@@ -242,8 +242,15 @@ public class SteamTritonController extends AbstractSteamTritonController {
     }
 
     private void sendRumble(int low, int high) {
-        byte[] report = buildRumbleReport(low, high);
+        writeOutputReport(buildRumbleReport(low, high));
+    }
 
+    @Override
+    protected void sendHaptic(byte[] report) {
+        writeOutputReport(report);
+    }
+
+    private void writeOutputReport(byte[] report) {
         HidStream stream = streams.isEmpty() ? null : streams.get(0);
         if (stream == null || stopped) {
             return;
@@ -255,12 +262,12 @@ public class SteamTritonController extends AbstractSteamTritonController {
         }
         else {
             res = connection.controlTransfer(HID_REQ_TYPE_SET, HID_REQ_SET_REPORT,
-                    (HID_REPORT_TYPE_OUTPUT << 8) | REPORT_ID_RUMBLE,
+                    (HID_REPORT_TYPE_OUTPUT << 8) | (report[0] & 0xFF),
                     stream.iface.getId(), report, report.length, 100);
         }
 
         if (res != report.length) {
-            LimeLog.warning("Rumble transfer failed: " + res);
+            LimeLog.warning("Output report transfer failed: " + res);
         }
     }
 

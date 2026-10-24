@@ -74,6 +74,8 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
     private static final long RUMBLE_REFRESH_INTERVAL_MS = 40;
     private static final long WRITE_TIMEOUT_MS = 500;
     private static final long LIZARD_WRITE_RETRY_MS = 100;
+    private static final long HAPTIC_RETRY_MS = 15;
+    private static final int HAPTIC_MAX_ATTEMPTS = 4;
 
     private final Context context;
     private final BluetoothDevice device;
@@ -492,6 +494,44 @@ public class SteamTritonBleController extends AbstractSteamTritonController {
 
         // The characteristic takes the report without its leading ID byte
         byte[] report = buildRumbleReport(low, high);
+        byte[] payload = Arrays.copyOfRange(report, 1, report.length);
+
+        writePending = true;
+        lastWriteTime = now;
+        if (!writeCharacteristic(g, characteristic, payload)) {
+            writePending = false;
+        }
+    }
+
+    @Override
+    protected void sendHaptic(byte[] report) {
+        writeHaptic(report, 0);
+    }
+
+    private void writeHaptic(final byte[] report, final int attempt) {
+        BluetoothGatt g = gatt;
+        BluetoothGattCharacteristic characteristic = outputCharacteristics.get(report[0] & 0xFF);
+        Handler h = handler;
+        if (stopped || !added || g == null || characteristic == null || h == null) {
+            return;
+        }
+
+        // Writes are one at a time. A haptic is only worth a couple of quick retries, since a
+        // late click feels wrong.
+        long now = SystemClock.uptimeMillis();
+        if (writePending && now - lastWriteTime < WRITE_TIMEOUT_MS) {
+            if (attempt < HAPTIC_MAX_ATTEMPTS) {
+                h.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        writeHaptic(report, attempt + 1);
+                    }
+                }, HAPTIC_RETRY_MS);
+            }
+            return;
+        }
+
+        // The characteristic takes the report without its leading ID byte
         byte[] payload = Arrays.copyOfRange(report, 1, report.length);
 
         writePending = true;

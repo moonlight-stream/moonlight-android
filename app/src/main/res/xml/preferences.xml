@@ -84,6 +84,16 @@
             android:summary="@string/summary_seekbar_steam_pad_scroll_speed"
             android:text="@string/suffix_seekbar_steam_pad_speed"
             android:title="@string/title_seekbar_steam_pad_scroll_speed"/>
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_steam_pad_haptics"
+            android:dialogMessage="@string/summary_seekbar_steam_pad_haptics"
+            seekbar:min="0"
+            seekbar:step="1"
+            android:max="10"
+            android:defaultValue="4"
+            android:summary="@string/summary_seekbar_steam_pad_haptics"
+            android:text="@string/suffix_seekbar_steam_pad_haptics"
+            android:title="@string/title_seekbar_steam_pad_haptics"/>
         <CheckBoxPreference
             android:key="checkbox_multi_controller"
             android:title="@string/title_checkbox_multi_controller"

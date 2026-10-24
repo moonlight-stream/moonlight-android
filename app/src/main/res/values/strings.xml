@@ -184,6 +184,9 @@
     <string name="title_seekbar_steam_pad_scroll_speed">Steam Controller trackpad scroll speed</string>
     <string name="summary_seekbar_steam_pad_scroll_speed">How fast the left trackpad scrolls. Lower is slower</string>
     <string name="suffix_seekbar_steam_pad_speed">%</string>
+    <string name="title_seekbar_steam_pad_haptics">Steam Controller trackpad haptics</string>
+    <string name="summary_seekbar_steam_pad_haptics">How strong the click you feel on the trackpads is. 0 turns it off</string>
+    <string name="suffix_seekbar_steam_pad_haptics"></string>
     <string name="title_checkbox_xb1_driver">Xbox 360/One USB gamepad driver</string>
     <string name="summary_checkbox_xb1_driver">Enables a built-in USB driver for devices without native Xbox controller support</string>
     <string name="title_checkbox_usb_bind_all">Override native Xbox gamepad support</string>

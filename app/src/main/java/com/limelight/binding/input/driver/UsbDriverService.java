@@ -235,6 +235,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             if (controller instanceof AbstractSteamTritonController) {
                 ((AbstractSteamTritonController) controller).setTrackpadSpeeds(
                         prefConfig.steamPadMouseSpeed, prefConfig.steamPadScrollSpeed);
+                ((AbstractSteamTritonController) controller).setTrackpadHaptics(prefConfig.steamPadHaptics);
             }
 
             // Start the controller
@@ -385,6 +386,7 @@ public class UsbDriverService extends Service implements UsbDriverListener {
             SteamTritonBleController controller =
                     new SteamTritonBleController(this, dev, nextDeviceId++, this);
             controller.setTrackpadSpeeds(prefConfig.steamPadMouseSpeed, prefConfig.steamPadScrollSpeed);
+            controller.setTrackpadHaptics(prefConfig.steamPadHaptics);
             if (controller.start()) {
                 bleControllers.add(controller);
             }

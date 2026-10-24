@@ -37,6 +37,7 @@ public class PreferenceConfiguration {
     private static final String DEADZONE_PREF_STRING = "seekbar_deadzone";
     private static final String STEAM_PAD_MOUSE_SPEED_PREF_STRING = "seekbar_steam_pad_mouse_speed";
     private static final String STEAM_PAD_SCROLL_SPEED_PREF_STRING = "seekbar_steam_pad_scroll_speed";
+    private static final String STEAM_PAD_HAPTICS_PREF_STRING = "seekbar_steam_pad_haptics";
     private static final String OSC_OPACITY_PREF_STRING = "seekbar_osc_opacity";
     private static final String LANGUAGE_PREF_STRING = "list_languages";
     private static final String SMALL_ICONS_PREF_STRING = "checkbox_small_icon_mode";
@@ -81,6 +82,7 @@ public class PreferenceConfiguration {
     private static final int DEFAULT_DEADZONE = 7;
     private static final int DEFAULT_STEAM_PAD_MOUSE_SPEED = 25;
     private static final int DEFAULT_STEAM_PAD_SCROLL_SPEED = 50;
+    private static final int DEFAULT_STEAM_PAD_HAPTICS = 4;
     private static final int DEFAULT_OPACITY = 90;
     public static final String DEFAULT_LANGUAGE = "default";
     private static final boolean DEFAULT_MULTI_CONTROLLER = true;
@@ -134,6 +136,7 @@ public class PreferenceConfiguration {
     public int deadzonePercentage;
     public int steamPadMouseSpeed;
     public int steamPadScrollSpeed;
+    public int steamPadHaptics;
     public int oscOpacity;
     public boolean stretchVideo, enableSops, playHostAudio, disableWarnings;
     public String language;
@@ -576,6 +579,7 @@ public class PreferenceConfiguration {
         config.deadzonePercentage = prefs.getInt(DEADZONE_PREF_STRING, DEFAULT_DEADZONE);
         config.steamPadMouseSpeed = prefs.getInt(STEAM_PAD_MOUSE_SPEED_PREF_STRING, DEFAULT_STEAM_PAD_MOUSE_SPEED);
         config.steamPadScrollSpeed = prefs.getInt(STEAM_PAD_SCROLL_SPEED_PREF_STRING, DEFAULT_STEAM_PAD_SCROLL_SPEED);
+        config.steamPadHaptics = prefs.getInt(STEAM_PAD_HAPTICS_PREF_STRING, DEFAULT_STEAM_PAD_HAPTICS);
 
         config.oscOpacity = prefs.getInt(OSC_OPACITY_PREF_STRING, DEFAULT_OPACITY);
 

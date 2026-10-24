@@ -26,6 +26,8 @@ public abstract class AbstractSteamTritonController extends AbstractController {
 
     // Output reports
     protected static final int REPORT_ID_RUMBLE = 0x80;
+    protected static final int REPORT_ID_PULSE = 0x81;
+    protected static final int PULSE_REPORT_SIZE = 8;
     protected static final int RUMBLE_REPORT_SIZE = 10;
 
     // Feature report used to take the controller out of "lizard mode", where it emulates a
@@ -77,6 +79,16 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     // Scroll units per raw trackpad unit at 100% speed, where 120 units is one wheel notch
     private static final float BASE_SCROLL_SENSITIVITY = 0.05f;
 
+    // Trackpad haptics are short trains of pulses. Each pulse is one on/off cycle, so a click is
+    // a few cycles at roughly 200 Hz. The strength setting is how many cycles a press uses.
+    private static final int HAPTIC_ON_US = 2500;
+    private static final int HAPTIC_OFF_US = 2500;
+    private static final int HAPTIC_SIDE_RIGHT = 0;
+    private static final int HAPTIC_SIDE_LEFT = 1;
+    private static final int SCROLL_NOTCH_UNITS = 120;
+
+    private volatile int hapticStrength = 4;
+
     private volatile float padSensitivity = BASE_PAD_SENSITIVITY * 0.25f;
     private volatile float scrollSensitivity = BASE_SCROLL_SENSITIVITY * 0.5f;
 
@@ -87,14 +99,17 @@ public abstract class AbstractSteamTritonController extends AbstractController {
     private static class Pad {
         final byte mouseButton;
         final boolean scrolls;
+        final int hapticSide;
+        int notchRemainder;
         boolean touching;
         boolean clicking;
         int lastX, lastY;
         float remainderX, remainderY;
 
-        Pad(byte mouseButton, boolean scrolls) {
+        Pad(byte mouseButton, boolean scrolls, int hapticSide) {
             this.mouseButton = mouseButton;
             this.scrolls = scrolls;
+            this.hapticSide = hapticSide;
         }
     }
 
@@ -111,8 +126,8 @@ public abstract class AbstractSteamTritonController extends AbstractController {
 
     // The right pad is the primary mouse, so its click is a left click. The left pad is the
     // scroll wheel, and its click is a right click.
-    private final Pad rightPad = new Pad(MouseButtonPacket.BUTTON_LEFT, false);
-    private final Pad leftPad = new Pad(MouseButtonPacket.BUTTON_RIGHT, true);
+    private final Pad rightPad = new Pad(MouseButtonPacket.BUTTON_LEFT, false, HAPTIC_SIDE_RIGHT);
+    private final Pad leftPad = new Pad(MouseButtonPacket.BUTTON_RIGHT, true, HAPTIC_SIDE_LEFT);
 
     protected final Object stateLock = new Object();
 
@@ -247,6 +262,13 @@ public abstract class AbstractSteamTritonController extends AbstractController {
 
             if (live && amount != 0) {
                 reportMouseScroll((short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, amount)));
+
+                // A light tick for each wheel notch scrolled, so the pad feels like a wheel
+                pad.notchRemainder += amount;
+                if (Math.abs(pad.notchRemainder) >= SCROLL_NOTCH_UNITS) {
+                    pad.notchRemainder %= SCROLL_NOTCH_UNITS;
+                    hapticPulse(pad, Math.max(1, hapticStrength / 3));
+                }
             }
         }
         else if (touch && pad.touching) {
@@ -269,6 +291,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
             // A new touch only sets where we start from, so the cursor doesn't jump
             pad.remainderX = 0;
             pad.remainderY = 0;
+            pad.notchRemainder = 0;
         }
 
         pad.touching = touch;
@@ -279,6 +302,9 @@ public abstract class AbstractSteamTritonController extends AbstractController {
             pad.clicking = click;
             if (live) {
                 reportMouseButton(pad.mouseButton, click);
+
+                // Pressing gives a full click and letting go a lighter one, like a real clickpad
+                hapticPulse(pad, click ? hapticStrength : Math.max(1, hapticStrength / 2));
             }
         }
     }
@@ -290,6 +316,27 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         padSensitivity = BASE_PAD_SENSITIVITY * Math.max(1, mouseSpeedPercent) / 100.0f;
         scrollSensitivity = BASE_SCROLL_SENSITIVITY * Math.max(1, scrollSpeedPercent) / 100.0f;
     }
+
+    /**
+     * Sets how strong the trackpad haptics are, as the number of pulses in a click. 0 turns them off.
+     */
+    public void setTrackpadHaptics(int strength) {
+        hapticStrength = Math.max(0, strength);
+    }
+
+    private void hapticPulse(Pad pad, int repeatCount) {
+        if (hapticStrength <= 0 || repeatCount <= 0) {
+            return;
+        }
+
+        sendHaptic(buildPulseReport(pad.hapticSide, HAPTIC_ON_US, HAPTIC_OFF_US, repeatCount));
+    }
+
+    /**
+     * Writes a haptic output report to the controller, including the leading report ID byte.
+     * This is called from the input thread, so it must not block for long.
+     */
+    protected abstract void sendHaptic(byte[] report);
 
     // Overlays the "..." chord on top of whatever the real Guide and A buttons are doing
     private void applyChordFlags() {
@@ -390,6 +437,7 @@ public abstract class AbstractSteamTritonController extends AbstractController {
                 pad.touching = false;
                 pad.remainderX = 0;
                 pad.remainderY = 0;
+                pad.notchRemainder = 0;
             }
         }
     }
@@ -424,6 +472,23 @@ public abstract class AbstractSteamTritonController extends AbstractController {
         report[7] = (byte) (high & 0xFF); // Right speed
         report[8] = (byte) ((high >> 8) & 0xFF);
         report[9] = 0; // Right gain
+        return report;
+    }
+
+    /**
+     * Builds the haptic pulse output report, including the leading report ID byte. Times are in
+     * microseconds, and the pulse repeats the given number of times.
+     */
+    protected static byte[] buildPulseReport(int side, int onUs, int offUs, int repeatCount) {
+        byte[] report = new byte[PULSE_REPORT_SIZE];
+        report[0] = (byte) REPORT_ID_PULSE;
+        report[1] = (byte) side;
+        report[2] = (byte) (onUs & 0xFF);
+        report[3] = (byte) ((onUs >> 8) & 0xFF);
+        report[4] = (byte) (offUs & 0xFF);
+        report[5] = (byte) ((offUs >> 8) & 0xFF);
+        report[6] = (byte) (repeatCount & 0xFF);
+        report[7] = (byte) ((repeatCount >> 8) & 0xFF);
         return report;
     }
 

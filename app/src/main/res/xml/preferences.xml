@@ -126,6 +126,12 @@
             android:title="@string/title_checkbox_gamepad_motion_fallback"
             android:summary="@string/summary_checkbox_gamepad_motion_fallback"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_device_motion_handheld"
+            android:title="@string/title_checkbox_device_motion_handheld"
+            android:summary="@string/summary_checkbox_device_motion_handheld"
+            android:dependency="checkbox_gamepad_motion_fallback"
+            android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_input_settings"
         android:key="category_input_settings">

@@ -2213,21 +2213,35 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
                     }
                 }
 
+                float motionX = sensorEvent.values[x] * xFactor;
+                float motionY = sensorEvent.values[y] * yFactor;
+                float motionZ = sensorEvent.values[z] * zFactor;
+
+                if (needsDeviceOrientationCorrection && prefConfig.deviceMotionHandheld) {
+                    // The mapping above assumes the device is lying flat like a gamepad.
+                    // When held upright with the screen facing the player, rotate +90 degrees
+                    // about the pitch axis so turning left/right is reported as yaw rather
+                    // than roll. One axis must be negated to keep this a proper rotation.
+                    float tmp = motionY;
+                    motionY = -motionZ;
+                    motionZ = tmp;
+                }
+
                 if (motionType == MoonBridge.LI_MOTION_TYPE_GYRO) {
                     // Convert from rad/s to deg/s
                     conn.sendControllerMotionEvent((byte) controllerNumber,
                             motionType,
-                            sensorEvent.values[x] * xFactor * 57.2957795f,
-                            sensorEvent.values[y] * yFactor * 57.2957795f,
-                            sensorEvent.values[z] * zFactor * 57.2957795f);
+                            motionX * 57.2957795f,
+                            motionY * 57.2957795f,
+                            motionZ * 57.2957795f);
                 }
                 else {
                     // Pass m/s^2 directly without conversion
                     conn.sendControllerMotionEvent((byte) controllerNumber,
                             motionType,
-                            sensorEvent.values[x] * xFactor,
-                            sensorEvent.values[y] * yFactor,
-                            sensorEvent.values[z] * zFactor);
+                            motionX,
+                            motionY,
+                            motionZ);
                 }
             }
 

@@ -306,6 +306,7 @@ public class StreamSettings extends Activity {
                     !getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_gamepad_settings");
+                category.removePreference(findPreference("checkbox_device_motion_handheld"));
                 category.removePreference(findPreference("checkbox_gamepad_motion_fallback"));
             }
 

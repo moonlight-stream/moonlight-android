@@ -146,6 +146,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView notificationOverlayView;
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
+    private View redrawKeepAliveView;
+    private final Handler redrawKeepAliveHandler = new Handler();
+    private boolean redrawKeepAliveToggle;
 
     private MediaCodecDecoderRenderer decoderRenderer;
     private boolean reportedCrash;
@@ -371,6 +374,17 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Check if the user has enabled performance stats overlay
         if (prefConfig.enablePerfOverlay) {
             performanceOverlayView.setVisibility(View.VISIBLE);
+        }
+        else if (needsRedrawKeepAlive()) {
+            // On some MediaTek TVs (seen on a TCL Google TV with an MT9689), the hardware composer's
+            // OSD queue grows by ~10 entries per second while nothing in our window changes over
+            // the video. When the stream ends, the screen stays black until that backlog drains,
+            // which takes minutes after a long session and can trip the system_server watchdog.
+            // Redrawing a pixel each second keeps the queue empty, which is why enabling the
+            // performance overlay was found to avoid the problem.
+            redrawKeepAliveView = findViewById(R.id.redrawKeepAlive);
+            redrawKeepAliveView.setVisibility(View.VISIBLE);
+            redrawKeepAliveHandler.post(redrawKeepAliveRunnable);
         }
 
         decoderRenderer = new MediaCodecDecoderRenderer(
@@ -1032,9 +1046,27 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         hideSystemUi(50);
     }
 
+    private final Runnable redrawKeepAliveRunnable = new Runnable() {
+        @Override
+        public void run() {
+            // Alternate between two colors that are indistinguishable on screen
+            redrawKeepAliveToggle = !redrawKeepAliveToggle;
+            redrawKeepAliveView.setBackgroundColor(redrawKeepAliveToggle ? 0xFF000000 : 0xFF010101);
+            redrawKeepAliveHandler.postDelayed(this, 1000);
+        }
+    };
+
+    private boolean needsRedrawKeepAlive() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                "Mediatek".equalsIgnoreCase(Build.SOC_MANUFACTURER) &&
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        redrawKeepAliveHandler.removeCallbacks(redrawKeepAliveRunnable);
 
         if (controllerHandler != null) {
             controllerHandler.destroy();

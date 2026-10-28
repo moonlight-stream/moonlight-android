@@ -36,6 +36,13 @@
         android:preferKeepClear="true"
         android:visibility="gone" />
 
+    <View
+        android:id="@+id/redrawKeepAlive"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:layout_gravity="top|left"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/notificationOverlay"
         android:layout_width="wrap_content"

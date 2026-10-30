@@ -12,6 +12,7 @@ import com.limelight.binding.input.touch.RelativeTouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
+import com.limelight.binding.input.touchpad.PointerSpeedScaler;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
@@ -117,6 +118,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private SharedPreferences tombstonePrefs;
 
     private NvConnection conn;
+    private PointerSpeedScaler touchpadSpeed;
     private SpinnerDialog spinner;
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
@@ -486,6 +488,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 new ComputerDetails.AddressTuple(host, port),
                 httpsPort, uniqueId, config,
                 PlatformBinding.getCryptoProvider(this), serverCert);
+        touchpadSpeed = new PointerSpeedScaler(prefConfig.touchpadSpeedPercent);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
@@ -1848,6 +1851,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     // Send the deltas straight from the motion event
                     short deltaX = (short)inputCaptureProvider.getRelativeAxisX(event);
                     short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);
+
+                    // A captured touchpad bypasses Android's pointer speed curve, so the
+                    // cursor runs faster in the stream than it does on the device itself.
+                    // Scale it by the user's setting. A mouse is left alone: it has its
+                    // own DPI, and the host's pointer settings already apply to it.
+                    if (eventSource == InputDevice.SOURCE_TOUCHPAD && touchpadSpeed != null) {
+                        deltaX = touchpadSpeed.scaleX(deltaX);
+                        deltaY = touchpadSpeed.scaleY(deltaY);
+                    }
 
                     if (deltaX != 0 || deltaY != 0) {
                         if (prefConfig.absoluteMouseMode) {

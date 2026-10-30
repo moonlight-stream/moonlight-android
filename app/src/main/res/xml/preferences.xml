@@ -144,6 +144,15 @@
             android:title="@string/title_checkbox_absolute_mouse_mode"
             android:summary="@string/summary_checkbox_absolute_mouse_mode"
             android:defaultValue="false" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_touchpad_speed"
+            android:defaultValue="100"
+            seekbar:min="25"
+            android:max="200"
+            seekbar:step="5"
+            android:summary="@string/summary_seekbar_touchpad_speed"
+            android:text="@string/suffix_seekbar_touchpad_speed"
+            android:title="@string/title_seekbar_touchpad_speed" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_on_screen_controls_settings"
         android:key="category_onscreen_controls">

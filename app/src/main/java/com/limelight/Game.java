@@ -12,6 +12,7 @@ import com.limelight.binding.input.touch.RelativeTouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
+import com.limelight.binding.input.touchpad.CapturedTouchpadGestures;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
@@ -117,6 +118,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private SharedPreferences tombstonePrefs;
 
     private NvConnection conn;
+    private CapturedTouchpadGestures touchpadGestures;
     private SpinnerDialog spinner;
     private boolean displayedFailureDialog = false;
     private boolean connecting = false;
@@ -486,6 +488,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 new ComputerDetails.AddressTuple(host, port),
                 httpsPort, uniqueId, config,
                 PlatformBinding.getCryptoProvider(this), serverCert);
+        touchpadGestures = new CapturedTouchpadGestures(conn);
         controllerHandler = new ControllerHandler(this, conn, this, prefConfig);
         keyboardTranslator = new KeyboardTranslator();
 
@@ -1841,10 +1844,22 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     return true;
                 }
 
+                // Pointer capture switches Android's touchpad gesture layer off, so a
+                // captured touchpad reports bare fingers: the physical click still
+                // arrives as a button, but tap-to-click and two-finger scrolling do not.
+                // Recognise them here, and hold back pointer motion while a multi-finger
+                // gesture is running so the cursor does not wander off mid-scroll.
+                boolean touchpadGestureInProgress = touchpadGestures != null &&
+                        touchpadGestures.handleEvent(event);
+
                 // Always update the position before sending any button events. If we're
                 // dealing with a stylus without hover support, our position might be
                 // significantly different than before.
-                if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
+                if (touchpadGestureInProgress) {
+                    // The fingers belong to the gesture: no pointer motion from them,
+                    // by either of the paths below. Buttons are still reported normally.
+                }
+                else if (inputCaptureProvider.eventHasRelativeMouseAxes(event)) {
                     // Send the deltas straight from the motion event
                     short deltaX = (short)inputCaptureProvider.getRelativeAxisX(event);
                     short deltaY = (short)inputCaptureProvider.getRelativeAxisY(event);

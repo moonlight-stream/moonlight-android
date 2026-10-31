@@ -1273,8 +1273,20 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
             // HACK: Reset codec recovery attempt counter, since this is an expected "recovery"
             codecRecoveryAttempts = 0;
 
-            // Promote None/Flush to Restart and leave Reset alone
-            if (!codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_NONE, CR_RECOVERY_TYPE_RESTART)) {
+            // On the Android 9 MStar HEVC implementation, stop/configure/start can retain
+            // the planar output state after HDR metadata changes. On MiTV-MFTP0 this
+            // switches ACodec to "SW Render" and reduces 4K60 output to about 38 FPS.
+            // Use the existing full reset recovery path so the OMX component is rebuilt;
+            // retain the HDR metadata and low-latency options during reconfiguration.
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P &&
+                    (videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0 &&
+                    hevcDecoder != null && "OMX.MS.HEVC.Decoder".equals(hevcDecoder.getName())) {
+                LimeLog.info("Redmi HDR fix: full codec reset for HDR metadata update; enabled=" + enabled);
+                // Reset is the strongest recovery level, so this cannot downgrade a pending recovery.
+                codecRecoveryType.set(CR_RECOVERY_TYPE_RESET);
+            }
+            // Promote None/Flush to Restart and leave Reset alone on other decoders.
+            else if (!codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_NONE, CR_RECOVERY_TYPE_RESTART)) {
                 codecRecoveryType.compareAndSet(CR_RECOVERY_TYPE_FLUSH, CR_RECOVERY_TYPE_RESTART);
             }
         }

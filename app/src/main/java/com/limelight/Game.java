@@ -751,6 +751,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         inputCaptureProvider.onWindowFocusChanged(hasFocus);
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
+        if (inputCaptureProvider != null) {
+            inputCaptureProvider.onPointerCaptureChanged(hasCapture);
+        }
+    }
+
     private boolean isRefreshRateEqualMatch(float refreshRate) {
         return refreshRate >= prefConfig.fps &&
                 refreshRate <= prefConfig.fps + 3;
@@ -1838,6 +1847,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (!inputCaptureProvider.isCapturingActive()) {
                     // We return true here because otherwise the events may end up causing
                     // Android to synthesize d-pad events.
+                    return true;
+                }
+
+                // A mouse event without relative axes is either a stray system cursor event
+                // (Meta Quest sends these even while we hold capture) or a sign we lost capture.
+                // Forwarding its absolute position makes the remote cursor snap back, so let the
+                // provider drop it and recapture if needed.
+                if (!inputCaptureProvider.eventHasRelativeMouseAxes(event) &&
+                        inputCaptureProvider.onAbsoluteMouseEvent(event)) {
                     return true;
                 }
 

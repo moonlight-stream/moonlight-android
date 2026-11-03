@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.hardware.input.InputManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,8 +17,23 @@ import android.view.View;
 // is unavailable on this system (ex: DeX, ChromeOS)
 @TargetApi(Build.VERSION_CODES.O)
 public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptureProvider implements InputManager.InputDeviceListener {
+    private static final long[] RECAPTURE_RETRY_DELAYS_MS = {250, 500, 1000, 2000, 3500};
+    private static final long UNCAPTURED_RECAPTURE_INTERVAL_MS = 200;
+
     private final InputManager inputManager;
     private final View targetView;
+    private final Handler recaptureHandler = new Handler(Looper.getMainLooper());
+    private final Runnable recaptureRunnable = new Runnable() {
+        @Override
+        public void run() {
+            requestCaptureIfNeeded();
+        }
+    };
+
+    // Set once pointer capture has worked on this device. Until then we never drop
+    // uncaptured mouse events, so devices without working capture keep absolute input.
+    private boolean captureHasWorked;
+    private long lastUncapturedRecaptureMs;
 
     public AndroidNativePointerCaptureProvider(Activity activity, View targetView) {
         super(activity, targetView);
@@ -85,12 +102,40 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         }
     }
 
+    // Should we currently own the pointer? Android pointer capture can't be held
+    // while the cursor is visible, so that case is excluded.
+    private boolean wantsCapture() {
+        return isCapturing && !isCursorVisible;
+    }
+
+    private void requestCaptureIfNeeded() {
+        if (wantsCapture() && targetView.hasWindowFocus() &&
+                !targetView.hasPointerCapture() && hasCaptureCompatibleInputDevice()) {
+            targetView.requestPointerCapture();
+        }
+    }
+
+    // Retry capture a few times after focus comes back. A single attempt is not enough on
+    // Meta Quest: the window gets focus back while the system menu is still closing, and
+    // the request is lost (or capture is revoked again right after).
+    private void scheduleRecaptureRetries() {
+        recaptureHandler.removeCallbacks(recaptureRunnable);
+        for (long delay : RECAPTURE_RETRY_DELAYS_MS) {
+            recaptureHandler.postDelayed(recaptureRunnable, delay);
+        }
+    }
+
     @Override
     public void onWindowFocusChanged(boolean focusActive) {
+        if (!focusActive) {
+            recaptureHandler.removeCallbacks(recaptureRunnable);
+            return;
+        }
+
         // NB: We have to check cursor visibility here because Android pointer capture
         // doesn't support capturing the cursor while it's visible. Enabling pointer
         // capture implicitly hides the cursor.
-        if (!focusActive || !isCapturing || isCursorVisible) {
+        if (!wantsCapture()) {
             return;
         }
 
@@ -98,15 +143,58 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         // we have to delay a bit before requesting capture because otherwise
         // we'll hit the "requestPointerCapture called for a window that has no focus"
         // error and it will not actually capture the cursor.
-        Handler h = new Handler();
-        h.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (hasCaptureCompatibleInputDevice()) {
-                    targetView.requestPointerCapture();
-                }
+        scheduleRecaptureRetries();
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        if (hasCapture) {
+            captureHasWorked = true;
+            recaptureHandler.removeCallbacks(recaptureRunnable);
+        }
+        else if (wantsCapture() && targetView.hasWindowFocus()) {
+            // Capture was taken away while we still have focus (seen on Meta Quest after
+            // the system menu closes). Try to take it back.
+            scheduleRecaptureRetries();
+        }
+    }
+
+    @Override
+    public boolean onAbsoluteMouseEvent(MotionEvent event) {
+        // Only physical mice. Touchscreens, styluses and touchpads keep their normal handling.
+        if (!wantsCapture() || event.getSource() != InputDevice.SOURCE_MOUSE ||
+                event.getPointerCount() < 1 || event.getToolType(0) != MotionEvent.TOOL_TYPE_MOUSE) {
+            return false;
+        }
+
+        if (targetView.hasPointerCapture()) {
+            // With capture held, real mouse input arrives as SOURCE_MOUSE_RELATIVE. Meta Quest
+            // still sends hover enter/exit at the frozen system cursor position; forwarding those
+            // makes the remote cursor snap back to that spot over and over.
+            return true;
+        }
+
+        // The mouse is moving the system cursor instead of being captured by us.
+        // Ask for capture again (rate limited, since this runs for every mouse event).
+        long now = SystemClock.uptimeMillis();
+        if (now - lastUncapturedRecaptureMs >= UNCAPTURED_RECAPTURE_INTERVAL_MS) {
+            lastUncapturedRecaptureMs = now;
+            if (hasCaptureCompatibleInputDevice()) {
+                targetView.requestPointerCapture();
             }
-        }, 500);
+        }
+
+        // Drop the absolute position while we recapture, otherwise the remote cursor snaps
+        // back to wherever the system cursor is sitting. Only do this on devices where capture
+        // has worked before, so systems without pointer capture (DeX, ChromeOS) still get
+        // absolute mouse input.
+        return captureHasWorked;
+    }
+
+    @Override
+    public void destroy() {
+        recaptureHandler.removeCallbacks(recaptureRunnable);
+        super.destroy();
     }
 
     @Override
@@ -115,8 +203,12 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         // SOURCE_TOUCHPAD will have relative axes populated iff our view has pointer capture.
         // See https://developer.android.com/reference/android/view/View#requestPointerCapture()
         int eventSource = event.getSource();
-        return (eventSource == InputDevice.SOURCE_MOUSE_RELATIVE && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) ||
+        boolean relative = (eventSource == InputDevice.SOURCE_MOUSE_RELATIVE && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) ||
                 (eventSource == InputDevice.SOURCE_TOUCHPAD && targetView.hasPointerCapture());
+        if (relative) {
+            captureHasWorked = true;
+        }
+        return relative;
     }
 
     @Override

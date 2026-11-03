@@ -46,4 +46,13 @@ public abstract class InputCaptureProvider {
     }
 
     public void onWindowFocusChanged(boolean focusActive) {}
+
+    public void onPointerCaptureChanged(boolean hasCapture) {}
+
+    // Called for a mouse event that arrived without relative axes while capture is enabled.
+    // Returns true if the event should be dropped (spurious system cursor event, or the
+    // provider is recapturing the pointer).
+    public boolean onAbsoluteMouseEvent(MotionEvent event) {
+        return false;
+    }
 }

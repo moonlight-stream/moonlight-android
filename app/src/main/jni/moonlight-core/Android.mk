@@ -8,7 +8,10 @@ LOCAL_PATH := $(MY_LOCAL_PATH)
 include $(CLEAR_VARS)
 LOCAL_MODULE    := moonlight-core
 
-LOCAL_SRC_FILES := moonlight-common-c/src/AudioStream.c \
+LOCAL_SRC_FILES := NativeMicEncoder.c \
+                   android-mic-bridge.c \
+                   moonlight-common-c/src/NativeMicStream.c \
+                   moonlight-common-c/src/AudioStream.c \
                    moonlight-common-c/src/ByteBuffer.c \
                    moonlight-common-c/src/Connection.c \
                    moonlight-common-c/src/ConnectionTester.c \

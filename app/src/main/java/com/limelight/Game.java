@@ -478,6 +478,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setAudioConfiguration(prefConfig.audioConfiguration)
                 .setColorSpace(decoderRenderer.getPreferredColorSpace())
                 .setColorRange(decoderRenderer.getPreferredColorRange())
+                .setNativeMicrophone(prefConfig.nativeMicrophone)
                 .setPersistGamepadsAfterDisconnect(!prefConfig.multiController)
                 .build();
 
@@ -1062,6 +1063,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     protected void onPause() {
+        if (conn != null) {
+            conn.stopMicrophone();
+        }
+
         if (isFinishing()) {
             // Stop any further input device notifications before we lose focus (and pointer capture)
             if (controllerHandler != null) {
@@ -2458,6 +2463,12 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 Toast.makeText(Game.this, message, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    public void microphoneStateChanged(boolean active) {
+        runOnUiThread(() -> findViewById(R.id.microphoneIndicator)
+                .setVisibility(active ? View.VISIBLE : View.GONE));
     }
 
     @Override

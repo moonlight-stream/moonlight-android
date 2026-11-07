@@ -1,5 +1,6 @@
 package com.limelight.preferences;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -122,6 +123,20 @@ public class StreamSettings extends Activity {
     }
 
     public static class SettingsFragment extends PreferenceFragment {
+        private static final int NATIVE_MIC_PERMISSION = 211;
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (requestCode == NATIVE_MIC_PERMISSION && grantResults.length == 1 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED && isAdded()) {
+                CheckBoxPreference microphone = (CheckBoxPreference) findPreference("checkbox_native_microphone");
+                if (microphone != null) {
+                    PreferenceConfiguration.setNativeMicrophoneEnabledForRun(true);
+                    microphone.setChecked(true);
+                }
+            }
+        }
         private int nativeResolutionStartIndex = Integer.MAX_VALUE;
         private boolean nativeFramerateShown = false;
 
@@ -276,6 +291,21 @@ public class StreamSettings extends Activity {
 
             addPreferencesFromResource(R.xml.preferences);
             PreferenceScreen screen = getPreferenceScreen();
+            CheckBoxPreference microphone = (CheckBoxPreference) findPreference("checkbox_native_microphone");
+            microphone.setChecked(PreferenceConfiguration.isNativeMicrophoneEnabledForRun());
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                microphone.setEnabled(false);
+            } else {
+                microphone.setOnPreferenceChangeListener((preference, value) -> {
+                    if (Boolean.TRUE.equals(value) &&
+                            getActivity().checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, NATIVE_MIC_PERMISSION);
+                        return false;
+                    }
+                    PreferenceConfiguration.setNativeMicrophoneEnabledForRun(Boolean.TRUE.equals(value));
+                    return true;
+                });
+            }
 
             // hide on-screen controls category on non touch screen devices
             if (!getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {

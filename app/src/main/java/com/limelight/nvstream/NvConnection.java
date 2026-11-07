@@ -39,6 +39,8 @@ import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
 import com.limelight.nvstream.input.MouseButtonPacket;
 import com.limelight.nvstream.jni.MoonBridge;
+import com.limelight.nvstream.jni.NativeMicCapture;
+import com.limelight.R;
 
 public class NvConnection {
     // Context parameters
@@ -48,6 +50,19 @@ public class NvConnection {
     private static Semaphore connectionAllowed = new Semaphore(1);
     private final boolean isMonkey;
     private final Context appContext;
+    private final Object microphoneLock = new Object();
+    private boolean microphoneAllowed = true;
+    private NativeMicCapture microphone;
+
+    public void stopMicrophone() {
+        synchronized (microphoneLock) {
+            microphoneAllowed = false;
+            if (microphone != null) {
+                microphone.close();
+                microphone = null;
+            }
+        }
+    }
 
     public NvConnection(Context appContext, ComputerDetails.AddressTuple host, int httpsPort, String uniqueId, StreamConfiguration config, LimelightCryptoProvider cryptoProvider, X509Certificate serverCert)
     {
@@ -87,6 +102,7 @@ public class NvConnection {
     }
 
     public void stop() {
+        stopMicrophone();
         // Interrupt any pending connection. This is thread-safe.
         MoonBridge.interruptConnection();
 
@@ -425,6 +441,11 @@ public class NvConnection {
                 // we must not invoke that functionality in parallel.
                 synchronized (MoonBridge.class) {
                     MoonBridge.setupBridge(videoDecoderRenderer, audioRenderer, connectionListener);
+                    boolean requestMicrophone;
+                    synchronized (microphoneLock) {
+                        requestMicrophone = microphoneAllowed && context.streamConfig.getNativeMicrophone() &&
+                                NativeMicCapture.hasPermission(appContext);
+                    }
                     int ret = MoonBridge.startConnection(context.serverAddress.address,
                             context.serverAppVersion, context.serverGfeVersion, context.rtspSessionUrl,
                             context.serverCodecModeSupport,
@@ -437,13 +458,22 @@ public class NvConnection {
                             context.riKey.getEncoded(), ib.array(),
                             context.videoCapabilities,
                             context.streamConfig.getColorSpace(),
-                            context.streamConfig.getColorRange());
+                            context.streamConfig.getColorRange(), requestMicrophone);
                     if (ret != 0) {
                         // LiStartConnection() failed, so the caller is not expected
                         // to stop the connection themselves. We need to release their
                         // semaphore count for them.
                         connectionAllowed.release();
                         return;
+                    }
+                    synchronized (microphoneLock) {
+                        if (microphoneAllowed && requestMicrophone) {
+                            microphone = NativeMicCapture.start(appContext, connectionListener::microphoneStateChanged);
+                            if (microphone == null) {
+                                connectionListener.displayTransientMessage(
+                                        appContext.getString(R.string.native_microphone_unavailable));
+                            }
+                        }
                     }
                 }
             }

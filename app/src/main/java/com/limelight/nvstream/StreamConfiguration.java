@@ -26,6 +26,11 @@ public class StreamConfiguration {
     private int attachedGamepadMask;
     private int encryptionFlags;
     private int colorRange;
+    private boolean nativeMicrophone;
+
+    public boolean getNativeMicrophone() {
+        return nativeMicrophone;
+    }
     private int colorSpace;
     private boolean persistGamepadsAfterDisconnect;
 
@@ -115,6 +120,11 @@ public class StreamConfiguration {
         
         public StreamConfiguration.Builder setSupportedVideoFormats(int supportedVideoFormats) {
             config.supportedVideoFormats = supportedVideoFormats;
+            return this;
+        }
+
+        public StreamConfiguration.Builder setNativeMicrophone(boolean enabled) {
+            config.nativeMicrophone = enabled;
             return this;
         }
 

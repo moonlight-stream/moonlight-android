@@ -33,3 +33,21 @@ You can follow development on our [Discord server](https://moonlight-stream.org/
 
 Moonlight is the work of students at [Case Western](http://case.edu) and was
 started as a project at [MHacks](http://mhacks.org).
+
+## Native GameStream microphone
+
+On Android 6 or later, enable **Forward microphone to NVIDIA GameStream
+for this run** in streaming settings and grant microphone permission.
+This setting starts off for each app process. Capture starts after successful
+native GameStream negotiation, shows a stream indicator, and stops when the
+activity pauses or the connection ends. Reconnect to enable it again after
+leaving the foreground.
+
+Use a compatible [Windows NVIDIA GameStream host](https://github.com/Bargs/native-gamestream-microphone-host)
+on a trusted private IPv4 network or separately secured tunnel. The legacy
+CBC mode does not authenticate microphone packets. This path is distinct
+from Sunshine microphone extensions.
+
+The arm64 non-root debug app builds with SDK 37 and NDK 29. Physical
+microphone, permission, route changes, pause and native host delivery
+still need device verification.

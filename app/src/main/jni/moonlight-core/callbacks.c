@@ -461,7 +461,7 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass c
                                                            jint clientRefreshRateX100,
                                                            jbyteArray riAesKey, jbyteArray riAesIv,
                                                            jint videoCapabilities,
-                                                           jint colorSpace, jint colorRange) {
+                                                           jint colorSpace, jint colorRange, jboolean requestNativeMicrophone) {
     SERVER_INFORMATION serverInfo = {
             .address = (*env)->GetStringUTFChars(env, address, 0),
             .serverInfoAppVersion = (*env)->GetStringUTFChars(env, appVersion, 0),
@@ -481,7 +481,8 @@ Java_com_limelight_nvstream_jni_MoonBridge_startConnection(JNIEnv *env, jclass c
             .clientRefreshRateX100 = clientRefreshRateX100,
             .encryptionFlags = ENCFLG_AUDIO,
             .colorSpace = colorSpace,
-            .colorRange = colorRange
+            .colorRange = colorRange,
+            .requestNativeMic = requestNativeMicrophone
     };
 
     jbyte* riAesKeyBuf = (*env)->GetByteArrayElements(env, riAesKey, NULL);

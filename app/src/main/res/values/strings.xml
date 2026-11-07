@@ -303,4 +303,8 @@
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
     <string name="analogscroll_left">Left analog stick</string>
+    <string name="title_native_microphone">Forward microphone to NVIDIA GameStream for this run</string>
+    <string name="native_microphone_on">Microphone forwarding ON</string>
+    <string name="native_microphone_unavailable">Microphone forwarding could not start</string>
+    <string name="summary_native_microphone">Requires Android 6 or later and a compatible NVIDIA host on private IPv4. Pausing or ending the stream stops forwarding.</string>
 </resources>

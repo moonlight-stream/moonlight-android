@@ -50,4 +50,15 @@
         android:preferKeepClear="true"
         android:visibility="gone" />
 
+    <TextView
+        android:id="@+id/microphoneIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="10dp"
+        android:background="#80000000"
+        android:text="@string/native_microphone_on"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:visibility="gone" />
+
 </merge>

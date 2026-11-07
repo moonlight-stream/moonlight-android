@@ -8,6 +8,7 @@ public interface NvConnectionListener {
     void connectionStarted();
     void connectionTerminated(int errorCode);
     void connectionStatusUpdate(int connectionStatus);
+    default void microphoneStateChanged(boolean active) {}
     
     void displayMessage(String message);
     void displayTransientMessage(String message);

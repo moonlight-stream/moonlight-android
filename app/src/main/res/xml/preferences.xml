@@ -42,6 +42,12 @@
             android:defaultValue="false" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_audio_settings">
+        <CheckBoxPreference
+            android:key="checkbox_native_microphone"
+            android:persistent="false"
+            android:title="@string/title_native_microphone"
+            android:summary="@string/summary_native_microphone"
+            android:defaultValue="false" />
         <ListPreference
             android:key="list_audio_config"
             android:title="@string/title_audio_config_list"

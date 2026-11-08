@@ -169,6 +169,8 @@
     <string name="summary_checkbox_enable_audiofx">Allows audio effects to function while streaming, but may increase audio latency</string>
 
     <string name="category_gamepad_settings">Gamepad Settings</string>
+    <string name="title_checkbox_controller_only">Controller-only mode</string>
+    <string name="summary_checkbox_controller_only">Keep the screen black and discard video without decoding it. A button in the stream shows or hides the on-screen controls. Disable this to restore normal video.</string>
     <string name="title_checkbox_multi_controller">Automatic gamepad presence detection</string>
     <string name="summary_checkbox_multi_controller">Unchecking this option forces a gamepad to always be present</string>
     <string name="title_checkbox_vibrate_fallback">Emulate rumble support with vibration</string>
@@ -205,6 +207,8 @@
     <string name="category_on_screen_controls_settings">On-screen Controls Settings</string>
     <string name="title_checkbox_show_onscreen_controls">Show on-screen controls</string>
     <string name="summary_checkbox_show_onscreen_controls">Show virtual controller overlay on touchscreen</string>
+    <string name="show_onscreen_controls">Show controls</string>
+    <string name="hide_onscreen_controls">Hide controls</string>
     <string name="title_checkbox_vibrate_osc">Enable vibration</string>
     <string name="summary_checkbox_vibrate_osc">Vibrates your device to emulate rumble for the on-screen controls</string>
     <string name="title_only_l3r3">Only show L3 and R3</string>

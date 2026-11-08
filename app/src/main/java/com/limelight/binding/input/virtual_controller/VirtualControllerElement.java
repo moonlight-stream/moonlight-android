@@ -224,6 +224,12 @@ public abstract class VirtualControllerElement extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        // Existing touch targets can continue receiving events after becoming invisible.
+        // Consume those events without allowing hidden controls to generate input.
+        if (!virtualController.isAcceptingInput()) {
+            return true;
+        }
+
         // Ignore secondary touches on controls
         //
         // NB: We can get an additional pointer down if the user touches a non-StreamView area

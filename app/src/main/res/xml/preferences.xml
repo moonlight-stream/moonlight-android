@@ -57,6 +57,11 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_gamepad_settings"
         android:key="category_gamepad_settings">
+        <CheckBoxPreference
+            android:key="checkbox_controller_only"
+            android:title="@string/title_checkbox_controller_only"
+            android:summary="@string/summary_checkbox_controller_only"
+            android:defaultValue="true" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_deadzone"
             android:defaultValue="7"
@@ -154,13 +159,11 @@
             android:title="@string/title_checkbox_show_onscreen_controls" />
         <CheckBoxPreference
             android:key="checkbox_vibrate_osc"
-            android:dependency="checkbox_show_onscreen_controls"
             android:title="@string/title_checkbox_vibrate_osc"
             android:summary="@string/summary_checkbox_vibrate_osc"
             android:defaultValue="true" />
         <CheckBoxPreference
             android:defaultValue="false"
-            android:dependency="checkbox_show_onscreen_controls"
             android:key="checkbox_only_show_L3R3"
             android:summary="@string/summary_only_l3r3"
             android:title="@string/title_only_l3r3" />
@@ -168,13 +171,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:defaultValue="true"
-            android:dependency="checkbox_show_onscreen_controls"
             android:key="checkbox_show_guide_button"
             android:summary="@string/summary_show_guide_button"
             android:title="@string/title_show_guide_button" />
         <com.limelight.preferences.SeekBarPreference
             android:key="seekbar_osc_opacity"
-            android:dependency="checkbox_show_onscreen_controls"
             android:dialogMessage="@string/summary_osc_opacity"
             seekbar:min="0"
             seekbar:step="1"

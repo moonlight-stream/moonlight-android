@@ -13,6 +13,7 @@ import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
 import com.limelight.binding.input.virtual_controller.VirtualController;
+import com.limelight.binding.video.ControllerOnlyDecoderRenderer;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
 import com.limelight.binding.video.MediaCodecHelper;
@@ -20,6 +21,7 @@ import com.limelight.binding.video.PerfOverlayListener;
 import com.limelight.nvstream.NvConnection;
 import com.limelight.nvstream.NvConnectionListener;
 import com.limelight.nvstream.StreamConfiguration;
+import com.limelight.nvstream.av.video.VideoDecoderRenderer;
 import com.limelight.nvstream.http.ComputerDetails;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
@@ -74,6 +76,7 @@ import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -147,7 +150,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
 
-    private MediaCodecDecoderRenderer decoderRenderer;
+    private VideoDecoderRenderer decoderRenderer;
+    private MediaCodecDecoderRenderer mediaCodecDecoderRenderer;
+    private Button controllerVisibilityToggle;
+    private boolean controllerOverlayVisible = true;
     private boolean reportedCrash;
 
     private WifiManager.WifiLock highPerfWifiLock;
@@ -341,7 +347,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         // Check if the user has enabled HDR
         boolean willStreamHdr = false;
-        if (prefConfig.enableHdr) {
+        if (prefConfig.enableHdr && !prefConfig.controllerOnly) {
             // Start our HDR checklist
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 Display display = getWindowManager().getDefaultDisplay();
@@ -369,58 +375,80 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         // Check if the user has enabled performance stats overlay
-        if (prefConfig.enablePerfOverlay) {
+        if (prefConfig.enablePerfOverlay && !prefConfig.controllerOnly) {
             performanceOverlayView.setVisibility(View.VISIBLE);
         }
 
-        decoderRenderer = new MediaCodecDecoderRenderer(
-                this,
-                prefConfig,
-                new CrashListener() {
-                    @Override
-                    public void notifyCrash(Exception e) {
-                        // The MediaCodec instance is going down due to a crash
-                        // let's tell the user something when they open the app again
-
-                        // We must use commit because the app will crash when we return from this function
-                        tombstonePrefs.edit().putInt("CrashCount", tombstonePrefs.getInt("CrashCount", 0) + 1).commit();
-                        reportedCrash = true;
-                    }
-                },
-                tombstonePrefs.getInt("CrashCount", 0),
-                connMgr.isActiveNetworkMetered(),
-                willStreamHdr,
-                glPrefs.glRenderer,
-                this);
-
-        // Don't stream HDR if the decoder can't support it
-        if (willStreamHdr && !decoderRenderer.isHevcMain10Hdr10Supported() && !decoderRenderer.isAv1Main10Supported()) {
-            willStreamHdr = false;
-            Toast.makeText(this, "Decoder does not support HDR10 profile", Toast.LENGTH_LONG).show();
+        controllerVisibilityToggle = findViewById(R.id.controllerVisibilityToggle);
+        if (prefConfig.controllerOnly) {
+            findViewById(R.id.controllerOnlyBackground).setVisibility(View.VISIBLE);
+            controllerVisibilityToggle.setVisibility(View.VISIBLE);
+            controllerVisibilityToggle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    setControllerOverlayVisible(!controllerOverlayVisible);
+                }
+            });
         }
 
-        // Display a message to the user if HEVC was forced on but we still didn't find a decoder
-        if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_HEVC && !decoderRenderer.isHevcSupported()) {
-            Toast.makeText(this, "No HEVC decoder found", Toast.LENGTH_LONG).show();
-        }
+        CrashListener crashListener = new CrashListener() {
+            @Override
+            public void notifyCrash(Exception e) {
+                // The MediaCodec instance is going down due to a crash
+                // let's tell the user something when they open the app again
 
-        // Display a message to the user if AV1 was forced on but we still didn't find a decoder
-        if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_AV1 && !decoderRenderer.isAv1Supported()) {
-            Toast.makeText(this, "No AV1 decoder found", Toast.LENGTH_LONG).show();
-        }
-
-        // H.264 is always supported
-        int supportedVideoFormats = MoonBridge.VIDEO_FORMAT_H264;
-        if (decoderRenderer.isHevcSupported()) {
-            supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_H265;
-            if (willStreamHdr && decoderRenderer.isHevcMain10Hdr10Supported()) {
-                supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_H265_MAIN10;
+                // We must use commit because the app will crash when we return from this function
+                tombstonePrefs.edit().putInt("CrashCount", tombstonePrefs.getInt("CrashCount", 0) + 1).commit();
+                reportedCrash = true;
             }
+        };
+
+        if (prefConfig.controllerOnly) {
+            decoderRenderer = new ControllerOnlyDecoderRenderer();
         }
-        if (decoderRenderer.isAv1Supported()) {
-            supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_AV1_MAIN8;
-            if (willStreamHdr && decoderRenderer.isAv1Main10Supported()) {
-                supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_AV1_MAIN10;
+        else {
+            mediaCodecDecoderRenderer = new MediaCodecDecoderRenderer(
+                    this,
+                    prefConfig,
+                    crashListener,
+                    tombstonePrefs.getInt("CrashCount", 0),
+                    connMgr.isActiveNetworkMetered(),
+                    willStreamHdr,
+                    glPrefs.glRenderer,
+                    this);
+            decoderRenderer = mediaCodecDecoderRenderer;
+        }
+
+        // H.264 is always supported. Controller-only mode needs no hardware decoder.
+        int supportedVideoFormats = MoonBridge.VIDEO_FORMAT_H264;
+        if (mediaCodecDecoderRenderer != null) {
+            // Don't stream HDR if the decoder can't support it
+            if (willStreamHdr && !mediaCodecDecoderRenderer.isHevcMain10Hdr10Supported() && !mediaCodecDecoderRenderer.isAv1Main10Supported()) {
+                willStreamHdr = false;
+                Toast.makeText(this, "Decoder does not support HDR10 profile", Toast.LENGTH_LONG).show();
+            }
+
+            // Display a message to the user if HEVC was forced on but we still didn't find a decoder
+            if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_HEVC && !mediaCodecDecoderRenderer.isHevcSupported()) {
+                Toast.makeText(this, "No HEVC decoder found", Toast.LENGTH_LONG).show();
+            }
+
+            // Display a message to the user if AV1 was forced on but we still didn't find a decoder
+            if (prefConfig.videoFormat == PreferenceConfiguration.FormatOption.FORCE_AV1 && !mediaCodecDecoderRenderer.isAv1Supported()) {
+                Toast.makeText(this, "No AV1 decoder found", Toast.LENGTH_LONG).show();
+            }
+
+            if (mediaCodecDecoderRenderer.isHevcSupported()) {
+                supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_H265;
+                if (willStreamHdr && mediaCodecDecoderRenderer.isHevcMain10Hdr10Supported()) {
+                    supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_H265_MAIN10;
+                }
+            }
+            if (mediaCodecDecoderRenderer.isAv1Supported()) {
+                supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_AV1_MAIN8;
+                if (willStreamHdr && mediaCodecDecoderRenderer.isAv1Main10Supported()) {
+                    supportedVideoFormats |= MoonBridge.VIDEO_FORMAT_AV1_MAIN10;
+                }
             }
         }
 
@@ -431,7 +459,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // of gamepads removed and replugged at runtime.
             gamepadMask = 1;
         }
-        if (prefConfig.onscreenController) {
+        if (prefConfig.isOnscreenControllerEnabled()) {
             // If we're using OSC, always set at least gamepad 1.
             gamepadMask |= 1;
         }
@@ -476,8 +504,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 .setAttachedGamepadMask(gamepadMask)
                 .setClientRefreshRateX100((int)(displayRefreshRate * 100))
                 .setAudioConfiguration(prefConfig.audioConfiguration)
-                .setColorSpace(decoderRenderer.getPreferredColorSpace())
-                .setColorRange(decoderRenderer.getPreferredColorRange())
+                .setColorSpace(mediaCodecDecoderRenderer != null ?
+                        mediaCodecDecoderRenderer.getPreferredColorSpace() : MoonBridge.COLORSPACE_REC_709)
+                .setColorRange(mediaCodecDecoderRenderer != null ?
+                        mediaCodecDecoderRenderer.getPreferredColorRange() : MoonBridge.COLOR_RANGE_LIMITED)
                 .setPersistGamepadsAfterDisconnect(!prefConfig.multiController)
                 .build();
 
@@ -504,7 +534,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        if (prefConfig.onscreenController) {
+        if (prefConfig.isOnscreenControllerEnabled()) {
             // create virtual onscreen controller
             virtualController = new VirtualController(controllerHandler,
                     (FrameLayout)streamView.getParent(),
@@ -513,13 +543,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             virtualController.show();
         }
 
+        if (prefConfig.controllerOnly) {
+            // Keep the visibility toggle accessible above the virtual controller.
+            controllerVisibilityToggle.bringToFront();
+        }
+
         if (prefConfig.usbDriver) {
             // Start the USB driver
             bindService(new Intent(this, UsbDriverService.class),
                     usbDriverServiceConnection, Service.BIND_AUTO_CREATE);
         }
 
-        if (!decoderRenderer.isAvcSupported()) {
+        if (mediaCodecDecoderRenderer != null && !mediaCodecDecoderRenderer.isAvcSupported()) {
             if (spinner != null) {
                 spinner.dismiss();
                 spinner = null;
@@ -535,6 +570,25 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         streamView.getHolder().addCallback(this);
     }
 
+    private void setControllerOverlayVisible(boolean visible) {
+        controllerOverlayVisible = visible;
+
+        if (virtualController != null) {
+            if (visible) {
+                if (!isHidingOverlays) {
+                    virtualController.show();
+                }
+            }
+            else {
+                virtualController.hide();
+            }
+        }
+
+        controllerVisibilityToggle.setText(visible ?
+                R.string.hide_onscreen_controls : R.string.show_onscreen_controls);
+        controllerVisibilityToggle.bringToFront();
+    }
+
     private void setPreferredOrientationForCurrentDisplay() {
         Display display = getWindowManager().getDefaultDisplay();
 
@@ -543,7 +597,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             int desiredOrientation = Configuration.ORIENTATION_UNDEFINED;
 
             // OSC doesn't properly support portrait displays, so don't use it in portrait mode by default
-            if (prefConfig.onscreenController) {
+            if (prefConfig.isOnscreenControllerEnabled()) {
                 desiredOrientation = Configuration.ORIENTATION_LANDSCAPE;
             }
 
@@ -584,6 +638,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (virtualController != null) {
             // Refresh layout of OSC for possible new screen size
             virtualController.refreshLayout();
+            if (prefConfig.controllerOnly && !controllerOverlayVisible) {
+                setControllerOverlayVisible(false);
+            }
+        }
+
+        if (prefConfig.controllerOnly) {
+            controllerVisibilityToggle.bringToFront();
         }
 
         // Hide on-screen overlays in PiP mode
@@ -597,6 +658,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 performanceOverlayView.setVisibility(View.GONE);
                 notificationOverlayView.setVisibility(View.GONE);
+                if (prefConfig.controllerOnly) {
+                    controllerVisibilityToggle.setVisibility(View.GONE);
+                }
 
                 // Disable sensors while in PiP mode
                 controllerHandler.disableSensors();
@@ -609,15 +673,19 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 // Restore overlays to previous state when leaving PiP
 
-                if (virtualController != null) {
+                if (virtualController != null && controllerOverlayVisible) {
                     virtualController.show();
                 }
 
-                if (prefConfig.enablePerfOverlay) {
+                if (prefConfig.enablePerfOverlay && !prefConfig.controllerOnly) {
                     performanceOverlayView.setVisibility(View.VISIBLE);
                 }
 
                 notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
+                if (prefConfig.controllerOnly) {
+                    controllerVisibilityToggle.setVisibility(View.VISIBLE);
+                    controllerVisibilityToggle.bringToFront();
+                }
 
                 // Enable sensors again after exiting PiP
                 controllerHandler.enableSensors();
@@ -658,7 +726,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     private void updatePipAutoEnter() {
-        if (!prefConfig.enablePip) {
+        if (!prefConfig.enablePip || prefConfig.controllerOnly) {
             return;
         }
 
@@ -1021,11 +1089,15 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // that case here too.
         if (isInMultiWindowMode) {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            decoderRenderer.notifyVideoBackground();
+            if (mediaCodecDecoderRenderer != null) {
+                mediaCodecDecoderRenderer.notifyVideoBackground();
+            }
         }
         else {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            decoderRenderer.notifyVideoForeground();
+            if (mediaCodecDecoderRenderer != null) {
+                mediaCodecDecoderRenderer.notifyVideoForeground();
+            }
         }
 
         // Correct the system UI visibility flags
@@ -1087,14 +1159,13 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         }
 
         if (conn != null) {
-            int videoFormat = decoderRenderer.getActiveVideoFormat();
-
             displayedFailureDialog = true;
             stopConnection();
 
-            if (prefConfig.enableLatencyToast) {
-                int averageEndToEndLat = decoderRenderer.getAverageEndToEndLatency();
-                int averageDecoderLat = decoderRenderer.getAverageDecoderLatency();
+            if (prefConfig.enableLatencyToast && mediaCodecDecoderRenderer != null) {
+                int videoFormat = mediaCodecDecoderRenderer.getActiveVideoFormat();
+                int averageEndToEndLat = mediaCodecDecoderRenderer.getAverageEndToEndLatency();
+                int averageDecoderLat = mediaCodecDecoderRenderer.getAverageDecoderLatency();
                 String message = null;
                 if (averageEndToEndLat > 0) {
                     message = getResources().getString(R.string.conn_client_latency)+" "+averageEndToEndLat+" ms";
@@ -2514,7 +2585,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Update GameManager state to indicate we're "loading" while connecting
             UiHelper.notifyStreamConnecting(Game.this);
 
-            decoderRenderer.setRenderTarget(holder);
+            if (mediaCodecDecoderRenderer != null) {
+                mediaCodecDecoderRenderer.setRenderTarget(holder);
+            }
             conn.start(new AndroidAudioRenderer(Game.this, prefConfig.enableAudioFx),
                     decoderRenderer, Game.this);
         }
@@ -2569,7 +2642,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (attemptedConnection) {
             // Let the decoder know immediately that the surface is gone
-            decoderRenderer.prepareForStop();
+            if (mediaCodecDecoderRenderer != null) {
+                mediaCodecDecoderRenderer.prepareForStop();
+            }
 
             if (connected) {
                 stopConnection();

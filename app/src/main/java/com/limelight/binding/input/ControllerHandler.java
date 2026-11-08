@@ -368,6 +368,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
     public static short getAttachedControllerMask(Context context) {
         int count = 0;
         short mask = 0;
+        PreferenceConfiguration prefs = PreferenceConfiguration.readPreferences(context);
 
         // Count all input devices that are gamepads
         InputManager im = (InputManager) context.getSystemService(Context.INPUT_SERVICE);
@@ -384,7 +385,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         }
 
         // Count all USB devices that match our drivers
-        if (PreferenceConfiguration.readPreferences(context).usbDriver) {
+        if (prefs.usbDriver) {
             UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
             if (usbManager != null) {
                 for (UsbDevice dev : usbManager.getDeviceList().values()) {
@@ -399,7 +400,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             }
         }
 
-        if (PreferenceConfiguration.readPreferences(context).onscreenController) {
+        if (prefs.isOnscreenControllerEnabled()) {
             LimeLog.info("Counting OSC gamepad");
             mask |= 1;
         }
@@ -1076,7 +1077,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
 
     private short getActiveControllerMask() {
         if (prefConfig.multiController) {
-            return (short)(currentControllers | initialControllers | (prefConfig.onscreenController ? 1 : 0));
+            return (short)(currentControllers | initialControllers | (prefConfig.isOnscreenControllerEnabled() ? 1 : 0));
         }
         else {
             // Only Player 1 is active with multi-controller disabled
@@ -2101,7 +2102,7 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
             // If we didn't find a matching device, it must be the on-screen
             // controls that triggered the rumble. Vibrate the device if
             // the user has requested that behavior.
-            if (!foundMatchingDevice && prefConfig.onscreenController && !prefConfig.onlyL3R3 && prefConfig.vibrateOsc) {
+            if (!foundMatchingDevice && prefConfig.isOnscreenControllerEnabled() && !prefConfig.onlyL3R3 && prefConfig.vibrateOsc) {
                 rumbleSingleVibrator(deviceVibrator, lowFreqMotor, highFreqMotor);
             }
             else if (foundMatchingDevice && !vibrated && prefConfig.vibrateFallbackToDevice) {

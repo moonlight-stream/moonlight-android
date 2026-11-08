@@ -22,6 +22,15 @@
         <requestFocus />
     </com.limelight.ui.StreamView>
 
+    <View
+        android:id="@+id/controllerOnlyBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/performanceOverlay"
         android:layout_width="wrap_content"
@@ -48,6 +57,24 @@
         android:gravity="right"
         android:background="#80000000"
         android:preferKeepClear="true"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/controllerVisibilityToggle"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="12dp"
+        android:alpha="0.75"
+        android:background="#80000000"
+        android:focusable="false"
+        android:minWidth="0dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/hide_onscreen_controls"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
         android:visibility="gone" />
 
 </merge>

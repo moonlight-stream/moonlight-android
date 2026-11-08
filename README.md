@@ -1,5 +1,13 @@
 # Moonlight Android
 
+## Controller-only fork
+
+This fork enables **Controller-only mode** by default. Pairing, app launching, USB-C/Bluetooth gamepads, touch controls, rumble, and audio work as usual, but the streaming screen stays black and video frames are discarded without hardware decoding or rendering.
+
+Use the **Hide controls** button during a session to hide the on-screen controller. The button remains available as **Show controls** so you can restore it. Physical gamepad input continues to work in either state. To use normal video streaming instead, disable **Controller-only mode** in **Gamepad Settings** before connecting.
+
+The host still sends video and audio over the network in controller-only mode; only phone-side video decoding and display are disabled.
+
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/232a8tadrrn8jv0k/branch/master?svg=true)](https://ci.appveyor.com/project/cgutman/moonlight-android/branch/master)
 [![Translation Status](https://hosted.weblate.org/widgets/moonlight/-/moonlight-android/svg-badge.svg)](https://hosted.weblate.org/projects/moonlight/moonlight-android/)
 

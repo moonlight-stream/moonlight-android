@@ -7,7 +7,9 @@ package com.limelight.binding.input.virtual_controller;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -58,6 +60,7 @@ public class VirtualController {
     private Button buttonConfigure = null;
 
     private List<VirtualControllerElement> elements = new ArrayList<>();
+    private boolean acceptingInput = true;
 
     public VirtualController(final ControllerHandler controllerHandler, FrameLayout layout, final Context context) {
         this.controllerHandler = controllerHandler;
@@ -102,7 +105,36 @@ public class VirtualController {
         return handler;
     }
 
+    private void releaseAllInputs() {
+        inputContext.inputMap = 0;
+        inputContext.leftTrigger = 0;
+        inputContext.rightTrigger = 0;
+        inputContext.rightStickX = 0;
+        inputContext.rightStickY = 0;
+        inputContext.leftStickX = 0;
+        inputContext.leftStickY = 0;
+
+        // Use the normal retransmission path to protect against dropped release packets.
+        sendControllerInputContext();
+    }
+
+    boolean isAcceptingInput() {
+        return acceptingInput;
+    }
+
     public void hide() {
+        if (acceptingInput) {
+            long now = SystemClock.uptimeMillis();
+            MotionEvent cancelEvent = MotionEvent.obtain(now, now, MotionEvent.ACTION_CANCEL, 0, 0, 0);
+            for (VirtualControllerElement element : elements) {
+                element.dispatchTouchEvent(cancelEvent);
+            }
+            cancelEvent.recycle();
+
+            acceptingInput = false;
+            releaseAllInputs();
+        }
+
         for (VirtualControllerElement element : elements) {
             element.setVisibility(View.INVISIBLE);
         }
@@ -111,6 +143,8 @@ public class VirtualController {
     }
 
     public void show() {
+        acceptingInput = true;
+
         for (VirtualControllerElement element : elements) {
             element.setVisibility(View.VISIBLE);
         }

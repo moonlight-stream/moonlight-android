@@ -38,6 +38,7 @@ public class ShortcutTrampoline extends Activity {
     private int wakeHostTries = 10;
     private ComputerDetails computer;
     private SpinnerDialog blockingLoadSpinner;
+    private boolean handledUpdate;
 
     private ComputerManagerService.ComputerManagerBinder managerBinder;
 
@@ -117,12 +118,21 @@ public class ShortcutTrampoline extends Activity {
                                             blockingLoadSpinner = null;
                                         }
 
+                                        // A second update may already be queued before the first one
+                                        // unbinds below. The first one has already acted on the PC state
+                                        // (and may be showing the quit confirmation dialog), so ignore it.
+                                        if (handledUpdate) {
+                                            return;
+                                        }
+
                                         // If the managerBinder was destroyed before this callback,
                                         // just finish the activity.
                                         if (managerBinder == null) {
                                             finish();
                                             return;
                                         }
+
+                                        handledUpdate = true;
 
                                         if (details.state == ComputerDetails.State.ONLINE && details.pairState == PairingManager.PairState.PAIRED) {
                                             

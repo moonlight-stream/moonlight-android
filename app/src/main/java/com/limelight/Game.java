@@ -373,6 +373,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             performanceOverlayView.setVisibility(View.VISIBLE);
         }
 
+        // When nothing is drawn over the SurfaceView, the window above it is entirely
+        // see-through and SurfaceFlinger hands the hardware composer only the video layer.
+        // Some TVs (TCL with MediaTek SoCs) mishandle that case: a backlog builds up in the
+        // composer, and the picture freezes once a system overlay like the volume bar appears.
+        // Showing a 1px view above the video keeps a UI layer in the composition, which is
+        // what enabling the performance stats overlay does too.
+        if (prefConfig.keepUiLayer) {
+            findViewById(R.id.uiLayerKeepAlive).setVisibility(View.VISIBLE);
+        }
+
         decoderRenderer = new MediaCodecDecoderRenderer(
                 this,
                 prefConfig,

@@ -22,6 +22,17 @@
         <requestFocus />
     </com.limelight.ui.StreamView>
 
+    <!-- Invisible view above the video, shown when the "keep a UI layer" option is on.
+         It stops the window from being entirely see-through over the video. -->
+    <View
+        android:id="@+id/uiLayerKeepAlive"
+        android:layout_width="1px"
+        android:layout_height="1px"
+        android:layout_gravity="top|start"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        tools:ignore="PxUsage" />
+
     <TextView
         android:id="@+id/performanceOverlay"
         android:layout_width="wrap_content"

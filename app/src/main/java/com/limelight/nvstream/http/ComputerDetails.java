@@ -1,5 +1,7 @@
 package com.limelight.nvstream.http;
 
+import com.limelight.utils.NetHelper;
+
 import java.security.cert.X509Certificate;
 import java.util.Objects;
 
@@ -115,8 +117,12 @@ public class ComputerDetails {
         if (details.activeAddress != null) {
             this.activeAddress = details.activeAddress;
         }
-        // We can get IPv4 loopback addresses with GS IPv6 Forwarder
-        if (details.localAddress != null && !details.localAddress.address.startsWith("127.")) {
+        // We can get IPv4 loopback addresses with GS IPv6 Forwarder.
+        // A host reached through Tailscale can also report that Tailscale address (100.64.0.0/10)
+        // as its local address. That is how we reached it, not where it sits on its LAN, and
+        // keeping it would replace the LAN address we already know.
+        if (details.localAddress != null && !details.localAddress.address.startsWith("127.") &&
+                !NetHelper.isSharedAddressSpace(details.localAddress.address)) {
             this.localAddress = details.localAddress;
         }
         if (details.remoteAddress != null) {

@@ -32,6 +32,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -39,10 +40,14 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 
 import org.xmlpull.v1.XmlPullParserException;
 
 public class ComputerManagerService extends Service {
+    private static final String PREFER_MANUAL_AWAY_PREF_STRING = "checkbox_prefer_manual_address_away";
+    private static final boolean DEFAULT_PREFER_MANUAL_AWAY = false;
+
     private static final int SERVERINFO_POLLING_PERIOD_MS = 1500;
     private static final int APPLIST_POLLING_PERIOD_MS = 30000;
     private static final int APPLIST_FAILED_POLLING_RETRY_MS = 2000;
@@ -624,75 +629,71 @@ public class ComputerManagerService extends Service {
         tuple.pollingThread.start();
     }
 
+    /**
+     * Decides whether the manual address should be tried before the local one.
+     *
+     * The local address is normally preferred, but a device that is away from home can still
+     * reach it through a VPN subnet route (for example a Tailscale subnet router), which sends
+     * the stream through an extra hop. If a manual address is set and this device is not on the
+     * host's own network, prefer the manual address instead.
+     */
+    private boolean shouldPreferManualAddress(ComputerDetails details) {
+        if (details.manualAddress == null || details.localAddress == null ||
+                details.manualAddress.equals(details.localAddress)) {
+            return false;
+        }
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        if (!prefs.getBoolean(PREFER_MANUAL_AWAY_PREF_STRING, DEFAULT_PREFER_MANUAL_AWAY)) {
+            return false;
+        }
+
+        return !NetHelper.isOnLocalNetworkOf(this, details.localAddress.address);
+    }
+
     private ComputerDetails parallelPollPc(ComputerDetails details) throws InterruptedException {
         ParallelPollTuple localInfo = new ParallelPollTuple(details.localAddress, details);
         ParallelPollTuple manualInfo = new ParallelPollTuple(details.manualAddress, details);
         ParallelPollTuple remoteInfo = new ParallelPollTuple(details.remoteAddress, details);
         ParallelPollTuple ipv6Info = new ParallelPollTuple(details.ipv6Address, details);
 
+        // Addresses are used in this order of precedence: local, manual, remote IPv4, then global
+        // IPv6. When this device is away from the host's network, manual moves ahead of local.
+        ParallelPollTuple[] precedence;
+        if (shouldPreferManualAddress(details)) {
+            precedence = new ParallelPollTuple[] { manualInfo, localInfo, remoteInfo, ipv6Info };
+        }
+        else {
+            precedence = new ParallelPollTuple[] { localInfo, manualInfo, remoteInfo, ipv6Info };
+        }
+
         // These must be started in order of precedence for the deduplication algorithm
         // to result in the correct behavior.
         HashSet<ComputerDetails.AddressTuple> uniqueAddresses = new HashSet<>();
-        startParallelPollThread(localInfo, uniqueAddresses);
-        startParallelPollThread(manualInfo, uniqueAddresses);
-        startParallelPollThread(remoteInfo, uniqueAddresses);
-        startParallelPollThread(ipv6Info, uniqueAddresses);
+        for (ParallelPollTuple tuple : precedence) {
+            startParallelPollThread(tuple, uniqueAddresses);
+        }
 
         try {
-            // Check local first
-            synchronized (localInfo) {
-                while (!localInfo.complete) {
-                    localInfo.wait();
-                }
+            // Use the first address in order of precedence that answers
+            for (ParallelPollTuple tuple : precedence) {
+                synchronized (tuple) {
+                    while (!tuple.complete) {
+                        tuple.wait();
+                    }
 
-                if (localInfo.returnedDetails != null) {
-                    localInfo.returnedDetails.activeAddress = localInfo.address;
-                    return localInfo.returnedDetails;
-                }
-            }
-
-            // Now manual
-            synchronized (manualInfo) {
-                while (!manualInfo.complete) {
-                    manualInfo.wait();
-                }
-
-                if (manualInfo.returnedDetails != null) {
-                    manualInfo.returnedDetails.activeAddress = manualInfo.address;
-                    return manualInfo.returnedDetails;
-                }
-            }
-
-            // Now remote IPv4
-            synchronized (remoteInfo) {
-                while (!remoteInfo.complete) {
-                    remoteInfo.wait();
-                }
-
-                if (remoteInfo.returnedDetails != null) {
-                    remoteInfo.returnedDetails.activeAddress = remoteInfo.address;
-                    return remoteInfo.returnedDetails;
-                }
-            }
-
-            // Now global IPv6
-            synchronized (ipv6Info) {
-                while (!ipv6Info.complete) {
-                    ipv6Info.wait();
-                }
-
-                if (ipv6Info.returnedDetails != null) {
-                    ipv6Info.returnedDetails.activeAddress = ipv6Info.address;
-                    return ipv6Info.returnedDetails;
+                    if (tuple.returnedDetails != null) {
+                        tuple.returnedDetails.activeAddress = tuple.address;
+                        return tuple.returnedDetails;
+                    }
                 }
             }
         } finally {
             // Stop any further polling if we've found a working address or we've been
             // interrupted by an attempt to stop polling.
-            localInfo.interrupt();
-            manualInfo.interrupt();
-            remoteInfo.interrupt();
-            ipv6Info.interrupt();
+            for (ParallelPollTuple tuple : precedence) {
+                tuple.interrupt();
+            }
         }
 
         return null;

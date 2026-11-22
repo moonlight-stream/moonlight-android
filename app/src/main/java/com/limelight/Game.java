@@ -5,6 +5,7 @@ import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.audio.AndroidAudioRenderer;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.binding.input.capture.AndroidNativePointerCaptureProvider;
 import com.limelight.binding.input.capture.InputCaptureManager;
 import com.limelight.binding.input.capture.InputCaptureProvider;
 import com.limelight.binding.input.touch.AbsoluteTouchContext;
@@ -273,6 +274,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         performanceOverlayView = findViewById(R.id.performanceOverlay);
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
+        if (prefConfig.noPointerCapture && inputCaptureProvider instanceof AndroidNativePointerCaptureProvider) {
+            ((AndroidNativePointerCaptureProvider) inputCaptureProvider).setPointerCaptureAllowed(false);
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {

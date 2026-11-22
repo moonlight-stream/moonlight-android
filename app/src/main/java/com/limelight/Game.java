@@ -5,6 +5,7 @@ import com.limelight.binding.PlatformBinding;
 import com.limelight.binding.audio.AndroidAudioRenderer;
 import com.limelight.binding.input.ControllerHandler;
 import com.limelight.binding.input.KeyboardTranslator;
+import com.limelight.binding.input.capture.AndroidNativePointerCaptureProvider;
 import com.limelight.binding.input.capture.InputCaptureManager;
 import com.limelight.binding.input.capture.InputCaptureProvider;
 import com.limelight.binding.input.touch.AbsoluteTouchContext;
@@ -93,6 +94,73 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
         PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener {
     private int lastButtonState = 0;
+
+    // An uncaptured touchpad's two-finger scroll arrives as a fake finger drag,
+    // not as ACTION_SCROLL. Wheel units owed to the host from that drag, kept
+    // as a remainder so slow scrolling still adds up to whole units.
+    private static final float SWIPE_WHEEL_UNITS_PER_PIXEL = 2.5f;
+    private float swipeScrollRemainderX, swipeScrollRemainderY;
+
+    // MotionEvent.CLASSIFICATION_MULTI_FINGER_SWIPE, which the SDK this builds
+    // against does not expose
+    private static final int CLASSIFICATION_MULTI_FINGER_SWIPE = 4;
+
+    private static short clampToShort(int value) {
+        return (short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, value));
+    }
+
+    /**
+     * Android's touchpad gesture layer turns two-finger scrolling into a drag
+     * of fake fingers classified as a two-finger swipe, and three-finger
+     * swipes and pinches into similar drags. Read as mouse input, those move
+     * the cursor instead of scrolling. Turn the two-finger swipe into wheel
+     * movement and swallow the rest.
+     *
+     * Only an uncaptured touchpad produces these: a captured one reports its
+     * fingers as they are.
+     *
+     * @return true if the event was a touchpad gesture and has been handled
+     */
+    @TargetApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private boolean handleTouchpadGestureEvent(MotionEvent event) {
+        int classification = event.getClassification();
+        if (classification == MotionEvent.CLASSIFICATION_TWO_FINGER_SWIPE) {
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                swipeScrollRemainderX = swipeScrollRemainderY = 0;
+            }
+            else if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+                float dx = event.getAxisValue(MotionEvent.AXIS_GESTURE_SCROLL_X_DISTANCE);
+                float dy = event.getAxisValue(MotionEvent.AXIS_GESTURE_SCROLL_Y_DISTANCE);
+                for (int i = 0; i < event.getHistorySize(); i++) {
+                    dx += event.getHistoricalAxisValue(MotionEvent.AXIS_GESTURE_SCROLL_X_DISTANCE, i);
+                    dy += event.getHistoricalAxisValue(MotionEvent.AXIS_GESTURE_SCROLL_Y_DISTANCE, i);
+                }
+
+                // The gesture distance already carries Android's own scroll direction
+                // setting, and it runs opposite to the host's wheel: fingers moving
+                // down give a positive distance, which must turn the wheel down
+                // (negative) to match how the same touchpad scrolls on the host
+                // itself and in Android apps.
+                float vertical = -dy * SWIPE_WHEEL_UNITS_PER_PIXEL + swipeScrollRemainderY;
+                float horizontal = dx * SWIPE_WHEEL_UNITS_PER_PIXEL + swipeScrollRemainderX;
+                int wholeVertical = (int) vertical;
+                int wholeHorizontal = (int) horizontal;
+                swipeScrollRemainderY = vertical - wholeVertical;
+                swipeScrollRemainderX = horizontal - wholeHorizontal;
+
+                if (wholeVertical != 0) {
+                    conn.sendMouseHighResScroll(clampToShort(wholeVertical));
+                }
+                if (wholeHorizontal != 0) {
+                    conn.sendMouseHighResHScroll(clampToShort(wholeHorizontal));
+                }
+            }
+            return true;
+        }
+
+        return classification == CLASSIFICATION_MULTI_FINGER_SWIPE ||
+                classification == MotionEvent.CLASSIFICATION_PINCH;
+    }
 
     // Only 2 touches are supported
     private final TouchContext[] touchContextMap = new TouchContext[2];
@@ -273,6 +341,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         performanceOverlayView = findViewById(R.id.performanceOverlay);
 
         inputCaptureProvider = InputCaptureManager.getInputCaptureProvider(this, this);
+        if (prefConfig.noPointerCapture && inputCaptureProvider instanceof AndroidNativePointerCaptureProvider) {
+            ((AndroidNativePointerCaptureProvider) inputCaptureProvider).setPointerCaptureAllowed(false);
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             streamView.setOnCapturedPointerListener(new View.OnCapturedPointerListener() {
@@ -1838,6 +1909,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (!inputCaptureProvider.isCapturingActive()) {
                     // We return true here because otherwise the events may end up causing
                     // Android to synthesize d-pad events.
+                    return true;
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                        handleTouchpadGestureEvent(event)) {
                     return true;
                 }
 

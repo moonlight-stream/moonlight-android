@@ -17,6 +17,7 @@ import android.view.View;
 public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptureProvider implements InputManager.InputDeviceListener {
     private final InputManager inputManager;
     private final View targetView;
+    private boolean pointerCaptureAllowed = true;
 
     public AndroidNativePointerCaptureProvider(Activity activity, View targetView) {
         super(activity, targetView);
@@ -28,11 +29,25 @@ public class AndroidNativePointerCaptureProvider extends AndroidPointerIconCaptu
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
+    /**
+     * Some touchpads lose every click made without a finger resting on the pad
+     * while the pointer is captured: Android only reports a captured touchpad's
+     * buttons alongside its fingers. Leaving capture off hands the device back to
+     * Android's own touchpad handling, which reports those clicks normally.
+     */
+    public void setPointerCaptureAllowed(boolean allowed) {
+        pointerCaptureAllowed = allowed;
+    }
+
     // We only capture the pointer if we have a compatible InputDevice
     // present. This is a workaround for an Android 12 regression causing
     // incorrect mouse input when using the SPen.
     // https://github.com/moonlight-stream/moonlight-android/issues/1030
     private boolean hasCaptureCompatibleInputDevice() {
+        if (!pointerCaptureAllowed) {
+            return false;
+        }
+
         for (int id : InputDevice.getDeviceIds()) {
             InputDevice device = InputDevice.getDevice(id);
             if (device == null) {

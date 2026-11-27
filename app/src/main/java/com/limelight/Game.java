@@ -12,6 +12,8 @@ import com.limelight.binding.input.touch.RelativeTouchContext;
 import com.limelight.binding.input.driver.UsbDriverService;
 import com.limelight.binding.input.evdev.EvdevListener;
 import com.limelight.binding.input.touch.TouchContext;
+import com.limelight.binding.input.genshin.GenshinInputHandler;
+import com.limelight.binding.input.genshin.GenshinOverlayView;
 import com.limelight.binding.input.virtual_controller.VirtualController;
 import com.limelight.binding.video.CrashListener;
 import com.limelight.binding.video.MediaCodecDecoderRenderer;
@@ -112,6 +114,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private ControllerHandler controllerHandler;
     private KeyboardTranslator keyboardTranslator;
     private VirtualController virtualController;
+    private GenshinInputHandler genshinInputHandler;
+    private GenshinOverlayView genshinOverlayView;
 
     private PreferenceConfiguration prefConfig;
     private SharedPreferences tombstonePrefs;
@@ -431,7 +435,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // of gamepads removed and replugged at runtime.
             gamepadMask = 1;
         }
-        if (prefConfig.onscreenController) {
+        if (prefConfig.onscreenController && !prefConfig.genshinMode) {
             // If we're using OSC, always set at least gamepad 1.
             gamepadMask |= 1;
         }
@@ -504,7 +508,20 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
         }
 
-        if (prefConfig.onscreenController) {
+        if (prefConfig.genshinMode) {
+            // Genshin Mode uses KB+M packets exclusively and disables default gamepad OSC
+            genshinInputHandler = new GenshinInputHandler(GenshinInputHandler.fromConnection(conn));
+            genshinOverlayView = new GenshinOverlayView(this, genshinInputHandler, prefConfig);
+            FrameLayout rootLayout = (FrameLayout) streamView.getParent();
+            FrameLayout.LayoutParams genshinParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT);
+            rootLayout.addView(genshinOverlayView, genshinParams);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                genshinOverlayView.requestUnbufferedDispatch(InputDevice.SOURCE_CLASS_POINTER);
+            }
+        }
+        else if (prefConfig.onscreenController) {
             // create virtual onscreen controller
             virtualController = new VirtualController(controllerHandler,
                     (FrameLayout)streamView.getParent(),
@@ -542,8 +559,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         if (PreferenceConfiguration.isSquarishScreen(display)) {
             int desiredOrientation = Configuration.ORIENTATION_UNDEFINED;
 
-            // OSC doesn't properly support portrait displays, so don't use it in portrait mode by default
-            if (prefConfig.onscreenController) {
+            // OSC and Genshin overlay require landscape orientation
+            if (prefConfig.onscreenController || prefConfig.genshinMode) {
                 desiredOrientation = Configuration.ORIENTATION_LANDSCAPE;
             }
 
@@ -585,6 +602,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // Refresh layout of OSC for possible new screen size
             virtualController.refreshLayout();
         }
+        if (genshinOverlayView != null) {
+            genshinOverlayView.releaseAllInputs();
+        }
 
         // Hide on-screen overlays in PiP mode
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -593,6 +613,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 if (virtualController != null) {
                     virtualController.hide();
+                }
+                if (genshinOverlayView != null) {
+                    genshinOverlayView.releaseAllInputs();
+                    genshinOverlayView.setVisibility(View.GONE);
                 }
 
                 performanceOverlayView.setVisibility(View.GONE);
@@ -611,6 +635,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
                 if (virtualController != null) {
                     virtualController.show();
+                }
+                if (genshinOverlayView != null) {
+                    genshinOverlayView.setVisibility(View.VISIBLE);
                 }
 
                 if (prefConfig.enablePerfOverlay) {
@@ -745,6 +772,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // We can't guarantee the state of modifiers keys which may have
         // lifted while focus was not on us. Clear the modifier state.
         this.modifierFlags = 0;
+
+        if (!hasFocus && genshinOverlayView != null) {
+            genshinOverlayView.releaseAllInputs();
+        }
 
         // With Android native pointer capture, capture is lost when focus is lost,
         // so it must be requested again when focus is regained.
@@ -1036,6 +1067,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     protected void onDestroy() {
         super.onDestroy();
 
+        if (genshinOverlayView != null) {
+            genshinOverlayView.releaseAllInputs();
+        }
         if (controllerHandler != null) {
             controllerHandler.destroy();
         }
@@ -1062,10 +1096,16 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     protected void onPause() {
+        if (genshinOverlayView != null) {
+            genshinOverlayView.releaseAllInputs();
+        }
         if (isFinishing()) {
             // Stop any further input device notifications before we lose focus (and pointer capture)
             if (controllerHandler != null) {
-                controllerHandler.stop();
+                if (genshinOverlayView != null) {
+                genshinOverlayView.releaseAllInputs();
+            }
+            controllerHandler.stop();
             }
 
             // Ungrab input to prevent further input device notifications
@@ -1084,6 +1124,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
         if (virtualController != null) {
             virtualController.hide();
+        }
+        if (genshinOverlayView != null) {
+            genshinOverlayView.releaseAllInputs();
+            genshinOverlayView.setVisibility(View.GONE);
         }
 
         if (conn != null) {
@@ -1993,6 +2037,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             // This case is for fingers
             else
             {
+                if (genshinOverlayView != null && genshinOverlayView.getVisibility() == View.VISIBLE) {
+                    // Genshin overlay owns all finger touch input when enabled
+                    return true;
+                }
+
                 if (virtualController != null &&
                         (virtualController.getControllerMode() == VirtualController.ControllerMode.MoveButtons ||
                          virtualController.getControllerMode() == VirtualController.ControllerMode.ResizeButtons)) {
@@ -2230,6 +2279,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             connecting = connected = false;
             updatePipAutoEnter();
 
+            if (genshinOverlayView != null) {
+                genshinOverlayView.releaseAllInputs();
+            }
             controllerHandler.stop();
 
             // Update GameManager state to indicate we're no longer in game
@@ -2302,7 +2354,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
                 // Stop processing controller input
-                controllerHandler.stop();
+                if (genshinOverlayView != null) {
+                genshinOverlayView.releaseAllInputs();
+            }
+            controllerHandler.stop();
 
                 // Ungrab input
                 setInputGrabState(false);

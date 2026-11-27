@@ -137,4 +137,17 @@
         <item>right</item>
         <item>left</item>
     </string-array>
+
+    <string-array name="genshin_profile_names">
+        <item>@string/genshin_profile_default</item>
+        <item>@string/genshin_profile_compact</item>
+        <item>@string/genshin_profile_tablet</item>
+        <item>@string/genshin_profile_custom</item>
+    </string-array>
+    <string-array name="genshin_profile_values" translatable="false">
+        <item>default</item>
+        <item>compact</item>
+        <item>tablet</item>
+        <item>custom</item>
+    </string-array>
 </resources>

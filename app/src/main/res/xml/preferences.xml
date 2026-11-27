@@ -193,6 +193,81 @@
             />
 
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/category_genshin_overlay_settings"
+        android:key="category_genshin_overlay">
+        <CheckBoxPreference
+            android:key="checkbox_genshin_mode"
+            android:title="@string/title_genshin_mode"
+            android:summary="@string/summary_genshin_mode"
+            android:defaultValue="false" />
+        <ListPreference
+            android:key="list_genshin_profile"
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_genshin_profile"
+            android:summary="@string/summary_genshin_profile"
+            android:entries="@array/genshin_profile_names"
+            android:entryValues="@array/genshin_profile_values"
+            android:defaultValue="default" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_genshin_camera_sensitivity"
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_genshin_camera_sensitivity"
+            android:summary="@string/summary_genshin_camera_sensitivity"
+            android:dialogMessage="@string/summary_genshin_camera_sensitivity"
+            seekbar:min="50"
+            seekbar:step="5"
+            android:max="200"
+            android:defaultValue="100"
+            android:text="@string/suffix_genshin_percent" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_genshin_button_scale"
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_genshin_button_scale"
+            android:summary="@string/summary_genshin_button_scale"
+            android:dialogMessage="@string/summary_genshin_button_scale"
+            seekbar:min="60"
+            seekbar:step="5"
+            android:max="150"
+            android:defaultValue="100"
+            android:text="@string/suffix_genshin_percent" />
+        <com.limelight.preferences.SeekBarPreference
+            android:key="seekbar_genshin_opacity"
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_genshin_opacity"
+            android:summary="@string/summary_genshin_opacity"
+            android:dialogMessage="@string/summary_genshin_opacity"
+            seekbar:min="15"
+            seekbar:step="5"
+            android:max="100"
+            android:defaultValue="75"
+            android:text="@string/suffix_genshin_percent" />
+        <CheckBoxPreference
+            android:key="checkbox_genshin_sprint_toggle"
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_genshin_sprint_toggle"
+            android:summary="@string/summary_genshin_sprint_toggle"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_genshin_sprint_rmb"
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_genshin_sprint_rmb"
+            android:summary="@string/summary_genshin_sprint_rmb"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="checkbox_genshin_show_secondary"
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_genshin_show_secondary"
+            android:summary="@string/summary_genshin_show_secondary"
+            android:defaultValue="true" />
+        <com.limelight.preferences.ConfirmResetGenshinPreference
+            android:dependency="checkbox_genshin_mode"
+            android:title="@string/title_reset_genshin"
+            android:summary="@string/summary_reset_genshin"
+            android:dialogTitle="@string/dialog_title_reset_genshin"
+            android:dialogMessage="@string/dialog_text_reset_genshin"
+            android:positiveButtonText="@string/yes"
+            android:negativeButtonText="@string/no" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/category_host_settings">
         <CheckBoxPreference
             android:key="checkbox_enable_sops"

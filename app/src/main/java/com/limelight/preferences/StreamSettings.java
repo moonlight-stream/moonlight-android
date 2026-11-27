@@ -282,6 +282,11 @@ public class StreamSettings extends Activity {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_onscreen_controls");
                 screen.removePreference(category);
+                PreferenceCategory genshinCategory =
+                        (PreferenceCategory) findPreference("category_genshin_overlay");
+                if (genshinCategory != null) {
+                    screen.removePreference(genshinCategory);
+                }
             }
 
             // Hide remote desktop mouse mode on pre-Oreo (which doesn't have pointer capture)

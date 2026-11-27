@@ -69,6 +69,16 @@ public class PreferenceConfiguration {
     private static final String GAMEPAD_MOTION_SENSORS_PREF_STRING = "checkbox_gamepad_motion_sensors";
     private static final String GAMEPAD_MOTION_FALLBACK_PREF_STRING = "checkbox_gamepad_motion_fallback";
 
+    // Genshin Impact Mobile overlay preferences
+    private static final String GENSHIN_MODE_PREF_STRING = "checkbox_genshin_mode";
+    private static final String GENSHIN_PROFILE_PREF_STRING = "list_genshin_profile";
+    private static final String GENSHIN_CAMERA_SENS_PREF_STRING = "seekbar_genshin_camera_sensitivity";
+    private static final String GENSHIN_BUTTON_SCALE_PREF_STRING = "seekbar_genshin_button_scale";
+    private static final String GENSHIN_OPACITY_PREF_STRING = "seekbar_genshin_opacity";
+    private static final String GENSHIN_SPRINT_TOGGLE_PREF_STRING = "checkbox_genshin_sprint_toggle";
+    private static final String GENSHIN_SPRINT_RMB_PREF_STRING = "checkbox_genshin_sprint_rmb";
+    private static final String GENSHIN_SHOW_SECONDARY_PREF_STRING = "checkbox_genshin_show_secondary";
+
     static final String DEFAULT_RESOLUTION = "1280x720";
     static final String DEFAULT_FPS = "60";
     private static final boolean DEFAULT_STRETCH = false;
@@ -108,6 +118,15 @@ public class PreferenceConfiguration {
     private static final boolean DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE = false;
     private static final boolean DEFAULT_GAMEPAD_MOTION_SENSORS = true;
     private static final boolean DEFAULT_GAMEPAD_MOTION_FALLBACK = false;
+
+    private static final boolean DEFAULT_GENSHIN_MODE = false;
+    private static final String DEFAULT_GENSHIN_PROFILE = "default";
+    private static final int DEFAULT_GENSHIN_CAMERA_SENS = 100; // 1.0x (50..200 => 0.5x..2.0x)
+    private static final int DEFAULT_GENSHIN_BUTTON_SCALE = 100; // 100% (60..150)
+    private static final int DEFAULT_GENSHIN_OPACITY = 75; // 75%
+    private static final boolean DEFAULT_GENSHIN_SPRINT_TOGGLE = false;
+    private static final boolean DEFAULT_GENSHIN_SPRINT_RMB = false;
+    private static final boolean DEFAULT_GENSHIN_SHOW_SECONDARY = true;
 
     public static final int FRAME_PACING_MIN_LATENCY = 0;
     public static final int FRAME_PACING_BALANCED = 1;
@@ -155,6 +174,16 @@ public class PreferenceConfiguration {
     public boolean gamepadMotionSensors;
     public boolean gamepadTouchpadAsMouse;
     public boolean gamepadMotionSensorsFallbackToDevice;
+
+    // Genshin Impact Mobile overlay configuration
+    public boolean genshinMode;
+    public String genshinProfile;
+    public int genshinCameraSensitivity;
+    public int genshinButtonScale;
+    public int genshinOpacity;
+    public boolean genshinSprintToggle;
+    public boolean genshinSprintUseRmb;
+    public boolean genshinShowSecondaryBar;
 
     public static boolean isNativeResolution(int width, int height) {
         // It's not a native resolution if it matches an existing resolution option
@@ -601,6 +630,15 @@ public class PreferenceConfiguration {
         config.gamepadTouchpadAsMouse = prefs.getBoolean(GAMEPAD_TOUCHPAD_AS_MOUSE_PREF_STRING, DEFAULT_GAMEPAD_TOUCHPAD_AS_MOUSE);
         config.gamepadMotionSensors = prefs.getBoolean(GAMEPAD_MOTION_SENSORS_PREF_STRING, DEFAULT_GAMEPAD_MOTION_SENSORS);
         config.gamepadMotionSensorsFallbackToDevice = prefs.getBoolean(GAMEPAD_MOTION_FALLBACK_PREF_STRING, DEFAULT_GAMEPAD_MOTION_FALLBACK);
+
+        config.genshinMode = prefs.getBoolean(GENSHIN_MODE_PREF_STRING, DEFAULT_GENSHIN_MODE);
+        config.genshinProfile = prefs.getString(GENSHIN_PROFILE_PREF_STRING, DEFAULT_GENSHIN_PROFILE);
+        config.genshinCameraSensitivity = prefs.getInt(GENSHIN_CAMERA_SENS_PREF_STRING, DEFAULT_GENSHIN_CAMERA_SENS);
+        config.genshinButtonScale = prefs.getInt(GENSHIN_BUTTON_SCALE_PREF_STRING, DEFAULT_GENSHIN_BUTTON_SCALE);
+        config.genshinOpacity = prefs.getInt(GENSHIN_OPACITY_PREF_STRING, DEFAULT_GENSHIN_OPACITY);
+        config.genshinSprintToggle = prefs.getBoolean(GENSHIN_SPRINT_TOGGLE_PREF_STRING, DEFAULT_GENSHIN_SPRINT_TOGGLE);
+        config.genshinSprintUseRmb = prefs.getBoolean(GENSHIN_SPRINT_RMB_PREF_STRING, DEFAULT_GENSHIN_SPRINT_RMB);
+        config.genshinShowSecondaryBar = prefs.getBoolean(GENSHIN_SHOW_SECONDARY_PREF_STRING, DEFAULT_GENSHIN_SHOW_SECONDARY);
 
         return config;
     }

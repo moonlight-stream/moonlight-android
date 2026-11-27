@@ -303,4 +303,33 @@
     <string name="analogscroll_none">None (both sticks move the mouse)</string>
     <string name="analogscroll_right">Right analog stick</string>
     <string name="analogscroll_left">Left analog stick</string>
+
+    <!-- Genshin Impact Mobile Overlay -->
+    <string name="category_genshin_overlay_settings">Genshin Impact Touch Overlay (KB+M)</string>
+    <string name="title_genshin_mode">Enable Genshin Mode</string>
+    <string name="summary_genshin_mode">Show Genshin Impact Mobile touch controls mapped to PC keyboard &amp; mouse (disables default gamepad OSC)</string>
+    <string name="title_genshin_profile">Layout profile</string>
+    <string name="summary_genshin_profile">Choose which saved button layout profile to use</string>
+    <string name="genshin_profile_default">Default (Phone)</string>
+    <string name="genshin_profile_compact">Compact</string>
+    <string name="genshin_profile_tablet">Tablet</string>
+    <string name="genshin_profile_custom">Custom</string>
+    <string name="title_genshin_camera_sensitivity">Camera sensitivity</string>
+    <string name="summary_genshin_camera_sensitivity" formatted="false">Right-screen drag camera speed (50% = 0.5x, 200% = 2.0x)</string>
+    <string name="title_genshin_button_scale">Button size</string>
+    <string name="summary_genshin_button_scale" formatted="false">Scale all Genshin overlay controls (60%–150%)</string>
+    <string name="title_genshin_opacity">Overlay opacity</string>
+    <string name="summary_genshin_opacity">Default transparency of Genshin overlay controls</string>
+    <string name="suffix_genshin_percent">%</string>
+    <string name="title_genshin_sprint_toggle">Toggle sprint instead of hold</string>
+    <string name="summary_genshin_sprint_toggle">Tap Sprint/Dash to toggle running instead of holding</string>
+    <string name="title_genshin_sprint_rmb">Use Right Mouse Button for sprint</string>
+    <string name="summary_genshin_sprint_rmb">Send Right Mouse Button instead of Left Shift for Sprint/Dash</string>
+    <string name="title_genshin_show_secondary">Show secondary utility bar by default</string>
+    <string name="summary_genshin_show_secondary">Display top/secondary keys (M, B, C, Esc, J, V, Tab, R, Z, T, X, Eye) on stream start</string>
+    <string name="title_reset_genshin">Reset saved Genshin layouts</string>
+    <string name="summary_reset_genshin">Restore all Genshin overlay profiles to their default positions and sizes</string>
+    <string name="dialog_title_reset_genshin">Reset Genshin Layouts</string>
+    <string name="dialog_text_reset_genshin">Are you sure you want to reset all saved Genshin overlay layout profiles?</string>
+    <string name="toast_reset_genshin_success">Genshin overlay layouts reset to default</string>
 </resources>
